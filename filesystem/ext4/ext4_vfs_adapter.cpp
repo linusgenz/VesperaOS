@@ -147,19 +147,19 @@ static dirent_type_t map_ext4_type(const FileEntry& fe) {
 
     switch (fe.type) {
         case DirEntryType::RegularFile:
-            return DT_FILE;
+            return DT_REG;
         case DirEntryType::Directory:
             return DT_DIR;
         case DirEntryType::SymbolicLink:
-            return DT_SYMLINK;
+            return DT_LNK;
         case DirEntryType::CharDevice:
-            return DT_CHARDEV;
+            return DT_CHR;
         case DirEntryType::BlockDevice:
-            return DT_BLOCKDEV;
+            return DT_BLK;
         case DirEntryType::Fifo:
             return DT_FIFO;
         case DirEntryType::Socket:
-            return DT_SOCKET;
+            return DT_SOCK;
         default:
             return DT_UNKNOWN;
     }
@@ -173,9 +173,9 @@ static Result<bool> ext4_readdir(void* dir_handle, dirent_t* out) {
 
     const FileEntry& fe = h->entries[h->index++];
     const usize len = strlen(fe.name);
-    memcpy(out->name, fe.name, len);
-    out->name[len] = '\0';
-    out->type = map_ext4_type(fe);
+    memcpy(out->d_name, fe.name, len);
+    out->d_name[len] = '\0';
+    out->d_type = map_ext4_type(fe);
 
     return Result<bool>::ok(true);
 }

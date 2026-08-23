@@ -151,9 +151,9 @@ static Result<bool> fat32_readdir(void* h, dirent_t* out) {
     const char* name = entry.get_name();
     if (!name) return Result<bool>::ok(false);
 
-    strncpy(out->name, name, sizeof(out->name) - 1);
-    out->name[sizeof(out->name) - 1] = '\0';
-    out->type = entry.is_dir() ? DT_DIR : DT_FILE;
+    strncpy(out->d_name, name, sizeof(out->d_name) - 1);
+    out->d_name[sizeof(out->d_name) - 1] = '\0';
+    out->d_type = entry.is_dir() ? DT_DIR : DT_REG;
 
     handle->index++;
     return Result<bool>::ok(true);

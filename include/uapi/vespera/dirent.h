@@ -30,14 +30,14 @@
  */
 typedef enum dirent_type {
     DT_UNKNOWN = 0, ///< Unknown entry type (not determined)
-    DT_FILE,        ///< Regular file
     DT_DIR,         ///< Directory
-    DT_SYMLINK,     ///< Symbolic link
-    DT_CHARDEV,     ///< Character device
-    DT_BLOCKDEV,    ///< Block device
+    DT_LNK,         ///< Symbolic link
+    DT_CHR,         ///< Character device
+    DT_BLK,         ///< Block device
     DT_FIFO,        ///< Named pipe (FIFO)
-    DT_SOCKET,      ///< Socket
-    DT_EXEC         ///< Executable file
+    DT_SOCK,        ///< Socket
+    DT_EXEC,        ///< Executable file
+    DT_REG,         ///< Regular file
 } dirent_type_t;
 
 /**
@@ -46,8 +46,8 @@ typedef enum dirent_type {
  * Contains information about a single directory entry.
  */
 typedef struct dirent {
-    char name[128];      ///< Null-terminated entry name (up to 127 characters)
-    dirent_type_t type;  ///< Type of the directory entry (see ::dirent_type_t)
+    char d_name[128];      ///< Null-terminated entry name (up to 127 characters)
+    dirent_type_t d_type;  ///< Type of the directory entry (see ::dirent_type_t)
 } dirent_t;
 
 #endif  // VESPERAOS_DIRENT_H

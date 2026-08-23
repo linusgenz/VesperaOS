@@ -292,16 +292,25 @@ namespace ext4 {
 
     // group descriptor
 
-    static u64 group_desc_offset(u32 group, u32 bsize) {
+    // Actual on-disk size of a single group descriptor.
+    u32 FileSystem::group_desc_stride() const {
+        if ((superblock_.s_feature_incompat & EXT4_INCOMPAT_64BIT) && superblock_.s_desc_size != 0) {
+            return superblock_.s_desc_size;
+        }
+        return 32;
+    }
+
+    static u64 group_desc_offset(u32 group, u32 bsize, u32 desc_stride) {
         const u64 gd_table_block = (bsize == 1024) ? 2 : 1;
-        return gd_table_block * bsize + static_cast<u64>(group) * sizeof(GroupDesc);
+        return gd_table_block * bsize + static_cast<u64>(group) * desc_stride;
     }
 
     bool FileSystem::read_group_desc(u32 group, GroupDesc& out_gd) const {
         const u32 bsize = get_block_size();
-        const u64 gd_offset = group_desc_offset(group, bsize);
+        const u32 desc_stride = group_desc_stride();
+        const u64 gd_offset = group_desc_offset(group, bsize, desc_stride);
         const u64 start_sect = gd_offset / sector_size_;
-        const u32 count = (sizeof(GroupDesc) + sector_size_ - 1) / sector_size_;
+        const u32 count = (desc_stride + sector_size_ - 1) / sector_size_;
         const u32 buf_size = count * sector_size_;
 
         auto* buf = static_cast<u8*>(kernel::memory::malloc(buf_size));
@@ -309,7 +318,12 @@ namespace ext4 {
 
         const bool ok = device_->read(start_sect, count, buf, buf_size);
         if (ok) {
-            memcpy(&out_gd, buf + (gd_offset % sector_size_), sizeof(GroupDesc));
+            out_gd = GroupDesc{};
+            // Only copy as many bytes as actually exist on disk for this
+            // descriptor (32 on legacy filesystems, 64 with the 64bit
+            // feature) - never read past what's really there.
+            const u32 copy_size = desc_stride < sizeof(GroupDesc) ? desc_stride : sizeof(GroupDesc);
+            memcpy(&out_gd, buf + (gd_offset % sector_size_), copy_size);
         }
 
         kernel::memory::free(buf);
@@ -318,9 +332,10 @@ namespace ext4 {
 
     bool FileSystem::write_group_desc(u32 group, const GroupDesc& gd) const {
         const u32 bsize = get_block_size();
-        const u64 gd_offset = group_desc_offset(group, bsize);
+        const u32 desc_stride = group_desc_stride();
+        const u64 gd_offset = group_desc_offset(group, bsize, desc_stride);
         const u64 start_sect = gd_offset / sector_size_;
-        const u32 count = (sizeof(GroupDesc) + sector_size_ - 1) / sector_size_;
+        const u32 count = (desc_stride + sector_size_ - 1) / sector_size_;
         const u32 buf_size = count * sector_size_;
 
         auto* buf = static_cast<u8*>(kernel::memory::malloc(buf_size));
@@ -329,7 +344,8 @@ namespace ext4 {
         // Read-modify-write um benachbarte Desktriptoren nicht zu beschädigen.
         bool ok = device_->read(start_sect, count, buf, buf_size);
         if (ok) {
-            memcpy(buf + (gd_offset % sector_size_), &gd, sizeof(GroupDesc));
+            const u32 copy_size = desc_stride < sizeof(GroupDesc) ? desc_stride : sizeof(GroupDesc);
+            memcpy(buf + (gd_offset % sector_size_), &gd, copy_size);
             ok = device_->write(start_sect, count, buf, buf_size);
         }
 

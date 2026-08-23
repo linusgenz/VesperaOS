@@ -231,9 +231,9 @@ class VirtualFilesystem {
 
         if (idx < data->subdirs.size()) {
             VfsNode* sub = data->subdirs[idx];
-            strncpy(out->name, sub->name, sizeof(out->name) - 1);
-            out->name[sizeof(out->name) - 1] = '\0';
-            out->type = DT_DIR;
+            strncpy(out->d_name, sub->name, sizeof(out->d_name) - 1);
+            out->d_name[sizeof(out->d_name) - 1] = '\0';
+            out->d_type = DT_DIR;
             ++h->index;
             return Result<bool>::ok(true);
         }
@@ -242,9 +242,9 @@ class VirtualFilesystem {
 
         if (idx < data->files.size()) {
             VfsNode* file = data->files[idx];
-            strncpy(out->name, file->name, sizeof(out->name) - 1);
-            out->name[sizeof(out->name) - 1] = '\0';
-            out->type = VFS::node_type_to_dirent_type(file->type);
+            strncpy(out->d_name, file->name, sizeof(out->d_name) - 1);
+            out->d_name[sizeof(out->d_name) - 1] = '\0';
+            out->d_type = VFS::node_type_to_dirent_type(file->type);
             ++h->index;
             return Result<bool>::ok(true);
         }

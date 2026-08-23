@@ -65,10 +65,13 @@ bool VFS::resolve_parent(const char* path, VfsNode** parent_out, char* name_out)
 
 dirent_type_t VFS::node_type_to_dirent_type(const VfsNodeType type) {
     switch (type) {
-        case VfsNodeType::File: return DT_FILE;
+        case VfsNodeType::File: return DT_REG;
         case VfsNodeType::Directory: return DT_DIR;
-        case VfsNodeType::CharDevice: return DT_CHARDEV;
-        case VfsNodeType::BlockDevice: return DT_BLOCKDEV;
+        case VfsNodeType::CharDevice: return DT_CHR;
+        case VfsNodeType::BlockDevice: return DT_BLK;
+        case VfsNodeType::Fifo: return DT_FIFO;
+        case VfsNodeType::Symlink: return DT_LNK;
+        case VfsNodeType::Socket: return DT_SOCK;
         case VfsNodeType::OtherDevice:
         default:
             return DT_UNKNOWN;

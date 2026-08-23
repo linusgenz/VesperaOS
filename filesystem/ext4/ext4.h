@@ -111,7 +111,22 @@ namespace ext4 {
         u8 s_uuid[16];
         u8 s_volume_name[16];
         u8 s_last_mounted[64];
+        u32 s_algorithm_usage_bitmap;
+        u8 s_prealloc_blocks;
+        u8 s_prealloc_dir_blocks;
+        u16 s_reserved_gdt_blocks;
+        u8 s_journal_uuid[16];
+        u32 s_journal_inum;
+        u32 s_journal_dev;
+        u32 s_last_orphan;
+        u32 s_hash_seed[4];
+        u8 s_def_hash_version;
+        u8 s_jnl_backup_type;
+        u16 s_desc_size; // size of group descriptor, in bytes, if INCOMPAT_64BIT set (0 => 32)
     } __attribute__((packed));
+
+    // relevant s_feature_incompat bits
+    constexpr u32 EXT4_INCOMPAT_64BIT = 0x0080;
 
     struct GroupDesc {
         u32 bg_block_bitmap_lo;
@@ -126,7 +141,21 @@ namespace ext4 {
         u16 bg_inode_bitmap_csum_lo;
         u16 bg_itable_unused_lo;
         u16 bg_checksum;
+        // --- 64bit-feature extension (only present on disk if
+        // s_feature_incompat & INCOMPAT_64BIT, i.e. s_desc_size == 64).
+        u32 bg_block_bitmap_hi;
+        u32 bg_inode_bitmap_hi;
+        u32 bg_inode_table_hi;
+        u16 bg_free_blocks_count_hi;
+        u16 bg_free_inodes_count_hi;
+        u16 bg_used_dirs_count_hi;
+        u16 bg_itable_unused_hi;
+        u32 bg_exclude_bitmap_hi;
+        u16 bg_block_bitmap_csum_hi;
+        u16 bg_inode_bitmap_csum_hi;
+        u32 bg_reserved;
     } __attribute__((packed));
+    static_assert(sizeof(GroupDesc) == 64, "GroupDesc must match on-disk 64bit-feature descriptor size");
 
     struct Inode {
         u16 i_mode;
@@ -306,6 +335,7 @@ namespace ext4 {
         bool write_block_raw(u64 block, const void* buf, u32 buf_size) const;
         bool read_block(u64 block, void* out_buf, u32 buf_size) const;
         bool write_block(u64 block, const void* buf, u32 buf_size) const;
+        [[nodiscard]] u32 group_desc_stride() const;
         bool read_group_desc(u32 group, GroupDesc& out_gd) const;
         [[nodiscard]] bool write_group_desc(u32 group, const GroupDesc& gd) const;
         u64 inode_disk_offset(u32 inode_no, u32& out_inode_size) const;

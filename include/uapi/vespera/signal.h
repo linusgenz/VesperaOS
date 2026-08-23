@@ -24,8 +24,8 @@
 
 #include <vespera/types.h>
 
-#define SIG_DFL ((void(*)(int))0)
-#define SIG_IGN ((void(*)(int))1)
+#define SIG_DFL ((void(*)(int))0) /* Default signal handling           */
+#define SIG_IGN ((void(*)(int))1) /* Ignore signal                     */
 
 struct sigaction_t {
      void (*handler)(int);

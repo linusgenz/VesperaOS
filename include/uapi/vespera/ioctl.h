@@ -66,6 +66,12 @@ IOC(IOC_READ | IOC_WRITE, (type), (nr), sizeof(data_type))
 #define _IOR(type, nr, data_type)       IOR(type, nr, data_type)
 #define _IOW(type, nr, data_type)       IOW(type, nr, data_type)
 #define _IOWR(type, nr, data_type)      IOWR(type, nr, data_type)
+#define _IOC(dir, type, nr, size) IOC(dir, type, nr, size)
+
+#define IOC_VOID   IOC_NONE
+#define IOC_OUT    IOC_READ
+#define IOC_IN     IOC_WRITE
+#define IOC_INOUT  (IOC_READ | IOC_WRITE)
 
 
 /* Decoder */
