@@ -26,6 +26,7 @@ var stdlib_8h =
     [ "labs", "stdlib_8h.html#a3102965969578ae09e43dfc53996e90e", null ],
     [ "llabs", "stdlib_8h.html#a79e098ceca824091ed146f1c25c89dd9", null ],
     [ "malloc", "stdlib_8h.html#a9c36d0fe3ec4675cbffdc9b52f5fb399", null ],
+    [ "mbtowc", "stdlib_8h.html#a5ef32b5a0609786de9363e1b5e1e60b8", null ],
     [ "mkstemp", "stdlib_8h.html#a166d1f9c85394d1086977e2ced6f357b", null ],
     [ "mkstemps", "stdlib_8h.html#ae54b702477b37bfc027b768c2cfb64b0", null ],
     [ "qsort", "stdlib_8h.html#a9a3f08ab3e633d7ba74925aeb907ba53", null ],

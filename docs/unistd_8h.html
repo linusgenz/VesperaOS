@@ -237,6 +237,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a256986714323ce15d6c80ae1fcd5495b" id="r_a256986714323ce15d6c80ae1fcd5495b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="unistd_8h.html#a256986714323ce15d6c80ae1fcd5495b">usleep</a> (<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> usec)</td></tr>
 <tr class="memdesc:a256986714323ce15d6c80ae1fcd5495b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sleep for (at least) <code>usec</code> microseconds.  <br /></td></tr>
 <tr class="separator:a256986714323ce15d6c80ae1fcd5495b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b89c77687f2ddc931aff3982814c39f" id="r_a1b89c77687f2ddc931aff3982814c39f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="unistd_8h.html#a1b89c77687f2ddc931aff3982814c39f">chown</a> (const char *path, <a class="el" href="alltypes_8h.html#a6e28f77f9ed84a3dc1ff80d2124e1212">uid_t</a> owner, <a class="el" href="alltypes_8h.html#aede84ed751975947052f282ae1d2e235">gid_t</a> group)</td></tr>
+<tr class="separator:a1b89c77687f2ddc931aff3982814c39f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5bb4b84798a2a55b3cfcb3f6475c69ed" id="r_a5bb4b84798a2a55b3cfcb3f6475c69ed"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="unistd_8h.html#a5bb4b84798a2a55b3cfcb3f6475c69ed">sysconf</a> (int name)</td></tr>
 <tr class="memdesc:a5bb4b84798a2a55b3cfcb3f6475c69ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Query a runtime system limit or option (see <em>SC</em>* above).  <br /></td></tr>
 <tr class="separator:a5bb4b84798a2a55b3cfcb3f6475c69ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -715,6 +717,40 @@ Functions</h2></td></tr>
 
 <p>Change the current working directory. </p>
 <dl class="section return"><dt>Returns</dt><dd>0 on success, -1 on error (errno set). </dd></dl>
+
+</div>
+</div>
+<a id="a1b89c77687f2ddc931aff3982814c39f" name="a1b89c77687f2ddc931aff3982814c39f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1b89c77687f2ddc931aff3982814c39f">&#9670;&#160;</a></span>chown()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int chown </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>path</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#a6e28f77f9ed84a3dc1ff80d2124e1212">uid_t</a>&#160;</td>
+          <td class="paramname"><em>owner</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#aede84ed751975947052f282ae1d2e235">gid_t</a>&#160;</td>
+          <td class="paramname"><em>group</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>

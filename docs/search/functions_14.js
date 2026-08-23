@@ -18,10 +18,13 @@ var searchData=
   ['timer_15',['timer',['../classstella_1_1Timer.html#a059ab0aa793338b9a200aa258d8b86ac',1,'stella::Timer::Timer(const Timer &amp;)=delete'],['../classstella_1_1Timer.html#a15c17fb7957e2b6e3ca67e320aba1b99',1,'stella::Timer::Timer(std::function&lt; void()&gt; cb, uint32_t period_ms)']]],
   ['tmpfile_16',['tmpfile',['../stdio_8h.html#a23bda9b63cbe1f3d86aaff779b2b9f10',1,'stdio.h']]],
   ['tmpnam_17',['tmpnam',['../stdlib_8h.html#aaff28d1d411bc932ad8120940f0d0c96',1,'stdlib.h']]],
-  ['trackcolor_18',['trackColor',['../classstella_1_1Bar.html#ad3a9b46f8151f49741b44763aaf96852',1,'stella::Bar']]],
-  ['trackradius_19',['trackRadius',['../classstella_1_1Bar.html#ac0e933c3374562e374c8cfe1aa27359d',1,'stella::Bar']]],
-  ['trunc_20',['trunc',['../math_8h.html#a55f84b6115c8851582e231e8bf41a6e9',1,'math.h']]],
-  ['truncf_21',['truncf',['../math_8h.html#a211ef0b6530cfa92bdb1c2304cccf622',1,'math.h']]],
-  ['truncl_22',['truncl',['../math_8h.html#a8387043929aba46cedaeb18030827aa9',1,'math.h']]],
-  ['tty_5fget_5fsize_23',['tty_get_size',['../termios_8h.html#acf1b231a5a7579fc576dc2fb8f4d6c6f',1,'termios.h']]]
+  ['towctrans_18',['towctrans',['../wctype_8h.html#a1088e6ae1278920291307aefe4080c59',1,'wctype.h']]],
+  ['towlower_19',['towlower',['../wctype_8h.html#a0404862c8209a5aab9b4feaa0bdac934',1,'wctype.h']]],
+  ['towupper_20',['towupper',['../wctype_8h.html#a8228f0be2e1db7ca5b65893355266de1',1,'wctype.h']]],
+  ['trackcolor_21',['trackColor',['../classstella_1_1Bar.html#ad3a9b46f8151f49741b44763aaf96852',1,'stella::Bar']]],
+  ['trackradius_22',['trackRadius',['../classstella_1_1Bar.html#ac0e933c3374562e374c8cfe1aa27359d',1,'stella::Bar']]],
+  ['trunc_23',['trunc',['../math_8h.html#a55f84b6115c8851582e231e8bf41a6e9',1,'math.h']]],
+  ['truncf_24',['truncf',['../math_8h.html#a211ef0b6530cfa92bdb1c2304cccf622',1,'math.h']]],
+  ['truncl_25',['truncl',['../math_8h.html#a8387043929aba46cedaeb18030827aa9',1,'math.h']]],
+  ['tty_5fget_5fsize_26',['tty_get_size',['../termios_8h.html#acf1b231a5a7579fc576dc2fb8f4d6c6f',1,'termios.h']]]
 ];

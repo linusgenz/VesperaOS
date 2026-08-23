@@ -91,48 +91,191 @@ $(document).ready(function(){initNavTree('userspace_2lib_2include_2poll_8h.html'
 
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#define-members">Macros</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">poll.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;<a class="el" href="include_2uapi_2vespera_2poll_8h_source.html">vespera/poll.h</a>&gt;</code><br />
-<code>#include &lt;<a class="el" href="stddef_8h_source.html">stddef.h</a>&gt;</code><br />
-<code>#include &lt;<a class="el" href="sysstd_8h_source.html">sysstd.h</a>&gt;</code><br />
 </div>
 <p><a href="userspace_2lib_2include_2poll_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpollfd.html">pollfd</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:ae8bffe35c61e12fb7b408b89721896df" id="r_ae8bffe35c61e12fb7b408b89721896df"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2poll_8h.html#ae8bffe35c61e12fb7b408b89721896df">POLLNVAL</a>&#160;&#160;&#160;0x20</td></tr>
+<tr class="separator:ae8bffe35c61e12fb7b408b89721896df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab6f53b89c7a4cc5e8349f7c778d85168" id="r_ab6f53b89c7a4cc5e8349f7c778d85168"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2poll_8h.html#ab6f53b89c7a4cc5e8349f7c778d85168">POLLPRI</a>&#160;&#160;&#160;0x10</td></tr>
+<tr class="memdesc:ab6f53b89c7a4cc5e8349f7c778d85168"><td class="mdescLeft">&#160;</td><td class="mdescRight">Priority/urgent-data flags. Not used currently, TODO implement.  <br /></td></tr>
+<tr class="separator:ab6f53b89c7a4cc5e8349f7c778d85168"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8ca81f2b28be692732d3f0b601fd828d" id="r_a8ca81f2b28be692732d3f0b601fd828d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2poll_8h.html#a8ca81f2b28be692732d3f0b601fd828d">POLLRDNORM</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2poll_8h.html#a52ac479a805051f59643588b096024ff">POLLIN</a></td></tr>
+<tr class="separator:a8ca81f2b28be692732d3f0b601fd828d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab8f1f69608ba2430cd5fa629a87b5420" id="r_ab8f1f69608ba2430cd5fa629a87b5420"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2poll_8h.html#ab8f1f69608ba2430cd5fa629a87b5420">POLLWRNORM</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2poll_8h.html#a91b3c67129ac7675062f316b840a0d58">POLLOUT</a></td></tr>
+<tr class="separator:ab8f1f69608ba2430cd5fa629a87b5420"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a37c71608162976b7fa0a5465009ce3ab" id="r_a37c71608162976b7fa0a5465009ce3ab"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2poll_8h.html#a37c71608162976b7fa0a5465009ce3ab">POLLRDBAND</a>&#160;&#160;&#160;<a class="el" href="userspace_2lib_2include_2poll_8h.html#ab6f53b89c7a4cc5e8349f7c778d85168">POLLPRI</a></td></tr>
+<tr class="separator:a37c71608162976b7fa0a5465009ce3ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a272636cc42f343281665cd1ba92f2f1e" id="r_a272636cc42f343281665cd1ba92f2f1e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2poll_8h.html#a272636cc42f343281665cd1ba92f2f1e">POLLWRBAND</a>&#160;&#160;&#160;<a class="el" href="userspace_2lib_2include_2poll_8h.html#ab6f53b89c7a4cc5e8349f7c778d85168">POLLPRI</a></td></tr>
+<tr class="separator:a272636cc42f343281665cd1ba92f2f1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab5b7c6ae3bd4de2cd1c67f3228647dcb" id="r_ab5b7c6ae3bd4de2cd1c67f3228647dcb"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2poll_8h.html#ab5b7c6ae3bd4de2cd1c67f3228647dcb">_NFDS_T_DEFINED</a></td></tr>
+<tr class="separator:ab5b7c6ae3bd4de2cd1c67f3228647dcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:a0af7a8bdafcd5532e620a11f0d373d52" id="r_a0af7a8bdafcd5532e620a11f0d373d52"><td class="memItemLeft" align="right" valign="top">typedef unsigned long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2poll_8h.html#a0af7a8bdafcd5532e620a11f0d373d52">nfds_t</a></td></tr>
+<tr class="separator:a0af7a8bdafcd5532e620a11f0d373d52"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a6c066ea4558fca56640102ec24491a53" id="r_a6c066ea4558fca56640102ec24491a53"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2poll_8h.html#a6c066ea4558fca56640102ec24491a53">poll</a> (struct <a class="el" href="structpollhdl.html">pollhdl</a> *hdls, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> nhdls, int timeout_ms)</td></tr>
-<tr class="separator:a6c066ea4558fca56640102ec24491a53"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa97ba0bfbedf1784e648dd753a92449d" id="r_aa97ba0bfbedf1784e648dd753a92449d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2poll_8h.html#aa97ba0bfbedf1784e648dd753a92449d">poll</a> (struct <a class="el" href="structpollfd.html">pollfd</a> *fds, <a class="el" href="userspace_2lib_2include_2poll_8h.html#a0af7a8bdafcd5532e620a11f0d373d52">nfds_t</a> nfds, int timeout)</td></tr>
+<tr class="memdesc:aa97ba0bfbedf1784e648dd753a92449d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wait for events on a set of file descriptors.  <br /></td></tr>
+<tr class="separator:aa97ba0bfbedf1784e648dd753a92449d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Function Documentation</h2>
-<a id="a6c066ea4558fca56640102ec24491a53" name="a6c066ea4558fca56640102ec24491a53"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6c066ea4558fca56640102ec24491a53">&#9670;&#160;</a></span>poll()</h2>
+<h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="ab5b7c6ae3bd4de2cd1c67f3228647dcb" name="ab5b7c6ae3bd4de2cd1c67f3228647dcb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab5b7c6ae3bd4de2cd1c67f3228647dcb">&#9670;&#160;</a></span>_NFDS_T_DEFINED</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static int poll </td>
+          <td class="memname">#define _NFDS_T_DEFINED</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae8bffe35c61e12fb7b408b89721896df" name="ae8bffe35c61e12fb7b408b89721896df"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae8bffe35c61e12fb7b408b89721896df">&#9670;&#160;</a></span>POLLNVAL</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define POLLNVAL&#160;&#160;&#160;0x20</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab6f53b89c7a4cc5e8349f7c778d85168" name="ab6f53b89c7a4cc5e8349f7c778d85168"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6f53b89c7a4cc5e8349f7c778d85168">&#9670;&#160;</a></span>POLLPRI</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define POLLPRI&#160;&#160;&#160;0x10</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Priority/urgent-data flags. Not used currently, TODO implement. </p>
+
+</div>
+</div>
+<a id="a37c71608162976b7fa0a5465009ce3ab" name="a37c71608162976b7fa0a5465009ce3ab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a37c71608162976b7fa0a5465009ce3ab">&#9670;&#160;</a></span>POLLRDBAND</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define POLLRDBAND&#160;&#160;&#160;<a class="el" href="userspace_2lib_2include_2poll_8h.html#ab6f53b89c7a4cc5e8349f7c778d85168">POLLPRI</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8ca81f2b28be692732d3f0b601fd828d" name="a8ca81f2b28be692732d3f0b601fd828d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8ca81f2b28be692732d3f0b601fd828d">&#9670;&#160;</a></span>POLLRDNORM</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define POLLRDNORM&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2poll_8h.html#a52ac479a805051f59643588b096024ff">POLLIN</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a272636cc42f343281665cd1ba92f2f1e" name="a272636cc42f343281665cd1ba92f2f1e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a272636cc42f343281665cd1ba92f2f1e">&#9670;&#160;</a></span>POLLWRBAND</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define POLLWRBAND&#160;&#160;&#160;<a class="el" href="userspace_2lib_2include_2poll_8h.html#ab6f53b89c7a4cc5e8349f7c778d85168">POLLPRI</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab8f1f69608ba2430cd5fa629a87b5420" name="ab8f1f69608ba2430cd5fa629a87b5420"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab8f1f69608ba2430cd5fa629a87b5420">&#9670;&#160;</a></span>POLLWRNORM</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define POLLWRNORM&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2poll_8h.html#a91b3c67129ac7675062f316b840a0d58">POLLOUT</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a id="a0af7a8bdafcd5532e620a11f0d373d52" name="a0af7a8bdafcd5532e620a11f0d373d52"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0af7a8bdafcd5532e620a11f0d373d52">&#9670;&#160;</a></span>nfds_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef unsigned long <a class="el" href="userspace_2lib_2include_2poll_8h.html#a0af7a8bdafcd5532e620a11f0d373d52">nfds_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="aa97ba0bfbedf1784e648dd753a92449d" name="aa97ba0bfbedf1784e648dd753a92449d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa97ba0bfbedf1784e648dd753a92449d">&#9670;&#160;</a></span>poll()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int poll </td>
           <td>(</td>
-          <td class="paramtype">struct <a class="el" href="structpollhdl.html">pollhdl</a> *&#160;</td>
-          <td class="paramname"><em>hdls</em>, </td>
+          <td class="paramtype">struct <a class="el" href="structpollfd.html">pollfd</a> *&#160;</td>
+          <td class="paramname"><em>fds</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
-          <td class="paramname"><em>nhdls</em>, </td>
+          <td class="paramtype"><a class="el" href="userspace_2lib_2include_2poll_8h.html#a0af7a8bdafcd5532e620a11f0d373d52">nfds_t</a>&#160;</td>
+          <td class="paramname"><em>nfds</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>timeout_ms</em>&#160;</td>
+          <td class="paramname"><em>timeout</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -140,12 +283,19 @@ Functions</h2></td></tr>
           <td></td><td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
+
+<p>Wait for events on a set of file descriptors. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">fds</td><td>Array of <code>struct pollfd</code> describing the fds to watch and the events of interest in each entry's <code>events</code> field. On return, each entry's <code>revents</code> field is filled with the events that actually occurred (0 if none). </td></tr>
+    <tr><td class="paramname">nfds</td><td>Number of entries in <code>fds</code>. </td></tr>
+    <tr><td class="paramname">timeout</td><td>Timeout in milliseconds: &gt; 0 : wait at most this many milliseconds 0 : return immediately (non-blocking poll) &lt; 0 : block indefinitely until an event occurs</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>On success, the number of <code>fds</code> entries with a nonzero <code>revents</code> (i.e. ready, error, or hangup). Returns 0 if the timeout expired before anything became ready. Returns -1 on error (errno set): EINVAL - <code>fds</code> is NULL and <code>nfds</code> != 0, or <code>nfds</code> exceeds the maximum single <a class="el" href="sysstd_8h.html#a25ef6a476bf50bc58be0dd2bbe9aabd7" title="Wait for events on a set of handles.">sys_poll()</a> call size EFAULT - <code>fds</code> pointer rejected by the kernel</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>An invalid fd in one entry does not fail the whole call — as with Linux/POSIX, that entry's <code>revents</code> is set to POLLNVAL and <code>events</code> for that entry is ignored, same as glibc's <a class="el" href="userspace_2lib_2include_2poll_8h.html#aa97ba0bfbedf1784e648dd753a92449d" title="Wait for events on a set of file descriptors.">poll()</a>. </dd></dl>
 
 </div>
 </div>

@@ -22,7 +22,7 @@ var searchData=
   ['open_19',['open',['../userspace_2lib_2include_2fcntl_8h.html#ad586f56cb2d7d849a4cb20dbd792b543',1,'open():&#160;fcntl.h'],['../structvbus__lid.html#aaa1791405f167208b6f634ba31966b6b',1,'vbus_lid::open']]],
   ['open_5fmemstream_20',['open_memstream',['../stdio_8h.html#ab47b5eafe8b07200760d16307980ecc1',1,'stdio.h']]],
   ['openat_21',['openat',['../userspace_2lib_2include_2fcntl_8h.html#a17d44d955aa2afafbfd74e2537101109',1,'fcntl.h']]],
-  ['opendir_22',['opendir',['../stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346',1,'stdio.h']]],
+  ['opendir_22',['opendir',['../userspace_2lib_2include_2dirent_8h.html#ad759a0269427a564f3ce672d43e885cf',1,'dirent.h']]],
   ['opened_23',['opened',['../unionvbus__payload__t.html#a38bbc4cc2ef9a576bf73844c128b9462',1,'vbus_payload_t']]],
   ['openlog_24',['openlog',['../sys_2syslog_8h.html#a6f1f3704c08cc51ad17680056d67bdf4',1,'syslog.h']]],
   ['operator_20stella_5fcolor_5ft_25',['operator stella_color_t',['../classstella_1_1Color.html#a402434f7f2a618e7ae66b0a9e27c3d59',1,'stella::Color']]],

@@ -1,5 +1,9 @@
 var include_2uapi_2vespera_2ioctl_8h =
 [
+    [ "_IO", "include_2uapi_2vespera_2ioctl_8h.html#a840d10d2fed07b8a85f260031f2fa47b", null ],
+    [ "_IOR", "include_2uapi_2vespera_2ioctl_8h.html#a6a48563c3d7566e2c4c46dc7d889ab1f", null ],
+    [ "_IOW", "include_2uapi_2vespera_2ioctl_8h.html#a7ef839925708cfe5daf62ca32d0c751f", null ],
+    [ "_IOWR", "include_2uapi_2vespera_2ioctl_8h.html#a44fae4c755ca3409100a7bf8e993c642", null ],
     [ "IO", "include_2uapi_2vespera_2ioctl_8h.html#af4c2af5d9d0f423792c40a43aad3b703", null ],
     [ "IOC", "include_2uapi_2vespera_2ioctl_8h.html#a7ef3c63b24a6c7903383dfe01b494bda", null ],
     [ "IOC_DIR_BITS", "include_2uapi_2vespera_2ioctl_8h.html#a0882efdb82625fc69807c830209be4f3", null ],

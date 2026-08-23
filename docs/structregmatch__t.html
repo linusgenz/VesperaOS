@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>vesplib: dirent_t Struct Reference</title>
+<title>vesplib: regmatch_t Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -64,7 +64,7 @@ $(function() {
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
-$(document).ready(function(){initNavTree('structdirent__t.html',''); initResizable(); });
+$(document).ready(function(){initNavTree('structregmatch__t.html',''); initResizable(); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -92,70 +92,58 @@ $(document).ready(function(){initNavTree('structdirent__t.html',''); initResizab
 <div class="header">
   <div class="summary">
 <a href="#pub-attribs">Public Attributes</a> &#124;
-<a href="structdirent__t-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">dirent_t Struct Reference</div></div>
+<a href="structregmatch__t-members.html">List of all members</a>  </div>
+  <div class="headertitle"><div class="title">regmatch_t Struct Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>Structure representing a directory entry.  
- <a href="structdirent__t.html#details">More...</a></p>
-
-<p><code>#include &lt;<a class="el" href="include_2uapi_2vespera_2dirent_8h_source.html">dirent.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="regex_8h_source.html">regex.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a3c03f5a5b8f1135af15668b8a969be10" id="r_a3c03f5a5b8f1135af15668b8a969be10"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdirent__t.html#a3c03f5a5b8f1135af15668b8a969be10">name</a> [128]</td></tr>
-<tr class="memdesc:a3c03f5a5b8f1135af15668b8a969be10"><td class="mdescLeft">&#160;</td><td class="mdescRight">Null-terminated entry name (up to 127 characters)  <br /></td></tr>
-<tr class="separator:a3c03f5a5b8f1135af15668b8a969be10"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adde7d31507055deec94a7173c966eb6f" id="r_adde7d31507055deec94a7173c966eb6f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17d">dirent_type_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdirent__t.html#adde7d31507055deec94a7173c966eb6f">type</a></td></tr>
-<tr class="memdesc:adde7d31507055deec94a7173c966eb6f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of the directory entry (see <a class="el" href="include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17d" title="Enumeration of possible directory entry types.">dirent_type_t</a>)  <br /></td></tr>
-<tr class="separator:adde7d31507055deec94a7173c966eb6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a90ac8973d256eaffdbb20de676ff45a4" id="r_a90ac8973d256eaffdbb20de676ff45a4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#ae7393a4a76d65dad7f8c98dc0e0b9fc6">regoff_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structregmatch__t.html#a90ac8973d256eaffdbb20de676ff45a4">rm_so</a></td></tr>
+<tr class="separator:a90ac8973d256eaffdbb20de676ff45a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a728c28b9b23fa28c4e0b90e3a1a29efc" id="r_a728c28b9b23fa28c4e0b90e3a1a29efc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#ae7393a4a76d65dad7f8c98dc0e0b9fc6">regoff_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structregmatch__t.html#a728c28b9b23fa28c4e0b90e3a1a29efc">rm_eo</a></td></tr>
+<tr class="separator:a728c28b9b23fa28c4e0b90e3a1a29efc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Structure representing a directory entry. </p>
-<p>Contains information about a single directory entry. </p>
-</div><h2 class="groupheader">Member Data Documentation</h2>
-<a id="a3c03f5a5b8f1135af15668b8a969be10" name="a3c03f5a5b8f1135af15668b8a969be10"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3c03f5a5b8f1135af15668b8a969be10">&#9670;&#160;</a></span>name</h2>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a728c28b9b23fa28c4e0b90e3a1a29efc" name="a728c28b9b23fa28c4e0b90e3a1a29efc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a728c28b9b23fa28c4e0b90e3a1a29efc">&#9670;&#160;</a></span>rm_eo</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">char dirent_t::name[128]</td>
+          <td class="memname"><a class="el" href="alltypes_8h.html#ae7393a4a76d65dad7f8c98dc0e0b9fc6">regoff_t</a> regmatch_t::rm_eo</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Null-terminated entry name (up to 127 characters) </p>
-
 </div>
 </div>
-<a id="adde7d31507055deec94a7173c966eb6f" name="adde7d31507055deec94a7173c966eb6f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adde7d31507055deec94a7173c966eb6f">&#9670;&#160;</a></span>type</h2>
+<a id="a90ac8973d256eaffdbb20de676ff45a4" name="a90ac8973d256eaffdbb20de676ff45a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a90ac8973d256eaffdbb20de676ff45a4">&#9670;&#160;</a></span>rm_so</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17d">dirent_type_t</a> dirent_t::type</td>
+          <td class="memname"><a class="el" href="alltypes_8h.html#ae7393a4a76d65dad7f8c98dc0e0b9fc6">regoff_t</a> regmatch_t::rm_so</td>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Type of the directory entry (see <a class="el" href="include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17d" title="Enumeration of possible directory entry types.">dirent_type_t</a>) </p>
 
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>include/uapi/vespera/<a class="el" href="include_2uapi_2vespera_2dirent_8h_source.html">dirent.h</a></li>
+<li>userspace/lib/include/<a class="el" href="regex_8h_source.html">regex.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="structdirent__t.html">dirent_t</a></li>
+    <li class="navelem"><a class="el" href="structregmatch__t.html">regmatch_t</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

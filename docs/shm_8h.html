@@ -101,63 +101,22 @@ $(document).ready(function(){initNavTree('shm_8h.html',''); initResizable(); });
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a87d3ff9e00f2675362c455e5b0dbc734" id="r_a87d3ff9e00f2675362c455e5b0dbc734"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdlib_8h.html#a2dbf9050303df6c7facc0c5faed80d11">FILE_HANDLE</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="shm_8h.html#a87d3ff9e00f2675362c455e5b0dbc734">shm_open</a> (const char *name, int oflag, <a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a> mode)</td></tr>
-<tr class="memdesc:a87d3ff9e00f2675362c455e5b0dbc734"><td class="mdescLeft">&#160;</td><td class="mdescRight">Open or create a POSIX shared memory object.  <br /></td></tr>
-<tr class="separator:a87d3ff9e00f2675362c455e5b0dbc734"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa6a3f47fd38c4255f69b255e32082828" id="r_aa6a3f47fd38c4255f69b255e32082828"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdlib_8h.html#a2dbf9050303df6c7facc0c5faed80d11">FILE_HANDLE</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="shm_8h.html#aa6a3f47fd38c4255f69b255e32082828">shm_unlink</a> (const char *name)</td></tr>
-<tr class="memdesc:aa6a3f47fd38c4255f69b255e32082828"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove a POSIX shared memory object name.  <br /></td></tr>
-<tr class="separator:aa6a3f47fd38c4255f69b255e32082828"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a17bf165121f8e1b11831a4edde0be474" id="r_a17bf165121f8e1b11831a4edde0be474"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdlib_8h.html#a2dbf9050303df6c7facc0c5faed80d11">FILE_HANDLE</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="shm_8h.html#a17bf165121f8e1b11831a4edde0be474">ftruncate</a> (<a class="el" href="stdlib_8h.html#a2dbf9050303df6c7facc0c5faed80d11">FILE_HANDLE</a> handle, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> length)</td></tr>
-<tr class="memdesc:a17bf165121f8e1b11831a4edde0be474"><td class="mdescLeft">&#160;</td><td class="mdescRight">Truncate / resize a handle-backed object (required to size SHM).  <br /></td></tr>
-<tr class="separator:a17bf165121f8e1b11831a4edde0be474"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ae36690577b965d6e31f04359f2fba0" id="r_a6ae36690577b965d6e31f04359f2fba0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="shm_8h.html#a6ae36690577b965d6e31f04359f2fba0">shm_open</a> (const char *name, int oflag, <a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a> mode)</td></tr>
+<tr class="memdesc:a6ae36690577b965d6e31f04359f2fba0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Open or create a POSIX shared memory object.  <br /></td></tr>
+<tr class="separator:a6ae36690577b965d6e31f04359f2fba0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4037e49e9537e24edd610bd1acf090da" id="r_a4037e49e9537e24edd610bd1acf090da"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="shm_8h.html#a4037e49e9537e24edd610bd1acf090da">shm_unlink</a> (const char *name)</td></tr>
+<tr class="memdesc:a4037e49e9537e24edd610bd1acf090da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove a POSIX shared memory object name.  <br /></td></tr>
+<tr class="separator:a4037e49e9537e24edd610bd1acf090da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a17bf165121f8e1b11831a4edde0be474" name="a17bf165121f8e1b11831a4edde0be474"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a17bf165121f8e1b11831a4edde0be474">&#9670;&#160;</a></span>ftruncate()</h2>
+<a id="a6ae36690577b965d6e31f04359f2fba0" name="a6ae36690577b965d6e31f04359f2fba0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6ae36690577b965d6e31f04359f2fba0">&#9670;&#160;</a></span>shm_open()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="stdlib_8h.html#a2dbf9050303df6c7facc0c5faed80d11">FILE_HANDLE</a> ftruncate </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="stdlib_8h.html#a2dbf9050303df6c7facc0c5faed80d11">FILE_HANDLE</a>&#160;</td>
-          <td class="paramname"><em>handle</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
-          <td class="paramname"><em>length</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Truncate / resize a handle-backed object (required to size SHM). </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">handle</td><td>The SHM handle returned by shm_open. </td></tr>
-    <tr><td class="paramname">length</td><td>The target size of the shared memory region in bytes.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>0 on success, -1 on error (errno set). </dd></dl>
-
-</div>
-</div>
-<a id="a87d3ff9e00f2675362c455e5b0dbc734" name="a87d3ff9e00f2675362c455e5b0dbc734"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a87d3ff9e00f2675362c455e5b0dbc734">&#9670;&#160;</a></span>shm_open()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="stdlib_8h.html#a2dbf9050303df6c7facc0c5faed80d11">FILE_HANDLE</a> shm_open </td>
+          <td class="memname">int shm_open </td>
           <td>(</td>
           <td class="paramtype">const char *&#160;</td>
           <td class="paramname"><em>name</em>, </td>
@@ -195,14 +154,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="aa6a3f47fd38c4255f69b255e32082828" name="aa6a3f47fd38c4255f69b255e32082828"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa6a3f47fd38c4255f69b255e32082828">&#9670;&#160;</a></span>shm_unlink()</h2>
+<a id="a4037e49e9537e24edd610bd1acf090da" name="a4037e49e9537e24edd610bd1acf090da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4037e49e9537e24edd610bd1acf090da">&#9670;&#160;</a></span>shm_unlink()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="stdlib_8h.html#a2dbf9050303df6c7facc0c5faed80d11">FILE_HANDLE</a> shm_unlink </td>
+          <td class="memname">int shm_unlink </td>
           <td>(</td>
           <td class="paramtype">const char *&#160;</td>
           <td class="paramname"><em>name</em></td><td>)</td>

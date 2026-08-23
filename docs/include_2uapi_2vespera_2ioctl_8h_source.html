@@ -172,13 +172,19 @@ $(document).ready(function(){initNavTree('include_2uapi_2vespera_2ioctl_8h_sourc
 </div>
 <div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span> </div>
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span> </div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span><span class="comment">/* Decoder */</span></div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno"><a class="line" href="include_2uapi_2vespera_2ioctl_8h.html#aa6aa30149bb505d2ee92177f3a2d7e09">   66</a></span><span class="preprocessor">#define IOC_GET_DIR(cmd)  ((uint32_t)((cmd &gt;&gt; IOC_DIR_SHIFT) &amp; IOC_DIR_MASK))</span></div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno"><a class="line" href="include_2uapi_2vespera_2ioctl_8h.html#af1f192ee4d18a50e7240ec8fda99b150">   67</a></span><span class="preprocessor">#define IOC_GET_SIZE(cmd) ((uint32_t)((cmd &gt;&gt; IOC_SIZE_SHIFT) &amp; IOC_SIZE_MASK))</span></div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno"><a class="line" href="include_2uapi_2vespera_2ioctl_8h.html#acc6e720b720a59d6dbd2c68bec899c80">   68</a></span><span class="preprocessor">#define IOC_GET_TYPE(cmd) ((uint32_t)((cmd &gt;&gt; IOC_TYPE_SHIFT) &amp; IOC_TYPE_MASK))</span></div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno"><a class="line" href="include_2uapi_2vespera_2ioctl_8h.html#ae8d76be53322f63312af8896ebf0490f">   69</a></span><span class="preprocessor">#define IOC_GET_NR(cmd)   ((uint32_t)((cmd &gt;&gt; IOC_NR_SHIFT) &amp; IOC_NR_MASK))</span></div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno"><a class="line" href="include_2uapi_2vespera_2ioctl_8h.html#a840d10d2fed07b8a85f260031f2fa47b">   65</a></span><span class="preprocessor">#define _IO(type, nr)                   IO(type, nr)</span></div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno"><a class="line" href="include_2uapi_2vespera_2ioctl_8h.html#a6a48563c3d7566e2c4c46dc7d889ab1f">   66</a></span><span class="preprocessor">#define _IOR(type, nr, data_type)       IOR(type, nr, data_type)</span></div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno"><a class="line" href="include_2uapi_2vespera_2ioctl_8h.html#a7ef839925708cfe5daf62ca32d0c751f">   67</a></span><span class="preprocessor">#define _IOW(type, nr, data_type)       IOW(type, nr, data_type)</span></div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno"><a class="line" href="include_2uapi_2vespera_2ioctl_8h.html#a44fae4c755ca3409100a7bf8e993c642">   68</a></span><span class="preprocessor">#define _IOWR(type, nr, data_type)      IOWR(type, nr, data_type)</span></div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span> </div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span> </div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><span class="preprocessor">#endif  </span><span class="comment">// VESPERAOS_IOCTL_H</span></div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><span class="comment">/* Decoder */</span></div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno"><a class="line" href="include_2uapi_2vespera_2ioctl_8h.html#aa6aa30149bb505d2ee92177f3a2d7e09">   72</a></span><span class="preprocessor">#define IOC_GET_DIR(cmd)  ((uint32_t)((cmd &gt;&gt; IOC_DIR_SHIFT) &amp; IOC_DIR_MASK))</span></div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno"><a class="line" href="include_2uapi_2vespera_2ioctl_8h.html#af1f192ee4d18a50e7240ec8fda99b150">   73</a></span><span class="preprocessor">#define IOC_GET_SIZE(cmd) ((uint32_t)((cmd &gt;&gt; IOC_SIZE_SHIFT) &amp; IOC_SIZE_MASK))</span></div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno"><a class="line" href="include_2uapi_2vespera_2ioctl_8h.html#acc6e720b720a59d6dbd2c68bec899c80">   74</a></span><span class="preprocessor">#define IOC_GET_TYPE(cmd) ((uint32_t)((cmd &gt;&gt; IOC_TYPE_SHIFT) &amp; IOC_TYPE_MASK))</span></div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno"><a class="line" href="include_2uapi_2vespera_2ioctl_8h.html#ae8d76be53322f63312af8896ebf0490f">   75</a></span><span class="preprocessor">#define IOC_GET_NR(cmd)   ((uint32_t)((cmd &gt;&gt; IOC_NR_SHIFT) &amp; IOC_NR_MASK))</span></div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span> </div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span><span class="preprocessor">#endif  </span><span class="comment">// VESPERAOS_IOCTL_H</span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

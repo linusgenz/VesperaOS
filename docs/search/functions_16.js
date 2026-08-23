@@ -14,12 +14,15 @@ var searchData=
   ['vbus_5fsubscribe_11',['vbus_subscribe',['../userspace_2lib_2include_2vbus_8h.html#a622ccd414da8b8408ef095b7128c7b6c',1,'vbus.h']]],
   ['vbus_5funsubscribe_12',['vbus_unsubscribe',['../userspace_2lib_2include_2vbus_8h.html#a502abcdf733eaf6baa3a4a5e51613b14',1,'vbus.h']]],
   ['vclose_13',['vclose',['../stdio_8h.html#a076357731627cd82688cf7d39191fd35',1,'stdio.h']]],
-  ['vfprintf_14',['vfprintf',['../stdio_8h.html#adb7ccae12e79b28a1e32fa599038fd56',1,'stdio.h']]],
-  ['vopen_15',['vopen',['../stdio_8h.html#a5dfb19177899f3e9b1d33e0bd3603b2a',1,'stdio.h']]],
-  ['vprintf_16',['vprintf',['../stdio_8h.html#acc23aaaff6fcb9a669853efe712ba4b7',1,'stdio.h']]],
-  ['vread_17',['vread',['../stdio_8h.html#ac45b0da3cf0c3223ddfff6b65aedbed1',1,'stdio.h']]],
-  ['vsnprintf_18',['vsnprintf',['../stdio_8h.html#a65926e55e94f64697275e8a0bc3760bb',1,'stdio.h']]],
-  ['vsprintf_19',['vsprintf',['../stdio_8h.html#a2e5ac5784918cb9274d9feceae032ee6',1,'stdio.h']]],
-  ['vsyslog_20',['vsyslog',['../sys_2syslog_8h.html#a65daf5cc086584fab7e8babac474f325',1,'syslog.h']]],
-  ['vwrite_21',['vwrite',['../stdio_8h.html#a2e0b167583a4d18e5849c27369daa4aa',1,'stdio.h']]]
+  ['vclosedir_14',['vclosedir',['../stdio_8h.html#a9663f11c16facdf9ccfc5a3b2b642340',1,'stdio.h']]],
+  ['vfprintf_15',['vfprintf',['../stdio_8h.html#adb7ccae12e79b28a1e32fa599038fd56',1,'stdio.h']]],
+  ['vopen_16',['vopen',['../stdio_8h.html#a5dfb19177899f3e9b1d33e0bd3603b2a',1,'stdio.h']]],
+  ['vopendir_17',['vopendir',['../stdio_8h.html#a657f9141a71b685604b7544efaed6ae0',1,'stdio.h']]],
+  ['vprintf_18',['vprintf',['../stdio_8h.html#acc23aaaff6fcb9a669853efe712ba4b7',1,'stdio.h']]],
+  ['vread_19',['vread',['../stdio_8h.html#ac45b0da3cf0c3223ddfff6b65aedbed1',1,'stdio.h']]],
+  ['vreaddir_20',['vreaddir',['../stdio_8h.html#a631b869910d96ac4b9103a0f4200ee18',1,'stdio.h']]],
+  ['vsnprintf_21',['vsnprintf',['../stdio_8h.html#a65926e55e94f64697275e8a0bc3760bb',1,'stdio.h']]],
+  ['vsprintf_22',['vsprintf',['../stdio_8h.html#a2e5ac5784918cb9274d9feceae032ee6',1,'stdio.h']]],
+  ['vsyslog_23',['vsyslog',['../sys_2syslog_8h.html#a65daf5cc086584fab7e8babac474f325',1,'syslog.h']]],
+  ['vwrite_24',['vwrite',['../stdio_8h.html#a2e0b167583a4d18e5849c27369daa4aa',1,'stdio.h']]]
 ];

@@ -31,6 +31,7 @@ var unistd_8h =
     [ "_exit", "unistd_8h.html#aee2ffcdf92b92a337c592a7ef9174769", null ],
     [ "access", "unistd_8h.html#aeff22ad09b35eda92f6c5632300b05da", null ],
     [ "chdir", "unistd_8h.html#a03af571dfb595681bfa203c83385c07b", null ],
+    [ "chown", "unistd_8h.html#a1b89c77687f2ddc931aff3982814c39f", null ],
     [ "close", "unistd_8h.html#aafbcde67669a1b96577e735ddebd8634", null ],
     [ "dup", "unistd_8h.html#a4c16b3e0f35d0e104aa87db705451f2f", null ],
     [ "dup2", "unistd_8h.html#a324659434edc336235d789274e95fb5c", null ],

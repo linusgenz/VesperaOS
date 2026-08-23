@@ -10,7 +10,7 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "chronos.h", "userspace_2lib_2include_2chronos_8h.html", "userspace_2lib_2include_2chronos_8h" ],
     [ "crepusculum_protocol.h", "crepusculum__protocol_8h.html", "crepusculum__protocol_8h" ],
     [ "ctype.h", "ctype_8h.html", "ctype_8h" ],
-    [ "dirent.h", "userspace_2lib_2include_2dirent_8h.html", null ],
+    [ "dirent.h", "userspace_2lib_2include_2dirent_8h.html", "userspace_2lib_2include_2dirent_8h" ],
     [ "dlfcn.h", "dlfcn_8h.html", "dlfcn_8h" ],
     [ "elf.h", "elf_8h.html", "elf_8h" ],
     [ "elf_loader.h", "elf__loader_8h.html", "elf__loader_8h" ],
@@ -21,8 +21,11 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "features.h", "features_8h.html", "features_8h" ],
     [ "fenv.h", "fenv_8h.html", "fenv_8h" ],
     [ "float.h", "float_8h.html", "float_8h" ],
+    [ "fnmatch.h", "fnmatch_8h.html", "fnmatch_8h" ],
     [ "futex.h", "userspace_2lib_2include_2futex_8h.html", "userspace_2lib_2include_2futex_8h" ],
+    [ "glob.h", "glob_8h.html", "glob_8h" ],
     [ "inttypes.h", "inttypes_8h.html", "inttypes_8h" ],
+    [ "libgen.h", "libgen_8h.html", "libgen_8h" ],
     [ "limits.h", "limits_8h.html", "limits_8h" ],
     [ "locale.h", "locale_8h.html", "locale_8h" ],
     [ "log_client.h", "log__client_8h.html", "log__client_8h" ],
@@ -34,6 +37,7 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "power.h", "userspace_2lib_2include_2power_8h.html", "userspace_2lib_2include_2power_8h" ],
     [ "pthread.h", "pthread_8h.html", "pthread_8h" ],
     [ "realm.h", "realm_8h.html", "realm_8h" ],
+    [ "regex.h", "regex_8h.html", "regex_8h" ],
     [ "sched.h", "userspace_2lib_2include_2sched_8h.html", "userspace_2lib_2include_2sched_8h" ],
     [ "setjmp.h", "setjmp_8h.html", "setjmp_8h" ],
     [ "signal.h", "userspace_2lib_2include_2signal_8h.html", "userspace_2lib_2include_2signal_8h" ],
@@ -57,5 +61,6 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "unit.h", "unit_8h.html", "unit_8h" ],
     [ "urandom.h", "urandom_8h.html", "urandom_8h" ],
     [ "vbus.h", "userspace_2lib_2include_2vbus_8h.html", "userspace_2lib_2include_2vbus_8h" ],
-    [ "wchar.h", "wchar_8h.html", "wchar_8h" ]
+    [ "wchar.h", "wchar_8h.html", "wchar_8h" ],
+    [ "wctype.h", "wctype_8h.html", "wctype_8h" ]
 ];

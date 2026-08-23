@@ -90,12 +90,221 @@ $(document).ready(function(){initNavTree('userspace_2lib_2include_2dirent_8h.htm
 </div>
 
 <div class="header">
+  <div class="summary">
+<a href="#typedef-members">Typedefs</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">dirent.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;<a class="el" href="include_2uapi_2vespera_2dirent_8h_source.html">vespera/dirent.h</a>&gt;</code><br />
 </div>
 <p><a href="userspace_2lib_2include_2dirent_8h_source.html">Go to the source code of this file.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:a0ebe68390948c14bb9d82987adbfc849" id="r_a0ebe68390948c14bb9d82987adbfc849"><td class="memItemLeft" align="right" valign="top">typedef struct __dirstream&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2dirent_8h.html#a0ebe68390948c14bb9d82987adbfc849">DIR</a></td></tr>
+<tr class="memdesc:a0ebe68390948c14bb9d82987adbfc849"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opaque directory stream handle.  <br /></td></tr>
+<tr class="separator:a0ebe68390948c14bb9d82987adbfc849"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ad759a0269427a564f3ce672d43e885cf" id="r_ad759a0269427a564f3ce672d43e885cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="userspace_2lib_2include_2dirent_8h.html#a0ebe68390948c14bb9d82987adbfc849">DIR</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2dirent_8h.html#ad759a0269427a564f3ce672d43e885cf">opendir</a> (const char *path)</td></tr>
+<tr class="memdesc:ad759a0269427a564f3ce672d43e885cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Open a directory stream for <code>path</code>.  <br /></td></tr>
+<tr class="separator:ad759a0269427a564f3ce672d43e885cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58be90fffc0b5713ea34e39eb26d59f3" id="r_a58be90fffc0b5713ea34e39eb26d59f3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="userspace_2lib_2include_2dirent_8h.html#a0ebe68390948c14bb9d82987adbfc849">DIR</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2dirent_8h.html#a58be90fffc0b5713ea34e39eb26d59f3">fdopendir</a> (int fd)</td></tr>
+<tr class="memdesc:a58be90fffc0b5713ea34e39eb26d59f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Open a directory stream from an already-open directory fd.  <br /></td></tr>
+<tr class="separator:a58be90fffc0b5713ea34e39eb26d59f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a51f93fb792b273f5c6d57a2c244e0255" id="r_a51f93fb792b273f5c6d57a2c244e0255"><td class="memItemLeft" align="right" valign="top"><a class="el" href="include_2uapi_2vespera_2dirent_8h.html#a6673e8f64ca9ebd7e26e6289dca06e87">dirent_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2dirent_8h.html#a51f93fb792b273f5c6d57a2c244e0255">readdir</a> (<a class="el" href="userspace_2lib_2include_2dirent_8h.html#a0ebe68390948c14bb9d82987adbfc849">DIR</a> *dirp)</td></tr>
+<tr class="memdesc:a51f93fb792b273f5c6d57a2c244e0255"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read the next directory entry from <code>dirp</code>.  <br /></td></tr>
+<tr class="separator:a51f93fb792b273f5c6d57a2c244e0255"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaeac2b41e8c2c3a5f91c9bd511a8c0a6" id="r_aaeac2b41e8c2c3a5f91c9bd511a8c0a6"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2dirent_8h.html#aaeac2b41e8c2c3a5f91c9bd511a8c0a6">closedir</a> (<a class="el" href="userspace_2lib_2include_2dirent_8h.html#a0ebe68390948c14bb9d82987adbfc849">DIR</a> *dirp)</td></tr>
+<tr class="memdesc:aaeac2b41e8c2c3a5f91c9bd511a8c0a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close a directory stream, releasing the underlying handle.  <br /></td></tr>
+<tr class="separator:aaeac2b41e8c2c3a5f91c9bd511a8c0a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad4fcb58b9194b1a3c1699654de963719" id="r_ad4fcb58b9194b1a3c1699654de963719"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2dirent_8h.html#ad4fcb58b9194b1a3c1699654de963719">rewinddir</a> (<a class="el" href="userspace_2lib_2include_2dirent_8h.html#a0ebe68390948c14bb9d82987adbfc849">DIR</a> *dirp)</td></tr>
+<tr class="memdesc:ad4fcb58b9194b1a3c1699654de963719"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewind a directory stream back to the first entry.  <br /></td></tr>
+<tr class="separator:ad4fcb58b9194b1a3c1699654de963719"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a88e02eca947a61dd1c89bccc3601a4bc" id="r_a88e02eca947a61dd1c89bccc3601a4bc"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2dirent_8h.html#a88e02eca947a61dd1c89bccc3601a4bc">dirfd</a> (<a class="el" href="userspace_2lib_2include_2dirent_8h.html#a0ebe68390948c14bb9d82987adbfc849">DIR</a> *dirp)</td></tr>
+<tr class="memdesc:a88e02eca947a61dd1c89bccc3601a4bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a file descriptor associated with a directory stream.  <br /></td></tr>
+<tr class="separator:a88e02eca947a61dd1c89bccc3601a4bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a id="a0ebe68390948c14bb9d82987adbfc849" name="a0ebe68390948c14bb9d82987adbfc849"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0ebe68390948c14bb9d82987adbfc849">&#9670;&#160;</a></span>DIR</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct __dirstream <a class="el" href="userspace_2lib_2include_2dirent_8h.html#a0ebe68390948c14bb9d82987adbfc849">DIR</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Opaque directory stream handle. </p>
+<p>The layout is deliberately not exposed in this header (POSIX only requires that DIR be an incomplete/opaque type to callers). See internal/dirstream.h for the actual definition. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="aaeac2b41e8c2c3a5f91c9bd511a8c0a6" name="aaeac2b41e8c2c3a5f91c9bd511a8c0a6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaeac2b41e8c2c3a5f91c9bd511a8c0a6">&#9670;&#160;</a></span>closedir()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int closedir </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="userspace_2lib_2include_2dirent_8h.html#a0ebe68390948c14bb9d82987adbfc849">DIR</a> *&#160;</td>
+          <td class="paramname"><em>dirp</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Close a directory stream, releasing the underlying handle. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dirp</td><td>Open directory stream. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>0 on success, -1 on error (errno set). </dd></dl>
+
+</div>
+</div>
+<a id="a88e02eca947a61dd1c89bccc3601a4bc" name="a88e02eca947a61dd1c89bccc3601a4bc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a88e02eca947a61dd1c89bccc3601a4bc">&#9670;&#160;</a></span>dirfd()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int dirfd </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="userspace_2lib_2include_2dirent_8h.html#a0ebe68390948c14bb9d82987adbfc849">DIR</a> *&#160;</td>
+          <td class="paramname"><em>dirp</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Return a file descriptor associated with a directory stream. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dirp</td><td>Open directory stream. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The underlying fd. Do not <a class="el" href="unistd_8h.html#aafbcde67669a1b96577e735ddebd8634" title="Close a file descriptor / handle.">close()</a> it directly while <code>dirp</code> is still in use; use <a class="el" href="userspace_2lib_2include_2dirent_8h.html#aaeac2b41e8c2c3a5f91c9bd511a8c0a6" title="Close a directory stream, releasing the underlying handle.">closedir()</a> instead. </dd></dl>
+
+</div>
+</div>
+<a id="a58be90fffc0b5713ea34e39eb26d59f3" name="a58be90fffc0b5713ea34e39eb26d59f3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a58be90fffc0b5713ea34e39eb26d59f3">&#9670;&#160;</a></span>fdopendir()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="userspace_2lib_2include_2dirent_8h.html#a0ebe68390948c14bb9d82987adbfc849">DIR</a> * fdopendir </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>fd</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Open a directory stream from an already-open directory fd. </p>
+<p>Takes ownership of <code>fd</code> (consumed by <a class="el" href="userspace_2lib_2include_2dirent_8h.html#aaeac2b41e8c2c3a5f91c9bd511a8c0a6" title="Close a directory stream, releasing the underlying handle.">closedir()</a> or on failure, exactly like <a class="el" href="stdio_8h.html#afb28a293649a3afa0a3ef57b2743b3bd" title="Associate a stream with an already-open file descriptor.">fdopen()</a> does for a FILE*).</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">fd</td><td>An fd previously obtained by open(path, O_DIRECTORY | ...). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A DIR* stream on success, or NULL on error (errno set). </dd></dl>
+
+</div>
+</div>
+<a id="ad759a0269427a564f3ce672d43e885cf" name="ad759a0269427a564f3ce672d43e885cf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad759a0269427a564f3ce672d43e885cf">&#9670;&#160;</a></span>opendir()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="userspace_2lib_2include_2dirent_8h.html#a0ebe68390948c14bb9d82987adbfc849">DIR</a> * opendir </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Open a directory stream for <code>path</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>Path of the directory to open. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A DIR* stream on success, or NULL on error (errno set).</dd></dl>
+<p>Errors (errno): ENOENT - path does not exist ENOTDIR - path exists but is not a directory EACCES - insufficient capabilities EMFILE - fd table exhausted (see FD_TABLE_MAX) ENOMEM - allocation of the DIR stream failed </p>
+
+</div>
+</div>
+<a id="a51f93fb792b273f5c6d57a2c244e0255" name="a51f93fb792b273f5c6d57a2c244e0255"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a51f93fb792b273f5c6d57a2c244e0255">&#9670;&#160;</a></span>readdir()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="include_2uapi_2vespera_2dirent_8h.html#a6673e8f64ca9ebd7e26e6289dca06e87">dirent_t</a> * readdir </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="userspace_2lib_2include_2dirent_8h.html#a0ebe68390948c14bb9d82987adbfc849">DIR</a> *&#160;</td>
+          <td class="paramname"><em>dirp</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read the next directory entry from <code>dirp</code>. </p>
+<p>The returned pointer refers to storage owned by <code>dirp</code> and is only valid until the next call to <a class="el" href="userspace_2lib_2include_2dirent_8h.html#a51f93fb792b273f5c6d57a2c244e0255" title="Read the next directory entry from dirp.">readdir()</a> or <a class="el" href="userspace_2lib_2include_2dirent_8h.html#aaeac2b41e8c2c3a5f91c9bd511a8c0a6" title="Close a directory stream, releasing the underlying handle.">closedir()</a> on the same stream; it must not be freed by the caller.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dirp</td><td>Open directory stream (see <a class="el" href="userspace_2lib_2include_2dirent_8h.html#ad759a0269427a564f3ce672d43e885cf" title="Open a directory stream for path.">opendir()</a>). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Pointer to the next dirent_t, or NULL at end-of-directory or on error. To distinguish the two, errno is left unchanged by <a class="el" href="userspace_2lib_2include_2dirent_8h.html#a51f93fb792b273f5c6d57a2c244e0255" title="Read the next directory entry from dirp.">readdir()</a> on end-of-directory and is set to a nonzero value on error (check errno == 0 before the call if this matters). </dd></dl>
+
+</div>
+</div>
+<a id="ad4fcb58b9194b1a3c1699654de963719" name="ad4fcb58b9194b1a3c1699654de963719"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad4fcb58b9194b1a3c1699654de963719">&#9670;&#160;</a></span>rewinddir()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void rewinddir </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="userspace_2lib_2include_2dirent_8h.html#a0ebe68390948c14bb9d82987adbfc849">DIR</a> *&#160;</td>
+          <td class="paramname"><em>dirp</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Rewind a directory stream back to the first entry. </p>
+<dl class="section note"><dt>Note</dt><dd>VesperaOS's <a class="el" href="sysstd_8h.html#a1ca4b3eb6d4c4bbc6e96de71899035d2" title="Reads the next entry in an open directory.">sys_readdir()</a> has no native seek/rewind primitive yet. This is implemented by closing and re-opening the underlying handle at the same path. Any fd obtained via <a class="el" href="userspace_2lib_2include_2dirent_8h.html#a58be90fffc0b5713ea34e39eb26d59f3" title="Open a directory stream from an already-open directory fd.">fdopendir()</a> therefore cannot be rewound (see <a class="el" href="userspace_2lib_2include_2dirent_8h.html#ad4fcb58b9194b1a3c1699654de963719" title="Rewind a directory stream back to the first entry.">rewinddir()</a> implementation note) and <a class="el" href="userspace_2lib_2include_2dirent_8h.html#ad4fcb58b9194b1a3c1699654de963719" title="Rewind a directory stream back to the first entry.">rewinddir()</a> is a no-op with errno set to EBADF in that case. </dd></dl>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

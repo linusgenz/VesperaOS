@@ -10,7 +10,7 @@ var searchData=
   ['pipe_7',['pipe',['../unistd_8h.html#aa9164ba18a8c801ed4adf42ce9247ef9',1,'unistd.h']]],
   ['pixel_5fformat_5fget_5fbpp_8',['pixel_format_get_bpp',['../jpeg_8h.html#a08d80216f8844e7ff05ac82454325a38',1,'jpeg.h']]],
   ['pixel_5fformat_5fget_5fchannels_9',['pixel_format_get_channels',['../jpeg_8h.html#a3438af56a876195f903949c227c191ef',1,'jpeg.h']]],
-  ['poll_10',['poll',['../userspace_2lib_2include_2poll_8h.html#a6c066ea4558fca56640102ec24491a53',1,'poll.h']]],
+  ['poll_10',['poll',['../userspace_2lib_2include_2poll_8h.html#aa97ba0bfbedf1784e648dd753a92449d',1,'poll.h']]],
   ['pos_11',['pos',['../classstella_1_1Widget.html#a2f478186d1767cd72c97c9e68afb1c6a',1,'stella::Widget']]],
   ['pow_12',['pow',['../math_8h.html#a96ae9abed439401fd6dd28a1e2c2f94e',1,'math.h']]],
   ['powf_13',['powf',['../math_8h.html#a30cf3c2db02d68d51ad8a81ea7b8e8d8',1,'math.h']]],

@@ -5,11 +5,11 @@ var searchData=
   ['e_5fflags_2',['e_flags',['../structElf32__Ehdr.html#a87cf481be7917fafde0c4ecf78c8e574',1,'Elf32_Ehdr::e_flags'],['../structElf64__Ehdr.html#ae6ea9e821472d35e7d2c446fa79bdc3a',1,'Elf64_Ehdr::e_flags']]],
   ['e_5fident_3',['e_ident',['../structElf32__Ehdr.html#aba47ac5e0af02d5668782f1fd5a7466c',1,'Elf32_Ehdr::e_ident'],['../structElf64__Ehdr.html#acdd2e122af003c5b5708d1ae75b4a85c',1,'Elf64_Ehdr::e_ident']]],
   ['e_5fmachine_4',['e_machine',['../structElf32__Ehdr.html#a19bca7faba9e5573814643efc3574c7b',1,'Elf32_Ehdr::e_machine'],['../structElf64__Ehdr.html#adecc8b3641e23794f39c78f15ab8c809',1,'Elf64_Ehdr::e_machine']]],
-  ['e_5fphentsize_5',['e_phentsize',['../structElf32__Ehdr.html#afa2289f96d86fcc568a3b1f40cc8953e',1,'Elf32_Ehdr::e_phentsize'],['../structElf64__Ehdr.html#ab5aefb7a14b9cf2eafcbaf0664852369',1,'Elf64_Ehdr::e_phentsize']]],
+  ['e_5fphentsize_5',['e_phentsize',['../structElf64__Ehdr.html#ab5aefb7a14b9cf2eafcbaf0664852369',1,'Elf64_Ehdr::e_phentsize'],['../structElf32__Ehdr.html#afa2289f96d86fcc568a3b1f40cc8953e',1,'Elf32_Ehdr::e_phentsize']]],
   ['e_5fphnum_6',['e_phnum',['../structElf32__Ehdr.html#a360898812db1655f8cb8258780d9df5b',1,'Elf32_Ehdr::e_phnum'],['../structElf64__Ehdr.html#af13bac5685d725c2ba9930c1176f3082',1,'Elf64_Ehdr::e_phnum']]],
   ['e_5fphoff_7',['e_phoff',['../structElf32__Ehdr.html#a25c36fc010284a928604aae005b67ad1',1,'Elf32_Ehdr::e_phoff'],['../structElf64__Ehdr.html#adc7d13d5c0e0eb4b62f0f898f03b2e66',1,'Elf64_Ehdr::e_phoff']]],
   ['e_5fshentsize_8',['e_shentsize',['../structElf32__Ehdr.html#ab53c709a841960e499da68e2316ed428',1,'Elf32_Ehdr::e_shentsize'],['../structElf64__Ehdr.html#a078af1eaf7681f9d85ff545b6c7aa9c5',1,'Elf64_Ehdr::e_shentsize']]],
-  ['e_5fshnum_9',['e_shnum',['../structElf64__Ehdr.html#a317679f1ef5e41e0717e95670c6a1d24',1,'Elf64_Ehdr::e_shnum'],['../structElf32__Ehdr.html#a11249bd7e61642742a68a3e7f69ac721',1,'Elf32_Ehdr::e_shnum']]],
+  ['e_5fshnum_9',['e_shnum',['../structElf32__Ehdr.html#a11249bd7e61642742a68a3e7f69ac721',1,'Elf32_Ehdr::e_shnum'],['../structElf64__Ehdr.html#a317679f1ef5e41e0717e95670c6a1d24',1,'Elf64_Ehdr::e_shnum']]],
   ['e_5fshoff_10',['e_shoff',['../structElf32__Ehdr.html#a00601af5187a1b3f8babfe9cddd95c15',1,'Elf32_Ehdr::e_shoff'],['../structElf64__Ehdr.html#a63fca3f9b273e5fd4d190d9cb7fba9b0',1,'Elf64_Ehdr::e_shoff']]],
   ['e_5fshstrndx_11',['e_shstrndx',['../structElf32__Ehdr.html#a3b3070ccd7d971e8cb6ea58d4c6fab09',1,'Elf32_Ehdr::e_shstrndx'],['../structElf64__Ehdr.html#ae8289d7705794be744876f6246242b9b',1,'Elf64_Ehdr::e_shstrndx']]],
   ['e_5ftype_12',['e_type',['../structElf32__Ehdr.html#a49e40a791813c06e3b6ebcb53aef1bb8',1,'Elf32_Ehdr::e_type'],['../structElf64__Ehdr.html#a031210e6571dad798c4ed66b85631d58',1,'Elf64_Ehdr::e_type']]],
@@ -23,6 +23,6 @@ var searchData=
   ['error_20',['error',['../structFILE.html#a53285086088ad9f3c1e4f59accf8e1c4',1,'FILE']]],
   ['error_5flog_5fentries_21',['error_log_entries',['../structsmart__nvme.html#a52cd2b03488f7d23a22b0a0082754abe',1,'smart_nvme']]],
   ['eu_5fmask_22',['eu_mask',['../structlucifer__query__topology.html#ae7635264d1d367d3181c5135a91c44f8',1,'lucifer_query_topology']]],
-  ['events_23',['events',['../structpollhdl.html#a3d431e3cce00196507242f04753c583d',1,'pollhdl']]],
+  ['events_23',['events',['../structpollfd.html#ac9b2f2c5b1f9a7487eb57e67cd4960ef',1,'pollfd::events'],['../structpollhdl.html#a3d431e3cce00196507242f04753c583d',1,'pollhdl::events']]],
   ['exit_5fcode_24',['exit_code',['../structunit__info.html#a07779b2699d71da869a714d920acee65',1,'unit_info']]]
 ];
