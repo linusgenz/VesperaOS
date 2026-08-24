@@ -5,13 +5,13 @@ var include_2uapi_2vespera_2dirent_8h =
     [ "dirent_type_t", "include_2uapi_2vespera_2dirent_8h.html#a81b0fd606d74c684138331d6fe096516", null ],
     [ "dirent_type", "include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6", [
       [ "DT_UNKNOWN", "include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6aeed6ea354e53d7846af370fa5ac314f9", null ],
-      [ "DT_FILE", "include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6a2e66401e4f5d2c978ddb6021267c717e", null ],
       [ "DT_DIR", "include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6a40b944f75d390136b9f74124dc23ef94", null ],
-      [ "DT_SYMLINK", "include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6af17ead8c24594dd530d8451c0edc6f16", null ],
-      [ "DT_CHARDEV", "include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6a45c2663804c110f37496697c8e1122e8", null ],
-      [ "DT_BLOCKDEV", "include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6a3412353c2a426673a0825c38381a6dc5", null ],
+      [ "DT_LNK", "include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6aa97e5675a779b4984265742cfb1f3376", null ],
+      [ "DT_CHR", "include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6a2eba518c141807e2d6261a2b1c84d25a", null ],
+      [ "DT_BLK", "include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6acf772449be652e2a8aecc028370459eb", null ],
       [ "DT_FIFO", "include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6a5488f793b1e97263b3b7ffea7d8ca820", null ],
-      [ "DT_SOCKET", "include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6ad7bea0362e9c429fabbd3a881f261ea3", null ],
-      [ "DT_EXEC", "include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6a433674f41e1ea22c4079d028475141d8", null ]
+      [ "DT_SOCK", "include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6ab0e71a9770f75f0d65ebaacb5699d847", null ],
+      [ "DT_EXEC", "include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6a433674f41e1ea22c4079d028475141d8", null ],
+      [ "DT_REG", "include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6a2154e45e317a72dc8b51333a7f2930bc", null ]
     ] ]
 ];

@@ -29,6 +29,7 @@ var stdlib_8h =
     [ "mbtowc", "stdlib_8h.html#a5ef32b5a0609786de9363e1b5e1e60b8", null ],
     [ "mkstemp", "stdlib_8h.html#a166d1f9c85394d1086977e2ced6f357b", null ],
     [ "mkstemps", "stdlib_8h.html#ae54b702477b37bfc027b768c2cfb64b0", null ],
+    [ "posix_memalign", "stdlib_8h.html#aed1e9c27ea92f5ae3a480059bf45c311", null ],
     [ "qsort", "stdlib_8h.html#a9a3f08ab3e633d7ba74925aeb907ba53", null ],
     [ "rand", "stdlib_8h.html#ae23144bcbb8e3742b00eb687c36654d1", null ],
     [ "realloc", "stdlib_8h.html#a0f723f009d0b6f246530cbbac3ec1dd4", null ],

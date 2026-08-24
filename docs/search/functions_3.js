@@ -26,7 +26,7 @@ var searchData=
   ['close_23',['close',['../unistd_8h.html#aafbcde67669a1b96577e735ddebd8634',1,'unistd.h']]],
   ['closedir_24',['closedir',['../userspace_2lib_2include_2dirent_8h.html#aaeac2b41e8c2c3a5f91c9bd511a8c0a6',1,'dirent.h']]],
   ['closelog_25',['closelog',['../sys_2syslog_8h.html#ae1e4e53707d8c3fbc36bbc523fbbcda3',1,'syslog.h']]],
-  ['color_26',['color',['../classstella_1_1Label.html#a3a0698143d3203babdc9cba72c118ab1',1,'stella::Label::color()'],['../classstella_1_1Color.html#ab70dab2f129f5cffd72b32b9d174aedf',1,'stella::Color::Color(stella_color_t c) noexcept'],['../classstella_1_1Color.html#a92fbc175640ce6f6080a0f87bb7b28ec',1,'stella::Color::Color(uint8_t r, uint8_t g, uint8_t b) noexcept'],['../classstella_1_1Color.html#aac233196f401ddb64a3d6179f58bbce9',1,'stella::Color::Color(uint32_t hex) noexcept']]],
+  ['color_26',['color',['../classstella_1_1Color.html#ab70dab2f129f5cffd72b32b9d174aedf',1,'stella::Color::Color(stella_color_t c) noexcept'],['../classstella_1_1Color.html#a92fbc175640ce6f6080a0f87bb7b28ec',1,'stella::Color::Color(uint8_t r, uint8_t g, uint8_t b) noexcept'],['../classstella_1_1Color.html#aac233196f401ddb64a3d6179f58bbce9',1,'stella::Color::Color(uint32_t hex) noexcept'],['../classstella_1_1Label.html#a3a0698143d3203babdc9cba72c118ab1',1,'stella::Label::color()']]],
   ['container_27',['Container',['../classstella_1_1Container.html#aadeb01685bc3661c7933681866d304c9',1,'stella::Container']]],
   ['copysign_28',['copysign',['../math_8h.html#a8f6b8a9fe1eae8efb583fac459fbfdfe',1,'math.h']]],
   ['copysignf_29',['copysignf',['../math_8h.html#ae1c0757b2d165ecf819927b3e569a067',1,'math.h']]],

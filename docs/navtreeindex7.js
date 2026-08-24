@@ -1,5 +1,10 @@
 var NAVTREEINDEX7 =
 {
+"math_8h.html#ab9e29bb9e853934c4ba647c840b7e5de":[5,0,1,0,0,30,8],
+"math_8h.html#abadf164294f6f465312021aad7d3a144":[5,0,1,0,0,30,88],
+"math_8h.html#abd2aca0b21e05b60680adc8e89cfeed2":[5,0,1,0,0,30,51],
+"math_8h.html#abf3cb1e5a0aaa1c42dffa9ebb1d78c30":[5,0,1,0,0,30,21],
+"math_8h.html#ac0d30c757b79e63c2cc5137d6018d015":[5,0,1,0,0,30,110],
 "math_8h.html#ac0fb5b886588863e95bd719058eb1938":[5,0,1,0,0,30,185],
 "math_8h.html#ac0fcbb770753c771ff2616b6c315601e":[5,0,1,0,0,30,135],
 "math_8h.html#ac7fbe1209e47e2782a76fbd06fb54ebb":[5,0,1,0,0,30,148],
@@ -244,10 +249,5 @@ var NAVTREEINDEX7 =
 "regex_8h.html#ad059816a7c4eb7e2193aadc66627a976":[5,0,1,0,0,37,13],
 "regex_8h.html#ad7e13616a54be821d6b686d8b2587401":[5,0,1,0,0,37,5],
 "regex_8h.html#add40131370479a1d1a70f10245426318":[5,0,1,0,0,37,27],
-"regex_8h.html#ae0ee85477e8756f1cf2d7fab21e56235":[5,0,1,0,0,37,15],
-"regex_8h.html#af5ff0ddb287a97be99547162f2af7cce":[5,0,1,0,0,37,3],
-"regex_8h_source.html":[5,0,1,0,0,37],
-"rtc_8h.html":[5,0,0,0,0,0,12],
-"rtc_8h.html#a363a8726c6dfd911f706633f7ccd31c6":[5,0,0,0,0,0,12,1],
-"rtc_8h_source.html":[5,0,0,0,0,0,12]
+"regex_8h.html#ae0ee85477e8756f1cf2d7fab21e56235":[5,0,1,0,0,37,15]
 };

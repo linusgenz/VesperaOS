@@ -148,6 +148,16 @@ Macros</h2></td></tr>
 <tr class="separator:a7ef839925708cfe5daf62ca32d0c751f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a44fae4c755ca3409100a7bf8e993c642" id="r_a44fae4c755ca3409100a7bf8e993c642"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a44fae4c755ca3409100a7bf8e993c642">_IOWR</a>(type,  nr,  data_type)&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aff3864fa34e2475dde335a390493f24f">IOWR</a>(type, nr, data_type)</td></tr>
 <tr class="separator:a44fae4c755ca3409100a7bf8e993c642"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5f6bb51c68947a6919b2f017f754c80" id="r_af5f6bb51c68947a6919b2f017f754c80"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#af5f6bb51c68947a6919b2f017f754c80">_IOC</a>(dir,  type,  nr,  size)&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a7ef3c63b24a6c7903383dfe01b494bda">IOC</a>(dir, type, nr, size)</td></tr>
+<tr class="separator:af5f6bb51c68947a6919b2f017f754c80"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7871c80cdb00b01cc72dc287259a5986" id="r_a7871c80cdb00b01cc72dc287259a5986"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a7871c80cdb00b01cc72dc287259a5986">IOC_VOID</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a9a910e370776fa7624f1490c6e7cebf1">IOC_NONE</a></td></tr>
+<tr class="separator:a7871c80cdb00b01cc72dc287259a5986"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aefe531e01b900d7ec9446d8a72060870" id="r_aefe531e01b900d7ec9446d8a72060870"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aefe531e01b900d7ec9446d8a72060870">IOC_OUT</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#af2fe75b95ad9a331ce0bbf82c694acdd">IOC_READ</a></td></tr>
+<tr class="separator:aefe531e01b900d7ec9446d8a72060870"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af941c6f2773d4304f947706d53fb9873" id="r_af941c6f2773d4304f947706d53fb9873"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#af941c6f2773d4304f947706d53fb9873">IOC_IN</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aa4ddeaf002da6c88825ae14c76e707f5">IOC_WRITE</a></td></tr>
+<tr class="separator:af941c6f2773d4304f947706d53fb9873"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92f2b6ee13301e2094cfe3b4762265d2" id="r_a92f2b6ee13301e2094cfe3b4762265d2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a92f2b6ee13301e2094cfe3b4762265d2">IOC_INOUT</a>&#160;&#160;&#160;(<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#af2fe75b95ad9a331ce0bbf82c694acdd">IOC_READ</a> | <a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aa4ddeaf002da6c88825ae14c76e707f5">IOC_WRITE</a>)</td></tr>
+<tr class="separator:a92f2b6ee13301e2094cfe3b4762265d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa6aa30149bb505d2ee92177f3a2d7e09" id="r_aa6aa30149bb505d2ee92177f3a2d7e09"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aa6aa30149bb505d2ee92177f3a2d7e09">IOC_GET_DIR</a>(cmd)&#160;&#160;&#160;((<a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a>)((cmd &gt;&gt; <a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aed61eb553e18ebde08531e79491e1e22">IOC_DIR_SHIFT</a>) &amp; <a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aa2d353812391a91a481ebb03109da634">IOC_DIR_MASK</a>))</td></tr>
 <tr class="separator:aa6aa30149bb505d2ee92177f3a2d7e09"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af1f192ee4d18a50e7240ec8fda99b150" id="r_af1f192ee4d18a50e7240ec8fda99b150"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#af1f192ee4d18a50e7240ec8fda99b150">IOC_GET_SIZE</a>(cmd)&#160;&#160;&#160;((<a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a>)((cmd &gt;&gt; <a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a7f16a570d5c5e03e02cf9d5ff0b40983">IOC_SIZE_SHIFT</a>) &amp; <a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#acffb1d41a6f8672a99a1faa061035765">IOC_SIZE_MASK</a>))</td></tr>
@@ -180,6 +190,46 @@ Macros</h2></td></tr>
           <td></td>
           <td>)</td>
           <td></td><td>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#af4c2af5d9d0f423792c40a43aad3b703">IO</a>(type, nr)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af5f6bb51c68947a6919b2f017f754c80" name="af5f6bb51c68947a6919b2f017f754c80"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5f6bb51c68947a6919b2f017f754c80">&#9670;&#160;</a></span>_IOC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define _IOC</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">dir, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">type, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">nr, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">size&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a7ef3c63b24a6c7903383dfe01b494bda">IOC</a>(dir, type, nr, size)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -482,6 +532,34 @@ Macros</h2></td></tr>
 
 </div>
 </div>
+<a id="af941c6f2773d4304f947706d53fb9873" name="af941c6f2773d4304f947706d53fb9873"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af941c6f2773d4304f947706d53fb9873">&#9670;&#160;</a></span>IOC_IN</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define IOC_IN&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aa4ddeaf002da6c88825ae14c76e707f5">IOC_WRITE</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a92f2b6ee13301e2094cfe3b4762265d2" name="a92f2b6ee13301e2094cfe3b4762265d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92f2b6ee13301e2094cfe3b4762265d2">&#9670;&#160;</a></span>IOC_INOUT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define IOC_INOUT&#160;&#160;&#160;(<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#af2fe75b95ad9a331ce0bbf82c694acdd">IOC_READ</a> | <a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aa4ddeaf002da6c88825ae14c76e707f5">IOC_WRITE</a>)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a9a910e370776fa7624f1490c6e7cebf1" name="a9a910e370776fa7624f1490c6e7cebf1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9a910e370776fa7624f1490c6e7cebf1">&#9670;&#160;</a></span>IOC_NONE</h2>
 
@@ -532,6 +610,20 @@ Macros</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define IOC_NR_SHIFT&#160;&#160;&#160;0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aefe531e01b900d7ec9446d8a72060870" name="aefe531e01b900d7ec9446d8a72060870"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aefe531e01b900d7ec9446d8a72060870">&#9670;&#160;</a></span>IOC_OUT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define IOC_OUT&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#af2fe75b95ad9a331ce0bbf82c694acdd">IOC_READ</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -630,6 +722,20 @@ Macros</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define IOC_TYPE_SHIFT&#160;&#160;&#160;8</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7871c80cdb00b01cc72dc287259a5986" name="a7871c80cdb00b01cc72dc287259a5986"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7871c80cdb00b01cc72dc287259a5986">&#9670;&#160;</a></span>IOC_VOID</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define IOC_VOID&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a9a910e370776fa7624f1490c6e7cebf1">IOC_NONE</a></td>
         </tr>
       </table>
 </div><div class="memdoc">

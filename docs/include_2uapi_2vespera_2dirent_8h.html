@@ -119,16 +119,16 @@ Typedefs</h2></td></tr>
 Enumerations</h2></td></tr>
 <tr class="memitem:aeb4ad920580973712039ad8e76f2d5d6" id="r_aeb4ad920580973712039ad8e76f2d5d6"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6">dirent_type</a> { <br />
 &#160;&#160;<a class="el" href="include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6aeed6ea354e53d7846af370fa5ac314f9">DT_UNKNOWN</a> = 0
-, <a class="el" href="include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6a2e66401e4f5d2c978ddb6021267c717e">DT_FILE</a>
 , <a class="el" href="include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6a40b944f75d390136b9f74124dc23ef94">DT_DIR</a>
-, <a class="el" href="include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6af17ead8c24594dd530d8451c0edc6f16">DT_SYMLINK</a>
+, <a class="el" href="include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6aa97e5675a779b4984265742cfb1f3376">DT_LNK</a>
+, <a class="el" href="include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6a2eba518c141807e2d6261a2b1c84d25a">DT_CHR</a>
 , <br />
-&#160;&#160;<a class="el" href="include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6a45c2663804c110f37496697c8e1122e8">DT_CHARDEV</a>
-, <a class="el" href="include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6a3412353c2a426673a0825c38381a6dc5">DT_BLOCKDEV</a>
+&#160;&#160;<a class="el" href="include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6acf772449be652e2a8aecc028370459eb">DT_BLK</a>
 , <a class="el" href="include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6a5488f793b1e97263b3b7ffea7d8ca820">DT_FIFO</a>
-, <a class="el" href="include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6ad7bea0362e9c429fabbd3a881f261ea3">DT_SOCKET</a>
+, <a class="el" href="include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6ab0e71a9770f75f0d65ebaacb5699d847">DT_SOCK</a>
+, <a class="el" href="include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6a433674f41e1ea22c4079d028475141d8">DT_EXEC</a>
 , <br />
-&#160;&#160;<a class="el" href="include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6a433674f41e1ea22c4079d028475141d8">DT_EXEC</a>
+&#160;&#160;<a class="el" href="include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6a2154e45e317a72dc8b51333a7f2930bc">DT_REG</a>
 <br />
  }</td></tr>
 <tr class="memdesc:aeb4ad920580973712039ad8e76f2d5d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration of possible directory entry types.  <a href="include_2uapi_2vespera_2dirent_8h.html#aeb4ad920580973712039ad8e76f2d5d6">More...</a><br /></td></tr>
@@ -187,21 +187,21 @@ Enumerations</h2></td></tr>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aeb4ad920580973712039ad8e76f2d5d6aeed6ea354e53d7846af370fa5ac314f9" name="aeb4ad920580973712039ad8e76f2d5d6aeed6ea354e53d7846af370fa5ac314f9"></a>DT_UNKNOWN&#160;</td><td class="fielddoc"><p>Unknown entry type (not determined) </p>
 </td></tr>
-<tr><td class="fieldname"><a id="aeb4ad920580973712039ad8e76f2d5d6a2e66401e4f5d2c978ddb6021267c717e" name="aeb4ad920580973712039ad8e76f2d5d6a2e66401e4f5d2c978ddb6021267c717e"></a>DT_FILE&#160;</td><td class="fielddoc"><p>Regular file. </p>
-</td></tr>
 <tr><td class="fieldname"><a id="aeb4ad920580973712039ad8e76f2d5d6a40b944f75d390136b9f74124dc23ef94" name="aeb4ad920580973712039ad8e76f2d5d6a40b944f75d390136b9f74124dc23ef94"></a>DT_DIR&#160;</td><td class="fielddoc"><p>Directory. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="aeb4ad920580973712039ad8e76f2d5d6af17ead8c24594dd530d8451c0edc6f16" name="aeb4ad920580973712039ad8e76f2d5d6af17ead8c24594dd530d8451c0edc6f16"></a>DT_SYMLINK&#160;</td><td class="fielddoc"><p>Symbolic link. </p>
+<tr><td class="fieldname"><a id="aeb4ad920580973712039ad8e76f2d5d6aa97e5675a779b4984265742cfb1f3376" name="aeb4ad920580973712039ad8e76f2d5d6aa97e5675a779b4984265742cfb1f3376"></a>DT_LNK&#160;</td><td class="fielddoc"><p>Symbolic link. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="aeb4ad920580973712039ad8e76f2d5d6a45c2663804c110f37496697c8e1122e8" name="aeb4ad920580973712039ad8e76f2d5d6a45c2663804c110f37496697c8e1122e8"></a>DT_CHARDEV&#160;</td><td class="fielddoc"><p>Character device. </p>
+<tr><td class="fieldname"><a id="aeb4ad920580973712039ad8e76f2d5d6a2eba518c141807e2d6261a2b1c84d25a" name="aeb4ad920580973712039ad8e76f2d5d6a2eba518c141807e2d6261a2b1c84d25a"></a>DT_CHR&#160;</td><td class="fielddoc"><p>Character device. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="aeb4ad920580973712039ad8e76f2d5d6a3412353c2a426673a0825c38381a6dc5" name="aeb4ad920580973712039ad8e76f2d5d6a3412353c2a426673a0825c38381a6dc5"></a>DT_BLOCKDEV&#160;</td><td class="fielddoc"><p>Block device. </p>
+<tr><td class="fieldname"><a id="aeb4ad920580973712039ad8e76f2d5d6acf772449be652e2a8aecc028370459eb" name="aeb4ad920580973712039ad8e76f2d5d6acf772449be652e2a8aecc028370459eb"></a>DT_BLK&#160;</td><td class="fielddoc"><p>Block device. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="aeb4ad920580973712039ad8e76f2d5d6a5488f793b1e97263b3b7ffea7d8ca820" name="aeb4ad920580973712039ad8e76f2d5d6a5488f793b1e97263b3b7ffea7d8ca820"></a>DT_FIFO&#160;</td><td class="fielddoc"><p>Named pipe (FIFO) </p>
 </td></tr>
-<tr><td class="fieldname"><a id="aeb4ad920580973712039ad8e76f2d5d6ad7bea0362e9c429fabbd3a881f261ea3" name="aeb4ad920580973712039ad8e76f2d5d6ad7bea0362e9c429fabbd3a881f261ea3"></a>DT_SOCKET&#160;</td><td class="fielddoc"><p>Socket. </p>
+<tr><td class="fieldname"><a id="aeb4ad920580973712039ad8e76f2d5d6ab0e71a9770f75f0d65ebaacb5699d847" name="aeb4ad920580973712039ad8e76f2d5d6ab0e71a9770f75f0d65ebaacb5699d847"></a>DT_SOCK&#160;</td><td class="fielddoc"><p>Socket. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="aeb4ad920580973712039ad8e76f2d5d6a433674f41e1ea22c4079d028475141d8" name="aeb4ad920580973712039ad8e76f2d5d6a433674f41e1ea22c4079d028475141d8"></a>DT_EXEC&#160;</td><td class="fielddoc"><p>Executable file. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aeb4ad920580973712039ad8e76f2d5d6a2154e45e317a72dc8b51333a7f2930bc" name="aeb4ad920580973712039ad8e76f2d5d6a2154e45e317a72dc8b51333a7f2930bc"></a>DT_REG&#160;</td><td class="fielddoc"><p>Regular file. </p>
 </td></tr>
 </table>
 

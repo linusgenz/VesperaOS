@@ -3,7 +3,7 @@ var searchData=
   ['n_5fcs_5fprecedes_0',['n_cs_precedes',['../structlconv.html#ad118b68a229527f7e96538ac875169ad',1,'lconv']]],
   ['n_5fsep_5fby_5fspace_1',['n_sep_by_space',['../structlconv.html#ab7ac20ce034900155183b32fc3c6d9a3',1,'lconv']]],
   ['n_5fsign_5fposn_2',['n_sign_posn',['../structlconv.html#ae0bbe6f545952daef5a8cbdd054a184e',1,'lconv']]],
-  ['name_3',['name',['../structrealm__info.html#a94ffed55ca8f366d704a95c4fbff30ab',1,'realm_info::name'],['../structthermal__zone.html#adde4de744bcb1bc959658b75f318436e',1,'thermal_zone::name'],['../structdirent.html#abb2093f2917192e693a5651c50f555d5',1,'dirent::name']]],
+  ['name_3',['name',['../structrealm__info.html#a94ffed55ca8f366d704a95c4fbff30ab',1,'realm_info::name'],['../structthermal__zone.html#adde4de744bcb1bc959658b75f318436e',1,'thermal_zone::name']]],
   ['needed_4',['needed',['../structelf__loaded__object.html#a859554aca413a57f4a67c5b5d7f3c4f3',1,'elf_loaded_object']]],
   ['needed_5fcount_5',['needed_count',['../structelf__loaded__object.html#af8206b275e2d7a52c9aed9408bebd303',1,'elf_loaded_object::needed_count'],['../structelf__dyn__scan__result__t.html#a72cc9f7da342933f094fbc9926bf5cf2',1,'elf_dyn_scan_result_t::needed_count']]],
   ['needed_5foff_6',['needed_off',['../structelf__dyn__scan__result__t.html#a6006a1c8f28907cde9eaf2a5c7b9c875',1,'elf_dyn_scan_result_t']]],
