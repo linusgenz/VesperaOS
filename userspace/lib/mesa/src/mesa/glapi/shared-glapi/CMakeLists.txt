@@ -45,7 +45,7 @@ target_compile_definitions(glapi PRIVATE
 
 target_compile_options(glapi PRIVATE
         ${MESA_COMMON_C_FLAGS}
-        -ftls-model=global-dynamic
+        #-ftls-model=global-dynamic
 )
 
 # gnu_symbol_visibility : 'hidden'

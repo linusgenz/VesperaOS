@@ -29,75 +29,76 @@
 
 #ifdef __cplusplus
 extern "C" {
+
 #endif
 
 /**
  * @brief Return the length of S.
  */
-size_t strlen(const char *s);
+size_t strlen(const char* s);
 
-size_t strnlen(const char *s, size_t maxlen);
+size_t strnlen(const char* s, size_t maxlen);
 
 /**
  * @brief Copy SRC to DEST.
  */
-char *strcpy(char *dest, const char *src);
+char* strcpy(char* dest, const char* src);
 
 /**
  * @brief Copy no more than N characters of SRC to DEST.
  */
-char *strncpy(char *dest, const char *src, size_t n);
+char* strncpy(char* dest, const char* src, size_t n);
 
 /**
  * @brief Append SRC onto DEST.
  */
-char *strcat(char *dest, const char *src);
+char* strcat(char* dest, const char* src);
 
 /**
  * @brief Append no more than N characters from SRC onto DEST.
  */
-char *strncat(char *dest, const char *src, size_t max);
+char* strncat(char* dest, const char* src, size_t max);
 
 /**
  * @brief Compare A and B.
  */
-int strcmp(const char *a, const char *b);
+int strcmp(const char* a, const char* b);
 
 /**
  * @brief Compare N characters of A and B.
  */
-int strncmp(const char *a, const char *b, size_t n);
+int strncmp(const char* a, const char* b, size_t n);
 
 /**
  * @brief Stub, same as strcmp
  */
-int strcoll(const char *s1, const char *s2);
+int strcoll(const char* s1, const char* s2);
 
 /**
  * @brief Find the first occurrence of C in S.
  */
-char *strchr(const char *s, int c);
+char* strchr(const char* s, int c);
 
-char *strrchr(const char *s, int c);
+char* strrchr(const char* s, int c);
 
 /**
  * @brief Find the first occurrence of NEEDLE in HAYSTACK.
  */
-char *strstr(const char *haystack, const char *needle);
+char* strstr(const char* haystack, const char* needle);
 /**
  * @brief Set N bytes of DEST to C.
  */
-void *memset(void *dest, int c, size_t n);
+void* memset(void* dest, int c, size_t n);
 
 /**
  * @brief Copy N bytes of SRC to DEST.
  */
-void *memcpy(void *dest, const void *src, size_t len);
+void* memcpy(void* dest, const void* src, size_t len);
 
 /**
  * @brief Compare N bytes of S1 and S2.
  */
-int memcmp(const void *s1, const void *s2, size_t n);
+int memcmp(const void* s1, const void* s2, size_t n);
 
 int bcmp(const void* s1, const void* s2, size_t n);
 
@@ -105,9 +106,9 @@ int bcmp(const void* s1, const void* s2, size_t n);
  * @brief Copy N bytes of SRC to DEST, guaranteeing
  * correct behavior for overlapping strings.
  */
-void *memmove(void *dest, const void *src, size_t len);
+void* memmove(void* dest, const void* src, size_t len);
 
-int memmove_safe(void *dest, size_t dest_len, const void *src, size_t count);
+int memmove_safe(void* dest, size_t dest_len, const void* src, size_t count);
 
 /**
  * @brief Split a string into tokens using a delimiter.
@@ -120,33 +121,35 @@ char* strtok_r(char* str, const char* delim, char** saveptr);
  * @brief Return the length of the maximum initial segment
    of S which contains only characters in ACCEPT.
  */
-size_t strspn(const char *s, const char *accept);
+size_t strspn(const char* s, const char* accept);
 
 /**
  * @brief Return the length of the initial segment of S which
    consists entirely of characters not in REJECT.
 */
-size_t strcspn(const char *s, const char *reject);
+size_t strcspn(const char* s, const char* reject);
 
 /**
  * @brief Find the first occurrence in S of any character in ACCEPT.
  */
-char *strpbrk(const char *s, const char *accept);
+char* strpbrk(const char* s, const char* accept);
 
-void *memchr(const void *src, int c, size_t n);
+void* memchr(const void* src, int c, size_t n);
 
-size_t strlcpy(char *dest, const char *src, size_t size);
+size_t strlcpy(char* dest, const char* src, size_t size);
 
 /* Duplicate S, returning an identical malloc'd string.  */
-char *strdup (const char *s);
+char* strdup(const char* s);
 
 /* Return a malloc'd copy of at most N bytes of STRING.  The
    resultant string is terminated even if no null terminator
    appears before STRING[N].  */
-char *strndup(const char *s, size_t n);
+char* strndup(const char* s, size_t n);
 
 // From strings.h
-int strcasecmp(const char *s1, const char *s2);
+int strcasecmp(const char* s1, const char* s2);
+
+char* stpcpy(char* __restrict__ dest, const char* __restrict__ src);
 
 #ifdef __cplusplus
 }

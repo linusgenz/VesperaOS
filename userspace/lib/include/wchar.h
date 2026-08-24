@@ -34,7 +34,7 @@ extern "C" {
 
 #ifndef _WINT_T
 #define _WINT_T
-    typedef unsigned int wint_t;
+    typedef __WINT_TYPE__ wint_t;
 #endif
 
 #ifndef WEOF
@@ -52,7 +52,8 @@ extern "C" {
     wchar_t* wmemcpy(wchar_t* dest, const wchar_t* src, size_t count);
     wchar_t* wmemmove(wchar_t* dest, const wchar_t* src, size_t count);
     wchar_t* wmemset(wchar_t* dest, wchar_t ch, size_t count);
-
+    wchar_t *wcschr(const wchar_t *s, wchar_t c);
+    wchar_t *wcsrchr(const wchar_t *s, wchar_t c);
 #ifdef __cplusplus
 }
 #endif

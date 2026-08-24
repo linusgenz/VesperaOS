@@ -81,8 +81,45 @@ void operator delete[](void* ptr, size_t size) noexcept {
     free(ptr);
 }
 
-extern "C" void __cxa_pure_virtual() {
+namespace std {
+    struct nothrow_t {
+    };
+
+    extern const nothrow_t nothrow;
+}
+
+void* operator new(size_t size, const std::nothrow_t&) noexcept {
+    return malloc(size);
+}
+
+void* operator new[](size_t size, const std::nothrow_t&) noexcept {
+    return malloc(size);
+}
+
+void operator delete(void* ptr, const std::nothrow_t&) noexcept {
+    free(ptr);
+}
+
+void operator delete[](void* ptr, const std::nothrow_t&) noexcept {
+    free(ptr);
+}
+
+extern "C" {
+void __cxa_pure_virtual() {
     abort();
+}
+// TODO MULTITHREAD SAVE PLS
+int __cxa_guard_acquire(uint64_t* guard_object) {
+    return !(*(reinterpret_cast<volatile char*>(guard_object)) != 0);
+}
+
+void __cxa_guard_release(uint64_t* guard_object) {
+    *(reinterpret_cast<volatile char*>(guard_object)) = 1;
+}
+
+void __cxa_guard_abort(uint64_t* guard_object) {
+    (void)guard_object;
+}
 }
 
 namespace std {

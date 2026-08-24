@@ -283,7 +283,7 @@ target_include_directories(mesa_glsl
 
 target_compile_options(mesa_glsl PRIVATE
         $<$<COMPILE_LANGUAGE:C>:${MESA_COMMON_C_FLAGS}>
-        $<$<COMPILE_LANGUAGE:CXX>:${MESA_COMMON_C_FLAGS}>
+        $<$<COMPILE_LANGUAGE:CXX>:${MESA_COMMON_CXX_FLAGS}>
 )
 
 set_target_properties(mesa_glsl PROPERTIES

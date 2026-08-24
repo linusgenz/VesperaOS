@@ -55,6 +55,9 @@
 
 #include "ctype.h"
 #include <stddef.h>
+#include <bits/alltypes.h>
+
+#include "wchar.h"
 
 // Character classification table: 384 uint16_t entries.
 // Indexed as _ctype_b[c + 128], covering c in [-128, 255].
@@ -353,3 +356,247 @@ const uint32_t _ctype_class_alnum[4] = {
     0x07FFFFFE,
     0x00000000,
 };
+
+// Functions
+
+// Copyright musl
+
+static const unsigned char tab[];
+
+static const unsigned char rulebases[512];
+static const int rules[];
+
+static const unsigned char exceptions[][2];
+
+static int casemap(unsigned c, int dir)
+{
+    unsigned b, x, y, v, rt, xb, xn;
+    int r, rd, c0 = c;
+
+    if (c >= 0x20000) return c;
+
+    b = c>>8;
+    c &= 255;
+    x = c/3;
+    y = c%3;
+
+    /* lookup entry in two-level base-6 table */
+    v = tab[tab[b]*86+x];
+    static const int mt[] = { 2048, 342, 57 };
+    v = (v*mt[y]>>11)%6;
+
+    /* use the bit vector out of the tables as an index into
+     * a block-specific set of rules and decode the rule into
+     * a type and a case-mapping delta. */
+    r = rules[rulebases[b]+v];
+    rt = r & 255;
+    rd = r >> 8;
+
+    /* rules 0/1 are simple lower/upper case with a delta.
+     * apply according to desired mapping direction. */
+    if (rt < 2) return c0 + (rd & -(rt^dir));
+
+    /* binary search. endpoints of the binary search for
+     * this block are stored in the rule delta field. */
+    xn = rd & 0xff;
+    xb = (unsigned)rd >> 8;
+    while (xn) {
+        unsigned try = exceptions[xb+xn/2][0];
+        if (try == c) {
+            r = rules[exceptions[xb+xn/2][1]];
+            rt = r & 255;
+            rd = r >> 8;
+            if (rt < 2) return c0 + (rd & -(rt^dir));
+            /* Hard-coded for the four exceptional titlecase */
+            return c0 + (dir ? -1 : 1);
+        } else if (try > c) {
+            xn /= 2;
+        } else {
+            xb += xn/2;
+            xn -= xn/2;
+        }
+    }
+    return c0;
+}
+
+wint_t towupper(wint_t wc)
+{
+    return casemap(wc, 1);
+}
+
+wint_t towupper_l(wint_t c, locale_t l)
+{
+    return towupper(c);
+}
+
+wint_t towlower(wint_t wc)
+{
+    return casemap(wc, 0);
+}
+
+wint_t towlower_l(wint_t c, locale_t l)
+{
+    return towlower(c);
+}
+
+int iswupper(wint_t wc)
+{
+    return towlower(wc) != wc;
+}
+
+int iswupper_l(wint_t c, locale_t l)
+{
+    return iswupper(c);
+}
+
+int iswlower(wint_t wc)
+{
+    return towupper(wc) != wc;
+}
+
+int iswlower_l(wint_t c, locale_t l)
+{
+    return iswlower(c);
+}
+
+static const unsigned char table[] = {
+#include "alpha.h"
+};
+
+int iswalpha(wint_t wc)
+{
+    if (wc<0x20000U)
+        return (table[table[wc>>8]*32+((wc&255)>>3)]>>(wc&7))&1;
+    if (wc<0x2fffeU)
+        return 1;
+    return 0;
+}
+
+int iswalpha_l(wint_t c, locale_t l)
+{
+    return iswalpha(c);
+}
+
+int iswdigit(wint_t wc)
+{
+    return (unsigned)wc-'0' < 10;
+}
+
+int iswdigit_l(wint_t c, locale_t l)
+{
+    return iswdigit(c);
+}
+
+int iswalnum(wint_t wc)
+{
+    return iswdigit(wc) || iswalpha(wc);
+}
+
+int iswalnum_l(wint_t c, locale_t l)
+{
+    return iswalnum(c);
+}
+
+int iswxdigit(wint_t wc)
+{
+    return (unsigned)(wc-'0') < 10 || (unsigned)((wc|32)-'a') < 6;
+}
+
+int iswxdigit_l(wint_t c, locale_t l)
+{
+    return iswxdigit(c);
+}
+
+/* Our definition of whitespace is the Unicode White_Space property,
+ * minus non-breaking spaces (U+00A0, U+2007, and U+202F) and script-
+ * specific characters with non-blank glyphs (U+1680 and U+180E). */
+
+int iswspace(wint_t wc)
+{
+    static const wchar_t spaces[] = {
+        ' ', '\t', '\n', '\r', 11, 12,  0x0085,
+        0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x2005,
+        0x2006, 0x2008, 0x2009, 0x200a,
+        0x2028, 0x2029, 0x205f, 0x3000, 0
+    };
+    return wc && wcschr(spaces, wc);
+}
+
+int iswspace_l(wint_t c, locale_t l)
+{
+    return iswspace(c);
+}
+
+static const unsigned char table_punct[] = {
+#include "punct.h"
+};
+
+int iswpunct(wint_t wc)
+{
+    if (wc<0x20000U)
+        return (table_punct[table_punct[wc>>8]*32+((wc&255)>>3)]>>(wc&7))&1;
+    return 0;
+}
+
+int iswpunct_l(wint_t c, locale_t l)
+{
+    return iswpunct(c);
+}
+
+int iswcntrl(wint_t wc)
+{
+    return (unsigned)wc < 32
+        || (unsigned)(wc-0x7f) < 33
+        || (unsigned)(wc-0x2028) < 2
+        || (unsigned)(wc-0xfff9) < 3;
+}
+
+int iswcntrl_l(wint_t c, locale_t l)
+{
+    return iswcntrl(c);
+}
+
+/* Consider all legal codepoints as printable except for:
+ * - C0 and C1 control characters
+ * - U+2028 and U+2029 (line/para break)
+ * - U+FFF9 through U+FFFB (interlinear annotation controls)
+ * The following code is optimized heavily to make hot paths for the
+ * expected printable characters. */
+
+int iswprint(wint_t wc)
+{
+    if (wc < 0xffU)
+        return (wc+1 & 0x7f) >= 0x21;
+    if (wc < 0x2028U || wc-0x202aU < 0xd800-0x202a || wc-0xe000U < 0xfff9-0xe000)
+        return 1;
+    if (wc-0xfffcU > 0x10ffff-0xfffc || (wc&0xfffe)==0xfffe)
+        return 0;
+    return 1;
+}
+
+int iswprint_l(wint_t c, locale_t l)
+{
+    return iswprint(c);
+}
+
+int iswgraph(wint_t wc)
+{
+    /* ISO C defines this function as: */
+    return !iswspace(wc) && iswprint(wc);
+}
+
+int iswgraph_l(wint_t c, locale_t l)
+{
+    return iswgraph(c);
+}
+
+
+int iswblank(wint_t wc)
+{
+    return isblank(wc);
+}
+
+int iswblank_l(wint_t c, locale_t l)
+{
+    return iswblank(c);
+}

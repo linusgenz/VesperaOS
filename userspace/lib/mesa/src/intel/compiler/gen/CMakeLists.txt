@@ -82,6 +82,9 @@ target_link_libraries(mesa_intel_compiler_gen
         mesa_intel_dev
 )
 
-target_compile_options(mesa_intel_compiler_gen PRIVATE ${MESA_COMMON_C_FLAGS})
+target_compile_options(mesa_intel_compiler_gen PRIVATE
+        $<$<COMPILE_LANGUAGE:C>:${MESA_COMMON_C_FLAGS}>
+        $<$<COMPILE_LANGUAGE:CXX>:${MESA_COMMON_CXX_FLAGS}>
+)
 
 add_dependencies(mesa_intel_compiler_gen sysroot_headers)

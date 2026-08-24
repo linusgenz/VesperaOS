@@ -17,28 +17,11 @@
 
 local S = {}
 
-S.memoria = {
-    name     = "memoria",
-    exec     = "/bin/memoria",
-    restart  = "always",
-    critical = true,
-    umbra    = true
-}
-
-S.structa = {
-    name     = "structa",
-    exec     = "/bin/structa",
-    restart  = "on-failure",
-    requires = { "memoria" },
-    umbra    = true
-}
-
 S.ignis = {
     name             = "ignis",
     exec             = "/bin/ignis",
     restart          = "always",
     restart_delay_ms = 500,
-    requires         = { "memoria" },
     umbra            = true
 }
 
@@ -49,7 +32,6 @@ S.nox = {
     args             = { "-v" },
     restart          = "always",
     restart_delay_ms = 2000,
-    requires         = { "memoria" },
     umbra            = false
 }
 
@@ -60,7 +42,6 @@ crepusculum = {
     args             = { "-v" },
     restart          = "always",
     restart_delay_ms = 2000,
-    requires         = { "memoria" },
     umbra            = true
 }
 

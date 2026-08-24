@@ -333,8 +333,7 @@ void* memmove(void* dest, const void* src, size_t len) {
     const char* s = src;
     if (d < s) {
         while (len--) *d++ = *s++;
-    }
-    else {
+    } else {
         char* lasts = (char*)(s + (len - 1));
         char* lastd = d + (len - 1);
         while (len--) *lastd-- = *lasts--;
@@ -342,8 +341,10 @@ void* memmove(void* dest, const void* src, size_t len) {
     return dest;
 }
 
-int memmove_safe(void* dest, size_t dest_len,
-                 const void* src, size_t count) {
+int memmove_safe(
+    void* dest, size_t dest_len,
+    const void* src, size_t count
+) {
     if (!dest || !src) return -1;
     if (count > dest_len) return -2;
     if (count == 0 || dest == src) return 0;
@@ -353,8 +354,7 @@ int memmove_safe(void* dest, size_t dest_len,
 
     if (d < s) {
         while (count--) *d++ = *s++;
-    }
-    else {
+    } else {
         d += count;
         s += count;
         while (count--) *--d = *--s;
@@ -373,11 +373,11 @@ size_t strlcpy(char* dest, const char* src, size_t size) {
     return src_len;
 }
 
-char *strndup(const char *s, size_t n) {
+char* strndup(const char* s, size_t n) {
     if (!s) return NULL;
 
     size_t len = strnlen(s, n);
-    char *dst = malloc(len + 1);
+    char* dst = malloc(len + 1);
 
     if (dst == NULL) {
         return NULL;
@@ -389,6 +389,14 @@ char *strndup(const char *s, size_t n) {
     return dst;
 }
 
-char *strdup(const char *s) {
+char* strdup(const char* s) {
     return strndup(s, (size_t)-1);
+}
+
+char* stpcpy(char* __restrict__ dest, const char* __restrict__ src) {
+    while ((*dest = *src) != '\0') {
+        dest++;
+        src++;
+    }
+    return dest;
 }

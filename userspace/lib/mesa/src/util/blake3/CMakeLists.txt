@@ -77,16 +77,10 @@ set_target_properties(mesa_blake3 PROPERTIES
         C_VISIBILITY_PRESET hidden
 )
 
+
 target_compile_options(mesa_blake3 PRIVATE
-        $<$<COMPILE_LANGUAGE:C>:-Wno-error>
-        $<$<COMPILE_LANGUAGE:C>:-nostdinc>
-        -fno-stack-protector
-        -fPIC
-        -O0
-        -g
-        --sysroot=${VESPERA_SYSROOT}
-        $<$<COMPILE_LANGUAGE:C>:-isystem ${VESPERA_SYSROOT}/usr/include>
-        $<$<COMPILE_LANGUAGE:C>:-idirafter ${COMPILER_BUILTIN_INCLUDE}>
+        $<$<COMPILE_LANGUAGE:C>:${MESA_COMMON_C_FLAGS}>
+        $<$<COMPILE_LANGUAGE:CXX>:${MESA_COMMON_CXX_FLAGS}>
 )
 
 add_dependencies(mesa_blake3 sysroot_headers)

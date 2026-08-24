@@ -1043,3 +1043,31 @@ int mbtowc(wchar_t *__restrict__ wc, const char *__restrict__ src, size_t n) {
         errno = EILSEQ;
     return -1;
 }
+
+int posix_memalign(void** memptr, size_t alignment, size_t size) {
+    if (alignment % sizeof(void*) != 0) {
+        return EINVAL;
+    }
+    if ((alignment & (alignment - 1)) != 0) {
+        return EINVAL;
+    }
+    if (size == 0) {
+        *memptr = NULL;
+        return 0;
+    }
+
+    size_t total = size + alignment - 1 + sizeof(void*);
+
+    void* raw = malloc(total);
+    if (!raw) {
+        return ENOMEM;
+    }
+
+    uintptr_t raw_addr = (uintptr_t)raw + sizeof(void*);
+    uintptr_t aligned_addr = (raw_addr + alignment - 1) & ~(uintptr_t)(alignment - 1);
+
+    ((void**)aligned_addr)[-1] = raw;
+
+    *memptr = (void*)aligned_addr;
+    return 0;
+}

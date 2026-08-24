@@ -25,6 +25,7 @@
 
 #include "elf.h"
 #include "elf_loader.h"
+#include "../../../include/uapi/vespera/handles.h"
 #include "sys/mman.h"
 
 extern int64_t ld_raw_open(const char* path, int64_t flags, int64_t mode);
@@ -38,6 +39,29 @@ extern int64_t ld_raw_mprotect(void* addr, uint64_t length, int prot);
 extern int64_t ld_raw_munmap(void* addr, uint64_t length);
 
 static uint64_t ld_strlen(const char* s);
+
+static uint64_t ld_strlen(const char* s) {
+    uint64_t len = 0;
+    while (s[len]) len++;
+    return len;
+}
+
+int ld_puts(const char* s) {
+    if (!s) return -1;
+
+    uint64_t len = ld_strlen(s);
+
+    if (len > 0) {
+        int64_t ret = ld_raw_write(HANDLE_STDOUT, s, len);
+        if (ret < 0) return -1;
+    }
+
+    // 2. Abschließenden Zeilenumbruch schreiben
+    int64_t ret_nl = ld_raw_write(HANDLE_STDOUT, "\n", 1);
+    if (ret_nl < 0) return -1;
+
+    return (int)(len + 1);
+}
 
 void* memset(void* dest, int c, size_t num) {
     uint8_t* d = (uint8_t*)dest;
@@ -79,7 +103,7 @@ extern Elf64_Dyn _DYNAMIC[];
 
 #define LD_MAX_OBJECTS 64
 #define LD_MAX_PATH    256
-#define LD_FILE_BUF_MAX (16 * 1024 * 1024) // 16 MiB Obergrenze je Datei
+#define LD_FILE_BUF_MAX (105 * 1024 * 1024) // 16 MiB Obergrenze je Datei
 
 typedef struct {
     elf_loaded_object_t obj;
@@ -102,12 +126,6 @@ static const char* const kSearchPaths[] = {
 static int ld_strcmp(const char* a, const char* b) {
     while (*a && (*a == *b)) { a++; b++; }
     return (unsigned char)*a - (unsigned char)*b;
-}
-
-static uint64_t ld_strlen(const char* s) {
-    uint64_t n = 0;
-    while (s[n]) n++;
-    return n;
 }
 
 static void ld_strcpy_bounded(char* dst, const char* src, uint64_t dst_size) {
@@ -144,12 +162,17 @@ static ld_slot_t* ld_find_by_path(const char* path) {
 }
 
 static int64_t ld_read_whole_file(const char* path) {
+    ld_puts(path);
     int64_t fd = ld_raw_open(path, /*O_RDONLY=*/0, 0);
-    if (fd < 0) return -1;
+    if (fd < 0) {
+        ld_puts("ld_raw_open");
+        return -1;
+    }
 
     int64_t size = ld_raw_seek(fd, 0, /*SEEK_END=*/2);
     if (size < 0 || size > LD_FILE_BUF_MAX) {
         ld_raw_close(fd);
+        ld_puts("seek irgendwas");
         return -1;
     }
     ld_raw_seek(fd, 0, /*SEEK_SET=*/0);
@@ -159,6 +182,7 @@ static int64_t ld_read_whole_file(const char* path) {
         int64_t n = ld_raw_read(fd, g_file_buf + total, (uint64_t)(size - total));
         if (n <= 0) {
             ld_raw_close(fd);
+            ld_puts("ld raw read");
             return -1;
         }
         total += n;
@@ -205,16 +229,19 @@ static ld_slot_t* ld_load_object(const char* name, int depth) {
 
     int64_t file_size = ld_read_whole_file(resolved);
     if (file_size < (int64_t)sizeof(Elf64_Ehdr)) {
+        ld_puts("ld_read_whole_file");
         ld_raw_exit(126);
     }
 
     Elf64_Ehdr* eh = (Elf64_Ehdr*)g_file_buf;
     if (!elf_loader_validate_ehdr(eh)) {
+        ld_puts("ld validate ehdr");
         ld_raw_exit(126);
     }
 
     uint64_t vmin, vmax;
     if (!elf_loader_calc_address_range(eh, g_file_buf, &vmin, &vmax)) {
+        ld_puts("elf_loader_calc_address_range");
         ld_raw_exit(126);
     }
 
@@ -222,6 +249,7 @@ static ld_slot_t* ld_load_object(const char* name, int depth) {
 
     void* probe = elf_loader_sys_mmap(NULL, map_size, PROT_NONE, 0);
     if (probe == (void*)-1) {
+        ld_puts("elf_loader_sys_mmap");
         ld_raw_exit(126);
     }
     elf_loader_sys_munmap(probe, map_size);
@@ -230,11 +258,13 @@ static ld_slot_t* ld_load_object(const char* name, int depth) {
     uint64_t load_bias = map_base - vmin;
 
     if (!elf_loader_map_segments(eh, g_file_buf, load_bias, map_base, map_size)) {
+        ld_puts("elf_loader_map_segments");
         ld_raw_exit(126);
     }
 
     ld_slot_t* slot = ld_alloc_slot();
     if (!slot) {
+        ld_puts("ld_alloc_slot");
         ld_raw_exit(126);
     }
 

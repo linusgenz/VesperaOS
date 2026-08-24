@@ -37,13 +37,13 @@ target_include_directories(mesa_util_c11
         ${VESPERA_SYSROOT}/usr/include
 )
 
-target_compile_options(mesa_util_c11 PRIVATE ${MESA_COMMON_C_FLAGS})
+target_compile_options(mesa_util_c11 PRIVATE
+        $<$<COMPILE_LANGUAGE:C>:${MESA_COMMON_C_FLAGS}>
+        $<$<COMPILE_LANGUAGE:CXX>:${MESA_COMMON_CXX_FLAGS}>
+)
+
 target_compile_options(mesa_util_c11 PRIVATE -fvisibility=hidden)
 
 target_compile_definitions(mesa_util_c11 PUBLIC HAVE_PTHREAD HAVE_STRUCT_TIMESPEC)
-
-target_link_libraries(mesa_util_c11 PUBLIC
-        vesplib
-)
 
 add_dependencies(mesa_util_c11 sysroot_headers)

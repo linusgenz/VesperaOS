@@ -27,7 +27,17 @@ target_include_directories(vespera_gl_offscreen
 )
 
 target_compile_options(vespera_gl_offscreen PRIVATE
-        ${MESA_COMMON_C_FLAGS}
+        -target x86_64-vespera-elf
+        -nostdinc
+        -fno-stack-protector
+        -fno-use-cxa-atexit
+        -ftls-model=initial-exec
+        -fPIE
+        -O2
+        --sysroot=${VESPERA_SYSROOT}
+        -isystem${VESPERA_SYSROOT}/usr/include
+        -isystem${VESPERA_SYSROOT}/usr/include/c++
+        -idirafter ${COMPILER_BUILTIN_INCLUDE}
 )
 
 target_link_libraries(vespera_gl_offscreen PUBLIC mesa)

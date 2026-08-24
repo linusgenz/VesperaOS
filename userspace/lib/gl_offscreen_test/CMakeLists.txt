@@ -5,6 +5,7 @@ set(MESA_BUILD_ROOT ${CMAKE_CURRENT_BINARY_DIR}/../mesa_build/)
 
 add_executable(vespera_gl_offscreen_test
         vespera_gl_offscreen_test.c
+        $<TARGET_OBJECTS:crt0_obj>
 )
 
 add_compile_definitions(
@@ -16,6 +17,8 @@ add_compile_definitions(
 target_link_libraries(vespera_gl_offscreen_test PRIVATE
         vespera_gl_offscreen
         GLESv2
+        vesplib
+        vesplib_cpp
 )
 
 target_include_directories(vespera_gl_offscreen_test PRIVATE
@@ -27,6 +30,22 @@ target_include_directories(vespera_gl_offscreen_test PRIVATE
         ${MESA_ROOT}/src/mesa
         ${MESA_BUILD_ROOT}/src/util/gen
         ${VESPERA_SYSROOT}/usr/include
+)
+
+target_compile_options(vespera_gl_offscreen_test PRIVATE
+        -target x86_64-vespera-elf
+        -O2
+        -fPIE
+        -ftls-model=initial-exec
+        --sysroot=${VESPERA_SYSROOT}
+        -fno-stack-protector
+)
+
+target_link_options(vespera_gl_offscreen_test PRIVATE
+        -nostdlib
+        -pie
+        -fno-stack-protector
+        "-Wl,-dynamic-linker,/lib/ld-vespera.so"
 )
 
 install(TARGETS vespera_gl_offscreen_test RUNTIME DESTINATION ${VESPERA_SYSROOT}/bin COMPONENT runtime)

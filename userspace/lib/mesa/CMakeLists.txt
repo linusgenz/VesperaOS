@@ -34,16 +34,27 @@ add_compile_definitions(PACKAGE_VERSION="${MESA_VERSION}"
 set(MESA_COMMON_C_FLAGS
         -target x86_64-vespera-elf
         -nostdinc
-        -nostdinc++
+        -ftls-model=initial-exec
         -fno-stack-protector
         -Wno-initializer-overrides
         -fPIC
         -O2
         -g
+        # -fvisibility=hidden
         --sysroot=${VESPERA_SYSROOT}
         -isystem${VESPERA_SYSROOT}/usr/include
         -isystem${VESPERA_SYSROOT}/usr/include/c++
         -idirafter ${COMPILER_BUILTIN_INCLUDE}
+)
+
+set(MESA_COMMON_CXX_FLAGS
+        -nostdinc++
+        -nostdlib++
+        -fno-exceptions
+        -fno-rtti
+        -fno-use-cxa-atexit
+        -nodefaultlibs
+        ${MESA_COMMON_C_FLAGS}
 )
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/FindMesaPython.cmake)

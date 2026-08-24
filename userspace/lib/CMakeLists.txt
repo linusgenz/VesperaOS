@@ -22,6 +22,11 @@ set(NASM_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libjpeg/simd/nasm")
 set(SIMD_X86_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libjpeg/simd/x86_64")
 set(VESPERA_UAPI_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../include/uapi/")
 
+set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_C_COMPILER_TARGET x86_64-vespera-elf)
+set(CMAKE_CXX_COMPILER_TARGET x86_64-vespera-elf)
+set(CMAKE_SYSROOT ${VESPERA_SYSROOT})
+
 string(TIMESTAMP BUILD_DATE "%Y%m%d")
 add_compile_definitions(BUILD_DEF="${BUILD_DATE}")
 
@@ -178,8 +183,10 @@ set(LIB_SOURCES
         src/libgen.c
         src/iswctype.c
         src/poll.c
+        src/inttypes.c
 
         src/bits/fenv.c
+
 
         src/sys/shm.c
         src/sys/ioctl.c
@@ -329,10 +336,12 @@ target_compile_options(vesplib PRIVATE
         $<$<COMPILE_LANGUAGE:C>:-fno-stack-protector>
         $<$<COMPILE_LANGUAGE:C>:-fno-builtin>
         $<$<COMPILE_LANGUAGE:C>:-nostdinc>
+        $<$<COMPILE_LANGUAGE:C>:-nostdlib>
         $<$<COMPILE_LANGUAGE:C>:-Wall>
         $<$<COMPILE_LANGUAGE:C>:-Wextra>
         $<$<COMPILE_LANGUAGE:C>:-O2>
         $<$<COMPILE_LANGUAGE:C>:-fPIC>
+        $<$<COMPILE_LANGUAGE:C>:-ftls-model=initial-exec>
 )
 
 # ────────────────────────────────────────────────────────────────
@@ -391,11 +400,13 @@ set_target_properties(vesplib_cpp PROPERTIES
         OUTPUT_NAME "vesp++"
 )
 
+add_library(dso_handle_stub OBJECT ${CMAKE_CURRENT_SOURCE_DIR}/src/c++/dso_handle.cpp)
+
 # ────────────────────────────────────────────────────────────────
 #   interpreter binary (system-level; higher-level apps in VesperaApps)
 # ────────────────────────────────────────────────────────────────
 set(COMMON_C_FLAGS
-        -target x86_64-unknown-none-elf
+        -target x86_64-vespera-elf
         -nostdlib -nostdinc
         -fno-stack-protector -fPIE -g -O2 -Wall
         --sysroot=${VESPERA_SYSROOT}

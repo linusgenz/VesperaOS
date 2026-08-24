@@ -258,6 +258,8 @@ void* bsearch(const void* key,
 
 int mbtowc(wchar_t *__restrict__ wc, const char *__restrict__ src, size_t n);
 
+int posix_memalign(void **memptr, size_t alignment, size_t size);
+
 #ifdef __cplusplus
 }
 #endif

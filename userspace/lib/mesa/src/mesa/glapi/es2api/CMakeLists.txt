@@ -1,6 +1,5 @@
-# src/mapi/es2api/CMakeLists.txt
+# src/mesa/es2api/CMakeLists.txt
 #
-# 1:1-Uebersetzung von src/mapi/es2api/meson.build.
 
 set(ES2API_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(ES2API_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR})
@@ -25,7 +24,8 @@ add_custom_command(
 )
 
 # --- 3. Target: libGLESv2 ---------------------------------------------------
-add_library(GLESv2 SHARED
+add_library(GLESv2 STATIC
+        $<TARGET_OBJECTS:dso_handle_stub>
         ${ES2API_ROOT}/libgles2_public.c
         ${ES2_GLAPI_MAPI_TMP_H}
 )
@@ -48,12 +48,23 @@ target_include_directories(GLESv2 PRIVATE
 )
 
 target_link_libraries(GLESv2 PRIVATE
+        vesplib
+        -Wl,--whole-archive $<TARGET_FILE:vesplib_cpp> -Wl,--no-whole-archive
         glapi                   # Das Target aus shared-glapi/CMakeLists.txt
         # ${DEP_LIBDRM}
         ${CMAKE_DL_LIBS}        # Entspricht dep_dl
-        m                       # Entspricht dep_m
         mesa_util_c11
+        mesa_util
         mesa
+)
+
+target_compile_options(GLESv2 PRIVATE ${MESA_COMMON_CXX_FLAGS})
+
+target_link_options(GLESv2 PRIVATE
+        ${MESA_COMMON_CXX_FLAGS}
+        -nostdlib
+        -nodefaultlibs
+        -Wl,-dynamic-linker,/lib/ld-vespera.so
 )
 
 if(LD_ARGS_GC_SECTIONS)
@@ -61,7 +72,8 @@ if(LD_ARGS_GC_SECTIONS)
 endif()
 
 install(TARGETS GLESv2
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${VESPERA_SYSROOT}/usr/lib
+        ARCHIVE DESTINATION ${VESPERA_SYSROOT}/usr/lib
+        RUNTIME DESTINATION ${VESPERA_SYSROOT}/usr/bin
+        COMPONENT runtime
 )
