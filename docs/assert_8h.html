@@ -95,12 +95,13 @@ $(document).ready(function(){initNavTree('assert_8h.html',''); initResizable(); 
   <div class="headertitle"><div class="title">assert.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-
+<div class="textblock"><code>#include &lt;<a class="el" href="stdio_8h_source.html">stdio.h</a>&gt;</code><br />
+</div>
 <p><a href="assert_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:af576bf8ffa22a44e53018c67095ffbf0" id="r_af576bf8ffa22a44e53018c67095ffbf0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="assert_8h.html#af576bf8ffa22a44e53018c67095ffbf0">assert</a>(x)&#160;&#160;&#160;((x) ? (void)0 : __builtin_trap())</td></tr>
+<tr class="memitem:af576bf8ffa22a44e53018c67095ffbf0" id="r_af576bf8ffa22a44e53018c67095ffbf0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="assert_8h.html#af576bf8ffa22a44e53018c67095ffbf0">assert</a>(x)&#160;&#160;&#160;((x) ? (void)0 : (<a class="el" href="stdio_8h.html#a55f3d956bb2ba20b5059e9e25484a47f">printf</a>(&quot;ASSERT FAILED: %s at %s:%d&quot;, #x, __FILE__, __LINE__), __builtin_trap()))</td></tr>
 <tr class="separator:af576bf8ffa22a44e53018c67095ffbf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
@@ -115,7 +116,7 @@ Macros</h2></td></tr>
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname">x</td><td>)</td>
-          <td>&#160;&#160;&#160;((x) ? (void)0 : __builtin_trap())</td>
+          <td>&#160;&#160;&#160;((x) ? (void)0 : (<a class="el" href="stdio_8h.html#a55f3d956bb2ba20b5059e9e25484a47f">printf</a>(&quot;ASSERT FAILED: %s at %s:%d&quot;, #x, __FILE__, __LINE__), __builtin_trap()))</td>
         </tr>
       </table>
 </div><div class="memdoc">
