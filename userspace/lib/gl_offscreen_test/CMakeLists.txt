@@ -35,6 +35,7 @@ target_include_directories(vespera_gl_offscreen_test PRIVATE
 target_compile_options(vespera_gl_offscreen_test PRIVATE
         -target x86_64-vespera-elf
         -O2
+        -fno-omit-frame-pointer
         -fPIE
         -ftls-model=initial-exec
         --sysroot=${VESPERA_SYSROOT}

@@ -866,27 +866,86 @@ namespace ext4 {
 
     // extend tree
 
-    bool FileSystem::parse_extents_raw(const Inode& inode, Vector<ExtentMap>& out_extents) {
+    bool FileSystem::parse_extents_node(u64 phys_block, u16 depth, Vector<ExtentMap>& out_extents) const {
+        const u32 bsize = get_block_size();
+        auto* buf = static_cast<u8*>(kernel::memory::malloc(bsize));
+        if (!buf) return false;
+
+        if (!read_block(phys_block, buf, bsize)) {
+            kernel::memory::free(buf);
+            return false;
+        }
+
+        ExtentHeader eh{};
+        memcpy(&eh, buf, sizeof(ExtentHeader));
+
+        if (eh.eh_magic != EXT4_EXTENT_MAGIC) {
+            kernel::memory::free(buf);
+            return false;
+        }
+
+        const u8* base = buf + sizeof(ExtentHeader);
+        bool ok = true;
+
+        if (eh.eh_depth == 0) {
+            for (u16 i = 0; i < eh.eh_entries; ++i) {
+                Extent ex{};
+                memcpy(&ex, base + i * sizeof(Extent), sizeof(Extent));
+
+                const u64 phys_start = (static_cast<u64>(ex.ee_start_hi) << 32) | ex.ee_start_lo;
+                const u32 len = ex.ee_len & 0x7FFF;
+
+                out_extents.push_back({ex.ee_block, len, phys_start});
+            }
+        } else {
+            for (u16 i = 0; i < eh.eh_entries && ok; ++i) {
+                ExtentIdx idx{};
+                memcpy(&idx, base + i * sizeof(ExtentIdx), sizeof(ExtentIdx));
+
+                const u64 child_phys = (static_cast<u64>(idx.ei_leaf_hi) << 32) | idx.ei_leaf_lo;
+                ok = parse_extents_node(child_phys, eh.eh_depth - 1, out_extents);
+            }
+        }
+
+        kernel::memory::free(buf);
+        return ok;
+    }
+
+    bool FileSystem::parse_extents_raw(const Inode& inode, Vector<ExtentMap>& out_extents) const {
         ExtentHeader eh{};
         memcpy(&eh, &inode.i_block[0], sizeof(ExtentHeader));
 
         if (eh.eh_magic != EXT4_EXTENT_MAGIC) return false;
-        if (eh.eh_depth != 0) return false;
 
         const auto* base = reinterpret_cast<const u8*>(&inode.i_block[0]) + sizeof(ExtentHeader);
-        for (u16 i = 0; i < eh.eh_entries; ++i) {
-            Extent ex{};
-            memcpy(&ex, base + i * sizeof(Extent), sizeof(Extent));
 
-            const u64 phys_start = (static_cast<u64>(ex.ee_start_hi) << 32) | ex.ee_start_lo;
-            const u32 len = ex.ee_len & 0x7FFF;
+        if (eh.eh_depth == 0) {
+            for (u16 i = 0; i < eh.eh_entries; ++i) {
+                Extent ex{};
+                memcpy(&ex, base + i * sizeof(Extent), sizeof(Extent));
 
-            out_extents.push_back({ex.ee_block, len, phys_start});
+                const u64 phys_start = (static_cast<u64>(ex.ee_start_hi) << 32) | ex.ee_start_lo;
+                const u32 len = ex.ee_len & 0x7FFF;
+
+                out_extents.push_back({ex.ee_block, len, phys_start});
+            }
+            return true;
         }
-        return true;
+
+        // Root node has depth > 0: the entries inline in the inode are
+        // ExtentIdx, pointing at on-disk child nodes - not leaf Extents.
+        bool ok = true;
+        for (u16 i = 0; i < eh.eh_entries && ok; ++i) {
+            ExtentIdx idx{};
+            memcpy(&idx, base + i * sizeof(ExtentIdx), sizeof(ExtentIdx));
+
+            const u64 child_phys = (static_cast<u64>(idx.ei_leaf_hi) << 32) | idx.ei_leaf_lo;
+            ok = parse_extents_node(child_phys, eh.eh_depth - 1, out_extents);
+        }
+        return ok;
     }
 
-    bool FileSystem::parse_extents(const Inode& inode, Vector<ExtentMap>& out_extents) {
+    bool FileSystem::parse_extents(const Inode& inode, Vector<ExtentMap>& out_extents) const {
         return parse_extents_raw(inode, out_extents);
     }
 

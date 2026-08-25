@@ -350,9 +350,10 @@ namespace ext4 {
         bool dir_remove_entry(u32 dir_inode_no, const char* name) const;
         u32 dir_find_entry(u32 dir_inode_no, const char* name) const;
         [[nodiscard]] bool dir_is_empty(u32 inode_no) const;
-        static bool parse_extents_raw(const Inode& inode, Vector<ExtentMap>& out_extents);
+        bool parse_extents_raw(const Inode& inode, Vector<ExtentMap>& out_extents) const;
+        bool parse_extents_node(u64 phys_block, u16 depth, Vector<ExtentMap>& out_extents) const;
 
-        static bool parse_extents(const Inode& inode, Vector<ExtentMap>& out_extents);
+        bool parse_extents(const Inode& inode, Vector<ExtentMap>& out_extents) const;
         bool map_logical_to_physical(const Inode& inode, u32 lblock, u64& out_pblock) const;
         u64 alloc_block(u64 near_block);
         bool free_block(u64 phys_block);

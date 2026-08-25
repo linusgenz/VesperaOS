@@ -23,10 +23,13 @@
 #ifndef _ASSERT_H
 #define _ASSERT_H
 
+#include <stdio.h>
+
 #ifdef NDEBUG
 #define assert(x) ((void)0)
 #else
-#define assert(x) ((x) ? (void)0 : __builtin_trap())
+#define assert(x) \
+((x) ? (void)0 : (printf("ASSERT FAILED: %s at %s:%d", #x, __FILE__, __LINE__), __builtin_trap()))
 #endif
 
 #ifndef static_assert

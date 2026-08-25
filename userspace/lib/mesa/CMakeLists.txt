@@ -33,6 +33,7 @@ add_compile_definitions(PACKAGE_VERSION="${MESA_VERSION}"
 
 set(MESA_COMMON_C_FLAGS
         -target x86_64-vespera-elf
+        -fno-omit-frame-pointer
         -nostdinc
         -ftls-model=initial-exec
         -fno-stack-protector

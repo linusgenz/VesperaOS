@@ -124,6 +124,7 @@
 #define UNREACHABLE(str)    \
 do {                        \
    (void)"" str; /* str must be a string literal */ \
+   printf("UNREACHABLE: %s at %s:%d", str, __FILE__, __LINE__); \
    assert(!str);            \
    __builtin_unreachable(); \
 } while (0)

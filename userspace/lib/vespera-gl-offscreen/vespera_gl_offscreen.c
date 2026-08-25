@@ -36,8 +36,33 @@
 #include "main/menums.h"
 #include "state_tracker/st_context.h"
 #include "state_tracker/st_manager.h"
+#include "util/xmlconfig.h"
+#include "util/driconf.h"
 
 #define VESPERA_DRM_DEVICE "/dev/dri/card0"
+
+static const driOptionDescription gallium_driconf[] = {
+#include "gallium/auxiliary/pipe-loader/driinfo_gallium.h"
+};
+
+
+static const driOptionDescription iris_driconf[] = {
+#include "gallium/drivers/iris/driinfo_iris.h"
+};
+
+static driOptionDescription *
+vespera_merge_driconf(unsigned *merged_count)
+{
+    unsigned gallium_count = ARRAY_SIZE(gallium_driconf);
+    unsigned iris_count = ARRAY_SIZE(iris_driconf);
+    driOptionDescription *merged =
+        malloc((gallium_count + iris_count) * sizeof(*merged));
+    memcpy(merged, gallium_driconf, sizeof(*merged) * gallium_count);
+    memcpy(&merged[gallium_count], iris_driconf, sizeof(*merged) * iris_count);
+    *merged_count = gallium_count + iris_count;
+    return merged;
+}
+
 
 /* Aus gallium/winsys/iris/drm -- siehe eure winsys-Portierung. */
 extern struct pipe_screen *iris_drm_screen_create(int fd,
@@ -120,16 +145,26 @@ vespera_gl_offscreen_create(struct vespera_gl_offscreen *ctx,
     ctx->width = width;
     ctx->height = height;
 
-    /* 1. DRM-Device oeffnen ------------------------------------------- */
-    ctx->drm_fd = open(VESPERA_DRM_DEVICE, O_RDWR);
+    ctx->drm_fd = open(VESPERA_DRM_DEVICE, O_RDONLY);
     if (ctx->drm_fd < 0) {
-        fprintf(stderr, "vespera_gl_offscreen: open(%s) failed\n",
-                VESPERA_DRM_DEVICE);
+        fprintf(stderr, "vespera_gl_offscreen: open(%s) failed. errno=%u %s\n",
+                VESPERA_DRM_DEVICE, errno, strerror(errno));
         return false;
     }
 
-    /* 2. pipe_screen ueber iris winsys erzeugen ------------------------ */
-    ctx->screen = iris_drm_screen_create(ctx->drm_fd, NULL);
+    unsigned merged_count;
+    driOptionDescription *merged = vespera_merge_driconf(&merged_count);
+    memset(&ctx->option_info, 0, sizeof(ctx->option_info));
+    memset(&ctx->option_cache, 0, sizeof(ctx->option_cache));
+    driParseOptionInfo(&ctx->option_info, merged, merged_count);
+    free(merged);
+    driParseConfigFiles(&ctx->option_cache, &ctx->option_info,
+                         &(driConfigFileParseParams) { .driverName = "iris" });
+
+    struct pipe_screen_config conf = {};
+    conf.options = &ctx->option_cache;
+    conf.options_info = &ctx->option_info;
+    ctx->screen = iris_drm_screen_create(ctx->drm_fd, &conf);
     if (!ctx->screen) {
         fprintf(stderr, "vespera_gl_offscreen: iris_drm_screen_create failed\n");
         close(ctx->drm_fd);

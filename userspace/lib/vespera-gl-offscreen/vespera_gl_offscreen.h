@@ -27,6 +27,7 @@
 #include <stdint.h>
 
 #include "frontend/api.h"
+#include "util/xmlconfig.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,6 +57,9 @@ struct vespera_gl_offscreen {
 
     uint32_t width;
     uint32_t height;
+
+    driOptionCache option_info;
+    driOptionCache option_cache;
 };
 
 /* Oeffnet /dev/dri/card0, baut Screen/Context/State-Tracker-Context auf,
