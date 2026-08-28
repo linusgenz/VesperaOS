@@ -394,6 +394,28 @@ namespace gpu::intel::core {
     }
 
     int IntelGpuDevice::ioctl(CharFile*, const u32 request, void* arg) {
+        if (request == LUCIFER_IOCTL_VERSION) {
+            auto* ver = static_cast<lucifer_version*>(arg);
+            if (!ver) {
+                return -1;
+            }
+
+            ver->version_major = 1;
+            ver->version_minor = 0;
+            ver->version_patchlevel = 0;
+
+            strncpy(ver->name, "lucifer", sizeof(ver->name) - 1);
+            ver->name[sizeof(ver->name) - 1] = '\0';
+
+            strncpy(ver->date, "20260826", sizeof(ver->date) - 1);
+            ver->date[sizeof(ver->date) - 1] = '\0';
+
+            strncpy(ver->desc, "Lucifer DRM driver for Intel", sizeof(ver->desc) - 1);
+            ver->desc[sizeof(ver->desc) - 1] = '\0';
+
+            return 0;
+        }
+
         if (request != LUCIFER_IOCTL_QUERY) {
             return -1;
         }
@@ -414,6 +436,9 @@ namespace gpu::intel::core {
                 break;
             case LUCIFER_QUERY_MEM_REGIONS:
                 expected_size = sizeof(lucifer_query_mem_regions);
+                break;
+            case LUCIFER_QUERY_PCI_INFO:
+                expected_size = sizeof(lucifer_query_pci_info);
                 break;
             default:
                 return -1;
@@ -484,6 +509,27 @@ namespace gpu::intel::core {
                                        static_cast<u64>(ggtt_alloc_.transient_used_pages());
 
                 out->used = used_pages * PAGE_SIZE;
+                break;
+            }
+            case LUCIFER_QUERY_PCI_INFO: {
+                auto* out = reinterpret_cast<lucifer_query_pci_info*>(query->data);
+
+                out->domain = pci_id_.domain;
+                out->bus = pci_id_.bus;
+                out->dev = pci_id_.device;
+                out->func = pci_id_.function;
+
+                out->vendor_id = igp_cfg_->vendor_id;
+                out->device_id = igp_cfg_->device_id;
+                out->subsystem_vendor_id = igp_cfg_->subsystem_vendor_id;
+                out->subsystem_device_id = igp_cfg_->subsystem_id;
+                out->revision = igp_cfg_->revision_id;
+
+                out->name[0] = '\0';
+                if (kd_ && kd_->name) {
+                    strncpy(out->name, kd_->name, sizeof(out->name) - 1);
+                    out->name[sizeof(out->name) - 1] = '\0';
+                }
                 break;
             }
             default: ;
