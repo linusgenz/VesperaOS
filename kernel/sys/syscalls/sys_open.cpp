@@ -94,9 +94,13 @@ namespace syscalls::internal {
                     return -EINVAL;
             }
 
-            if (const int err = kernel::security::vfs_check_permission(
-                    node, vfs_access, SYSCALL_TRY(kernel::security::current_credentials())
-                );
+            auto creds_result = kernel::security::current_credentials();
+            if (creds_result.is_err()) {
+                VFS::close(node);
+                return creds_result.to_errno();
+            }
+
+            if (const int err = kernel::security::vfs_check_permission(node, vfs_access, creds_result.unwrap());
                 err != 0) {
                 VFS::close(node);
                 return err;
@@ -121,26 +125,24 @@ namespace syscalls::internal {
                 }
                 Channel* ch = node->fifo_channel;
 
-                const int acc_mode   = flags & 0x3; // O_ACCMODE
-                const bool want_read  = (acc_mode == O_RDONLY || acc_mode == O_RDWR);
+                const int acc_mode = flags & 0x3; // O_ACCMODE
+                const bool want_read = (acc_mode == O_RDONLY || acc_mode == O_RDWR);
                 const bool want_write = (acc_mode == O_WRONLY || acc_mode == O_RDWR);
-                const bool is_rdwr    = (acc_mode == O_RDWR);
-                const bool nonblock   = (flags & O_NONBLOCK) != 0;
+                const bool is_rdwr = (acc_mode == O_RDWR);
+                const bool nonblock = (flags & O_NONBLOCK) != 0;
 
                 if (want_write && !is_rdwr && nonblock && !ch->has_readers()) {
                     return -ENXIO;
                 }
 
-                if (want_read)  ch->add_reader();
+                if (want_read) ch->add_reader();
                 if (want_write) ch->add_writer();
 
                 if (want_read && !is_rdwr && !nonblock && !ch->has_writers()) {
-                    Log::debug("waiting for writer");
                     ch->wait_for_writer(kernel::scheduling::get_current_unit());
                 }
 
                 if (want_write && !is_rdwr && !nonblock && !ch->has_readers()) {
-                    Log::debug("waiting for reader");
                     ch->wait_for_reader(kernel::scheduling::get_current_unit());
                 }
             }
@@ -153,8 +155,10 @@ namespace syscalls::internal {
                     vh = new VfsHandle(node, flags, required_caps, norm);
                     if (!vh) {
                         bool destroyed = false;
-                        if ((flags & 0x3) == O_RDONLY || (flags & 0x3) == O_RDWR) destroyed = node->fifo_channel->remove_reader();
-                        if (!destroyed && ((flags & 0x3) == O_WRONLY || (flags & 0x3) == O_RDWR)) destroyed = node->fifo_channel->remove_writer();
+                        if ((flags & 0x3) == O_RDONLY || (flags & 0x3) == O_RDWR) destroyed = node->fifo_channel->
+                            remove_reader();
+                        if (!destroyed && ((flags & 0x3) == O_WRONLY || (flags & 0x3) == O_RDWR)) destroyed = node->
+                            fifo_channel->remove_writer();
                         if (destroyed) node->fifo_channel = nullptr;
                         VFS::close(node);
                         return -ENOMEM;
@@ -233,7 +237,8 @@ namespace syscalls::internal {
             if ((flags & O_APPEND) && node->type == VfsNodeType::File) vh->context->position = node->size;
 
             const Result<HandleId> result =
-                kernel::realm::add_handle_to_current(handle_type, vh, required_caps, true, VfsHandle::destroy, VfsHandle::acquire);
+                kernel::realm::add_handle_to_current(handle_type, vh, required_caps, true, VfsHandle::destroy,
+                                                     VfsHandle::acquire);
 
             if (result.is_err()) {
                 if (node->type == VfsNodeType::Directory && vh->node->internal_data && node->ops && node->ops->closedir)
@@ -244,7 +249,7 @@ namespace syscalls::internal {
 
             return static_cast<i64>(result.unwrap());
         }
-    }  // namespace
+    } // namespace
 
     i64 sys_open(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
         const auto user_path = reinterpret_cast<const char*>(arg0);
@@ -274,4 +279,4 @@ namespace syscalls::internal {
 
         return openat_impl(user_path, flags, mode, dir_handle->context->path);
     }
-}  // namespace syscalls::internal
+} // namespace syscalls::internal

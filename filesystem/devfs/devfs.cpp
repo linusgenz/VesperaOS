@@ -60,6 +60,10 @@ const char* DevFs::bus_to_str(const BusType bus) {
     }
 }
 
+u32 DevFs::next_char_minor_ = 0;
+u32 DevFs::next_block_minor_ = 0;
+u32 DevFs::next_other_minor_ = 0;
+
 VfsNodeType map_device_type(const DeviceType type) {
     switch (type) {
         case DeviceType::Char:
@@ -146,6 +150,18 @@ int DevFs::register_device(KernelDevice* kd) {
     entry->is_directory = false;
     entry->cf = nullptr;
     entry->parent = current_dir;
+
+    switch (node->type) {
+        case VfsNodeType::CharDevice:
+            entry->rdev_minor = next_char_minor_++;
+            break;
+        case VfsNodeType::BlockDevice:
+            entry->rdev_minor = next_block_minor_++;
+            break;
+        default:
+            entry->rdev_minor = next_other_minor_++;
+            break;
+    }
 
     node->internal_data = entry;
     kd->vfs_node_parent = current_dir;
@@ -440,6 +456,50 @@ void DevFs::close(VfsNode* node) {
     if (const KernelDevice* kd = entry->device; kd->chardev) kd->chardev->release(entry->cf);
 
     entry->cf = nullptr;
+}
+
+namespace {
+
+constexpr u32 DEVFS_MAJOR_CHAR = 0;
+constexpr u32 DEVFS_MAJOR_BLOCK = 1;
+constexpr u32 DEVFS_MAJOR_OTHER = 2;
+
+constexpr u64 make_rdev(const u32 major, const u32 minor) {
+    return (static_cast<u64>(major) << 32) | minor;
+}
+
+}  // namespace
+
+VoidResult DevFs::stat(const VfsNode* node, struct stat* out) {
+    if (!node || !out) return VoidResult::err(Error::Inval);
+
+    const auto* entry = static_cast<DevfsEntry*>(node->internal_data);
+    if (!entry || !entry->device) return VoidResult::err(Error::Inval);
+
+    memset(out, 0, sizeof(struct stat));
+
+    const KernelDevice* kd = entry->device;
+
+    out->st_dev = 0;
+    out->st_ino = 0;
+    out->st_blksize = 0;
+    out->st_blocks = 0;
+    out->st_size = 0;
+
+    if (kd->block) {
+        const usize sector_size = kd->block->get_sector_size();
+        out->st_mode = S_IFBLK | S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;
+        out->st_rdev = make_rdev(DEVFS_MAJOR_BLOCK, entry->rdev_minor);
+        out->st_blksize = static_cast<isize>(sector_size);
+    } else if (kd->chardev) {
+        out->st_mode = S_IFCHR | S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;
+        out->st_rdev = make_rdev(DEVFS_MAJOR_CHAR, entry->rdev_minor);
+    } else {
+        out->st_mode = S_IFDIR | S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
+        out->st_rdev = make_rdev(DEVFS_MAJOR_OTHER, entry->rdev_minor);
+    }
+
+    return VoidResult::ok();
 }
 
 int DevFs::poll(const VfsNode* node) {

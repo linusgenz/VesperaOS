@@ -157,6 +157,7 @@ namespace kernel::exec {
 
         const ElfLoader::LoadResult elf = ElfLoader::load(norm, 0x500000, r);
         if (!elf.success) {
+            Log::debug("elf error: %s", elf.error_message);
             RealmManager::abort(r->id);
             return Error::NoExec;
         }

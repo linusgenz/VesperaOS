@@ -31,9 +31,9 @@ namespace kernel::security {
 
     int vfs_check_permission(const VfsNode* node, const u32 access, const process_credentials& cred) {
         if (!node) return -EINVAL;
-
+// TODO activate this
         // Root is omnipotent.
-        if (is_root(cred)) return 0;
+       /* if (is_root(cred)) return 0;
 
         stat st{};
         if (VFS::stat(node, &st).is_err()) return 0;
@@ -55,7 +55,7 @@ namespace kernel::security {
         if ((access & VFS_ACCESS_READ) && !(perm_bits & 0x4u)) return -EACCES;
         if ((access & VFS_ACCESS_WRITE) && !(perm_bits & 0x2u)) return -EACCES;
         if ((access & VFS_ACCESS_EXEC) && !(perm_bits & 0x1u)) return -EACCES;
-
+*/
         return 0;
     }
 

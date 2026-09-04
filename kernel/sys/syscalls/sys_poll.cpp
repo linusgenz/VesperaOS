@@ -101,7 +101,9 @@ namespace syscalls::internal {
                     if (vh->node->ops && vh->node->ops->poll) mask = vh->node->ops->poll(vh->node);
                 }
 
-                hdls[i].revents = static_cast<i16>(mask & hdls[i].events);
+                const int always_reported = mask & (POLLERR | POLLHUP);
+                const int requested = mask & hdls[i].events & ~(POLLERR | POLLHUP);
+                hdls[i].revents = static_cast<i16>(always_reported | requested);
                 if (hdls[i].revents) ready++;
             }
 

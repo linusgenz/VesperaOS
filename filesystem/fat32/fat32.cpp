@@ -15,15 +15,6 @@
 #include <uapi/vespera/stat.h>
 #include <uapi/vespera/time.h>
 
-// TODO(linus): update fat32.h declarations to match:
-//   VoidResult create_file(const Fat32Node* parent_dir, const char* name, mode_t mode);
-//   VoidResult create_directory(const Fat32Node* parent_dir, const char* name, mode_t mode);
-// and update fat32_vfs_adapter.h's ops->create / ops->mkdir wrappers (and
-// ext4_vfs_adapter.h's, and any other VfsNodeOps implementer, e.g. devfs) to accept
-// and forward mode_t through to here / to ext4::FileSystem::create_file / create_dir.
-// Also still pending: VfsNodeOps::mkdir itself and VFS::mkdir() in vfs.cpp need a
-// mode_t parameter — sys_mkdir's mode argument doesn't reach this file yet.
-
 namespace fat32 {
     // ============================================================================
     // Helper Functions - Memory Management

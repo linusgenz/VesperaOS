@@ -31,6 +31,7 @@
 #include "../paging/page_table_manager.h"
 #include "../realm/address_space.h"
 #include "../security/setuid_exec.h"
+#include "vespera/log.h"
 #include "vespera/debug/chronos.h"
 
 #if ENABLE_ELF_LOGGING
@@ -112,6 +113,7 @@ ElfLoader::LoadResult ElfLoader::load_internal(
 
     if (!validate_magic(header)) {
         kernel::memory::free(file_data.data);
+        Log::debug("%x %x %x", header->e_ident[0], header->e_ident[1], header->e_ident[2]);
         return make_load_error("Invalid ELF magic bytes");
     }
 
