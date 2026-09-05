@@ -84,14 +84,19 @@ union PIPE_CONTROL {
         u32 global_snapshot_count_reset : 1;        ///< [19] Reset snapshot counts / Statistics
         u32 command_streamer_stall_enable : 1;      ///< [20] CS Stall (act like legacy MI_FLUSH)
         u32 store_data_index : 1;                   ///< [21] Address is index into Per-Process HW Status Page
-        u32 reserved1_22 : 10;                      ///< [31:22] Reserved / Optional LRI bit
+        u32 reserved1_22 : 1;                       ///< [22]
+        u32 lri_post_sync_operation : 1;            ///< [23]
+        u32 destination_address_type : 1;           ///< [24]
+        u32 reserved1_25 : 1;                       ///< [25]
+        u32 flush_llc : 1;                          ///< [26]
+        u32 reserved1_27_31 : 5;                    ///< [31:27]
 
         // ====================================================================
         // DWord 2..3: Destination Address
         // ====================================================================
         u64 reserved2_0 : 2;              ///< [1:0]  MBZ
-        u64 destination_address_type : 1; ///< [2]    0=PPGTT, 1=GGTT (Ignored if post_sync_operation=NO_WRITE)
-        u64 destination_address : 61;     ///< [63:3] 8-byte aligned destination address
+        u32 address_lo : 30;              ///< [31:2], Bit2 must be 0 per spec (nur QW-align relevant)
+        u32 address_hi;
 
         // ====================================================================
         // DWord 4..5: Immediate Data
@@ -124,7 +129,8 @@ union PIPE_CONTROL {
     constexpr void set_write_immediate(u64 addr, u64 data, bool use_ggtt = true) {
         post_sync_operation = WRITE_IMMEDIATE_DATA;
         destination_address_type = use_ggtt ? 1 : 0;
-        destination_address = (addr >> 3);
+        address_lo = static_cast<u32>(addr) & ~0x3u;
+        address_hi = static_cast<u32>(addr >> 32);
         immediate_data = data;
     }
 
@@ -137,7 +143,8 @@ union PIPE_CONTROL {
     constexpr void set_write_timestamp(u64 addr, bool use_ggtt = true) {
         post_sync_operation = WRITE_TIMESTAMP;
         destination_address_type = use_ggtt ? 1 : 0;
-        destination_address = (addr >> 3);
+        address_lo = static_cast<u32>(addr) & ~0x3u;
+        address_hi = static_cast<u32>(addr >> 32);
     }
 };
 
