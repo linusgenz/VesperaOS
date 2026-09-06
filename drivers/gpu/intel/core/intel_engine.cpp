@@ -254,149 +254,86 @@ namespace gpu::intel::core {
         lrc[base + dword_offset + 1] = value;
     }
 
-#define BIT(nr) (1UL << (nr))
-#define NOP(x) static_cast<uint8_t>(BIT(7) | (x))
-#define LRI(count, flags) static_cast<uint8_t>(((flags) << 6) | (count))
-#define POSTED 1
-#define REG(x) static_cast<uint8_t>((x) >> 2)
-#define REG16(x) \
-static_cast<uint8_t>(((x) >> 9) | BIT(7)), \
-static_cast<uint8_t>(((x) >> 2) & 0x7f)
-#define END 0
+    namespace {
 
-    void setup_lrc_offsets(uint32_t* lrc_ring, const uint8_t* data, uint32_t base_mmio, uint32_t gen = 9) {
-        uint32_t* regs = lrc_ring;
+        struct LriBlock {
+            const u32* engine_relative_offsets;
+            u32 offset_count;
+            bool posted;  // MI_LRI_FORCE_POSTED
+            u32 leading_nop_dwords;
+        };
 
-        while (*data) {
-            if (*data & BIT(7)) { // NOP-Block dekodieren
-                uint8_t count = *data++ & ~BIT(7);
-                regs += count; // Slots bleiben 0x00000000 (MI_NOOP)
-                continue;
+        constexpr u32 kRcsLriBlock0[] = {
+            0x244,
+            0x34, 0x30, 0x38, 0x3c, 0x168, 0x140, 0x110, 0x11c, 0x114, 0x118, 0x1c0, 0x1c4, 0x1c8,
+        };
+        constexpr u32 kRcsLriBlock1[] = {
+            0x3a8, 0x28c, 0x288, 0x284, 0x280, 0x27c, 0x278, 0x274, 0x270,
+        };
+        constexpr u32 kRcsLriBlock2[] = {
+            0xc8,
+        };
+        constexpr u32 kRcsLriBlock3[] = {
+            0x28, 0x9c, 0xc0, 0x178, 0x17c, 0x358, 0x170, 0x150, 0x154, 0x158, 0x41c,
+            0x600, 0x604, 0x608, 0x60c, 0x610, 0x614, 0x618, 0x61c, 0x620, 0x624, 0x628, 0x62c,
+            0x630, 0x634, 0x638, 0x63c, 0x640, 0x644, 0x648, 0x64c, 0x650, 0x654, 0x658, 0x65c,
+            0x660, 0x664, 0x668, 0x66c, 0x670, 0x674, 0x678, 0x67c,
+            0x68,
+        };
+
+#define ARRAY_COUNT(arr) static_cast<u32>(sizeof(arr) / sizeof((arr)[0]))
+        constexpr LriBlock kGen9RcsContextLayout[] = {
+            {kRcsLriBlock0, ARRAY_COUNT(kRcsLriBlock0), /*posted=*/true, /*leading_nop_dwords=*/1},
+            {kRcsLriBlock1, ARRAY_COUNT(kRcsLriBlock1), /*posted=*/true, /*leading_nop_dwords=*/3},
+            {kRcsLriBlock2, ARRAY_COUNT(kRcsLriBlock2), /*posted=*/false, /*leading_nop_dwords=*/13},
+            {kRcsLriBlock3, ARRAY_COUNT(kRcsLriBlock3), /*posted=*/true, /*leading_nop_dwords=*/13},
+        };
+#undef ARRAY_COUNT
+
+        constexpr u32 kMiLoadRegisterImmOpcode = 0x22u << 23;
+        constexpr u32 kMiLriForcePosted = 1u << 12;
+
+        // Writes one LRI block (leading NOPs, header, then zeroed
+        // register/value pairs) at *cursor, advancing it past the block.
+        // Values are left at 0; callers overwrite them afterwards via
+        // lrc_set_reg(). NOP slots are left at 0, which the command
+        // streamer reads as MI_NOOP.
+        u32* write_lri_block(u32* cursor, const LriBlock& block, u32 base_mmio) {
+            cursor += block.leading_nop_dwords;
+
+            u32 header = kMiLoadRegisterImmOpcode | (2 * block.offset_count - 1);
+            if (block.posted) {
+                header |= kMiLriForcePosted;
+            }
+            *cursor++ = header;
+
+            for (u32 i = 0; i < block.offset_count; i++) {
+                *cursor++ = base_mmio + block.engine_relative_offsets[i];
+                *cursor++ = 0;  // populated later via lrc_set_reg()
             }
 
-            uint8_t count = *data & 0x3F;
-            uint8_t flags = *data >> 6;
-            data++;
+            return cursor;
+        }
 
-            // MI_LOAD_REGISTER_IMM Header berechnen
-            uint32_t cmd = (((0x0) << 29) | (0x22) << 23 | (2 * (count) - 1));
-            if (flags & POSTED) {
-                cmd |= (1u << 12); // MI_LRI_FORCE_POSTED
-            }
-            if (gen >= 11) {
-                cmd |= (1u << 19); // MI_LRI_LRM_CS_MMIO
-            }
-            *regs++ = cmd;
-
-            // Register-Offsets dekodieren und eintragen
-            for (uint8_t i = 0; i < count; ++i) {
-                uint32_t offset = 0;
-                uint8_t v;
-                do {
-                    v = *data++;
-                    offset = (offset << 7) | (v & 0x7F);
-                } while (v & BIT(7));
-
-                regs[0] = base_mmio + (offset << 2); // MMIO-Zieladresse
-                regs[1] = 0;                        // Standardwert (Value)
-                regs += 2;
+        void write_lrc_ring_context(u32* lrc_ring, const LriBlock* layout, u32 layout_count, u32 base_mmio) {
+            u32* cursor = lrc_ring;
+            for (u32 i = 0; i < layout_count; i++) {
+                cursor = write_lri_block(cursor, layout[i], base_mmio);
             }
         }
-    }
 
-    static const u8 gen9_rcs_offsets[] = {
-        NOP(1),
-        LRI(14, POSTED),
-        REG16(0x244),
-        REG(0x34),
-        REG(0x30),
-        REG(0x38),
-        REG(0x3c),
-        REG(0x168),
-        REG(0x140),
-        REG(0x110),
-        REG(0x11c),
-        REG(0x114),
-        REG(0x118),
-        REG(0x1c0),
-        REG(0x1c4),
-        REG(0x1c8),
-
-        NOP(3),
-        LRI(9, POSTED),
-        REG16(0x3a8),
-        REG16(0x28c),
-        REG16(0x288),
-        REG16(0x284),
-        REG16(0x280),
-        REG16(0x27c),
-        REG16(0x278),
-        REG16(0x274),
-        REG16(0x270),
-
-        NOP(13),
-        LRI(1, 0),
-        REG(0xc8),
-
-        NOP(13),
-        LRI(44, POSTED),
-        REG(0x28),
-        REG(0x9c),
-        REG(0xc0),
-        REG(0x178),
-        REG(0x17c),
-        REG16(0x358),
-        REG(0x170),
-        REG(0x150),
-        REG(0x154),
-        REG(0x158),
-        REG16(0x41c),
-        REG16(0x600),
-        REG16(0x604),
-        REG16(0x608),
-        REG16(0x60c),
-        REG16(0x610),
-        REG16(0x614),
-        REG16(0x618),
-        REG16(0x61c),
-        REG16(0x620),
-        REG16(0x624),
-        REG16(0x628),
-        REG16(0x62c),
-        REG16(0x630),
-        REG16(0x634),
-        REG16(0x638),
-        REG16(0x63c),
-        REG16(0x640),
-        REG16(0x644),
-        REG16(0x648),
-        REG16(0x64c),
-        REG16(0x650),
-        REG16(0x654),
-        REG16(0x658),
-        REG16(0x65c),
-        REG16(0x660),
-        REG16(0x664),
-        REG16(0x668),
-        REG16(0x66c),
-        REG16(0x670),
-        REG16(0x674),
-        REG16(0x678),
-        REG16(0x67c),
-        REG(0x68),
-
-        END
-    };
-
-    bool lrc_set_reg(uint32_t* lrc_ring, uint32_t reg_mmio_addr, uint32_t value) {
-        for (size_t i = 0; i < 0x100; ++i) {
-            if (lrc_ring[i] == reg_mmio_addr) {
-                lrc_ring[i + 1] = value;
-                return true;
+        bool lrc_set_reg(u32* lrc_ring, u32 reg_mmio_addr, u32 value) {
+            constexpr usize kSearchLimitDwords = 0x100;
+            for (usize i = 0; i < kSearchLimitDwords; ++i) {
+                if (lrc_ring[i] == reg_mmio_addr) {
+                    lrc_ring[i + 1] = value;
+                    return true;
+                }
             }
+            return false;
         }
-        return false;
-    }
+
+    }  // namespace
 
     bool IntelEngine::lrc_alloc_and_init(const usize lrc_size_bytes, const u32 sw_context_id) {
         lrc_sw_context_id_ = sw_context_id;
@@ -423,22 +360,18 @@ static_cast<uint8_t>(((x) >> 2) & 0x7f)
             virt_ptr(lrc_cpu_addr_), gfx_raw(lrc_gfx_addr_), lrc_pages
         );
 
-        auto* lrc_base = virt_as<uint32_t>(lrc_cpu_addr_);
-        uint32_t* lrc_ring = lrc_base + (LRC_RING_CONTEXT_START / sizeof(uint32_t));
-        setup_lrc_offsets(lrc_ring, gen9_rcs_offsets, engine_mmio_offset_, 9);
+        auto* lrc_base = virt_as<u32>(lrc_cpu_addr_);
+        u32* lrc_ring = lrc_base + (LRC_RING_CONTEXT_START / sizeof(u32));
 
-        // LOAD_REGISTER_IMM headers - written verbatim as the PRM context tables show them,
-        // immediately before their respective (offset, value) block.
-    /*    auto* lrc = virt_as<u32>(lrc_cpu_addr_);
-        const usize base = LRC_RING_CONTEXT_START / sizeof(u32);
-       // lrc[base + 1] = LRC_LRI_HEADER_RING_BLOCK;
-       // lrc[base + 0x21] = LRC_LRI_HEADER_PDP_BLOCK;
-
-        // Third LRI block is RCS-only (R_PWR_CLK_STATE) - BCS/VCS/VECS don't have this register
-        // and Fuchsia's reference only emits this header when id_ == RENDER_COMMAND_STREAMER.
+        // Only RCS has a context layout table defined so far (BCS/VCS/VECS
+        // use different register blocks - notably RCS is the only engine
+        // with R_PWR_CLK_STATE). Add per-engine layouts here as those are
+        // brought up.
         if (type_ == EngineType::RCS) {
-      //      lrc[base + 0x41] = LRC_LRI_HEADER_RENDER_PWR_CLK_BLOCK;
-        }*/
+            constexpr u32 kGen9RcsContextLayoutCount =
+                sizeof(kGen9RcsContextLayout) / sizeof(kGen9RcsContextLayout[0]);
+            write_lrc_ring_context(lrc_ring, kGen9RcsContextLayout, kGen9RcsContextLayoutCount, engine_mmio_offset_);
+        }
 
         u32 context_control_val = 0;
         if (type_ == EngineType::RCS) {
@@ -463,46 +396,9 @@ static_cast<uint8_t>(((x) >> 2) & 0x7f)
         const u64 pml4_addr = ppgtt_.pml4_phys_addr_bytes();
         Log::debug("PML 4 ADDR: %llx", pml4_addr);
 
-        lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_PDP0_LDW_OFF, static_cast<uint32_t>(pml4_addr));
-        lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_PDP0_UDW_OFF, static_cast<uint32_t>(pml4_addr >> 32));
+        lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_PDP0_LDW_OFF, static_cast<u32>(pml4_addr));
+        lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_PDP0_UDW_OFF, static_cast<u32>(pml4_addr >> 32));
 
-        /*lrc_write_ring_field(LRC_DW_CONTEXT_CONTROL, ENGINE_CONTEXT_CONTROL_OFF, context_control_val);
-        lrc_write_ring_field(LRC_DW_RING_HEAD, ENGINE_RING_HEAD_OFF, 0);
-        lrc_write_ring_field(LRC_DW_RING_TAIL, ENGINE_RING_TAIL_OFF, 0);
-        lrc_write_ring_field(LRC_DW_RING_BUFFER_START, ENGINE_RING_START_OFF, gfx_raw(ring_gfx_addr_));
-
-        RING_BUFFER_CTL ctl{};
-        ctl.ring_enable = 1;
-        ctl.set_ring_size_bytes(ring_size_);
-        lrc_write_ring_field(LRC_DW_RING_BUFFER_CONTROL, ENGINE_RING_CTL_OFF, ctl.raw);
-
-        lrc_write_ring_field(LRC_DW_BB_CURRENT_HEAD_UDW, ENGINE_BB_CURRENT_HEAD_UDW_OFF, 0);
-        lrc_write_ring_field(LRC_DW_BB_CURRENT_HEAD, ENGINE_BB_CURRENT_HEAD_OFF, 0);
-        lrc_write_ring_field(LRC_DW_BB_STATE, ENGINE_BB_STATE_OFF, LRC_BB_STATE_ADDRESS_SPACE_PPGTT_BIT);
-        lrc_write_ring_field(LRC_DW_SECOND_BB_ADDR_UDW, ENGINE_SECOND_BB_ADDR_UDW_OFF, 0);
-        lrc_write_ring_field(LRC_DW_SECOND_BB_ADDR, ENGINE_SECOND_BB_ADDR_OFF, 0);
-        lrc_write_ring_field(LRC_DW_SECOND_BB_STATE, ENGINE_SECOND_BB_STATE_OFF, 0);
-        lrc_write_ring_field(LRC_DW_BB_PER_CTX_PTR, ENGINE_BB_PER_CTX_PTR_OFF, 0);
-        lrc_write_ring_field(LRC_DW_INDIRECT_CTX, ENGINE_INDIRECT_CTX_OFF, 0);
-        lrc_write_ring_field(LRC_DW_INDIRECT_CTX_OFFSET, ENGINE_INDIRECT_CTX_OFFSET_OFF, 0);
-
-        lrc_write_ring_field(LRC_DW_CTX_TIMESTAMP, ENGINE_CTX_TIMESTAMP_OFF, 0);
-        lrc_write_ring_field(LRC_DW_PDP3_UDW, ENGINE_PDP3_UDW_OFF, 0);
-        lrc_write_ring_field(LRC_DW_PDP3_LDW, ENGINE_PDP3_LDW_OFF, 0);
-        lrc_write_ring_field(LRC_DW_PDP2_UDW, ENGINE_PDP2_UDW_OFF, 0);
-        lrc_write_ring_field(LRC_DW_PDP2_LDW, ENGINE_PDP2_LDW_OFF, 0);
-        lrc_write_ring_field(LRC_DW_PDP1_UDW, ENGINE_PDP1_UDW_OFF, 0);
-        lrc_write_ring_field(LRC_DW_PDP1_LDW, ENGINE_PDP1_LDW_OFF, 0);
-
-        const u64 pml4_addr = ppgtt_.pml4_phys_addr_bytes();
-        Log::debug("PML 4 ADDR: %llx", pml4_addr);
-        lrc_write_ring_field(LRC_DW_PDP0_UDW, ENGINE_PDP0_UDW_OFF, static_cast<u32>(pml4_addr >> 32));
-        lrc_write_ring_field(LRC_DW_PDP0_LDW, ENGINE_PDP0_LDW_OFF, static_cast<u32>(pml4_addr));
-
-        if (type_ == EngineType::RCS) {
-            lrc_write_ring_field(LRC_DW_RENDER_PWR_CLK_STATE, ENGINE_RENDER_PWR_CLK_STATE_OFF, 0);
-        }
-*/
         asm volatile("mfence" ::: "memory");
 
         GFX_MODE mode{};

@@ -30,6 +30,7 @@
 #include <gpu/intel/regs/gt_interrupt_regs.h>
 #include <gpu/intel/regs/interrupt_regs.h>
 #include "intel_engine.h"
+#include "intel_ppgtt.h"
 #include "mocs_init.h"
 #include "drivers/mmio_post_write.h"
 #include "filesystem/devfs.h"
@@ -461,7 +462,7 @@ namespace gpu::intel::core {
                     out->gt_level = 1; // GT1
                 }
 
-                out->gtt_size = ggtt_alloc_.usable_size_bytes();
+                out->gtt_size = PPGTT_VA_SPACE_SIZE;
                 out->mem_alignment = 4096;
                 out->timestamp_frequency = 12000000;
 
@@ -557,4 +558,4 @@ namespace gpu::intel::core {
     [[nodiscard]] u32 IntelGpuDevice::bytes_per_scanline() const {
         return bcs_->bytes_per_scanline();
     }
-} // namespace blt
+} // namespace gpu::intel::core
