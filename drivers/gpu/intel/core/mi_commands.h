@@ -259,6 +259,189 @@ namespace gpu::intel::core {
     };
 
     static_assert(sizeof(MI_BATCH_BUFFER_END) == 4, "MI_BATCH_BUFFER_END must be exactly 1 DWord (4 bytes)");
+
+    /**
+     * @brief MI_STORE_DATA_IMM command (5 DWords minimum for QWord write).
+     *
+     * Requests a write of the immediate data supplied in the packet to the specified Memory Address.
+     * Writes target System Memory Address and are coherent with CPU cache.
+     *
+     * @see IHD-OS-KBL-Vol 2a-1.17, pp. 1049-1050 (MI_STORE_DATA_IMM)
+     */
+    union MI_STORE_DATA_IMM {
+        enum CommandOpcode : u32 {
+            OPCODE_MI_STORE_DATA_IMM = 0x20,
+        };
+
+        enum DWordLength : u32 {
+            LENGTH_STORE_DWORD = 0x2,
+            LENGTH_STORE_QWORD = 0x3,
+        };
+
+        struct {
+            // DWord 0
+            u32 dword_length      : 10; ///< [9:0]   Total Length - 2. Default: 0x2 (DWord) or 0x3 (QWord)
+            u32 reserved0_10      : 11; ///< [20:10] MBZ
+            u32 store_qword       : 1;  ///< [21]    1 = Store QWord, 0 = Store DWord
+            u32 use_global_gtt    : 1;  ///< [22]    1 = Use Global GTT, 0 = Use PPGTT
+            u32 mi_command_opcode : 6;  ///< [28:23] Default: 0x20 (MI_STORE_DATA_IMM)
+            u32 command_type      : 3;  ///< [31:29] Default: 0x0 (MI_COMMAND)
+
+            // DWord 1
+            u32 core_mode_enable : 1;  ///< [0]     1 = Offset address by Core ID
+            u32 reserved1_1      : 1;  ///< [1]     MBZ
+            u32 address          : 30; ///< [31:2]  GraphicsAddress[31:2] (Aligned)
+
+            // DWord 2
+            u32 address_high : 16; ///< [15:0]  GraphicsAddress[47:32]
+            u32 reserved2_16 : 16; ///< [31:16] MBZ
+
+            // DWord 3
+            u32 data_dword_0; ///< [31:0]  Lower DWord of data / DWord value
+
+            // DWord 4
+            u32 data_dword_1; ///< [31:0]  Upper DWord of data (for QWord store)
+        } __attribute__((packed));
+
+        u32 raw[5];
+
+        /**
+         * @brief Creates a default-initialized MI_STORE_DATA_IMM command for QWord stores.
+         */
+        [[nodiscard]] static constexpr MI_STORE_DATA_IMM create() {
+            MI_STORE_DATA_IMM cmd{};
+            cmd.dword_length = LENGTH_STORE_QWORD;
+            cmd.store_qword = 1;
+            cmd.use_global_gtt = 0;
+            cmd.mi_command_opcode = OPCODE_MI_STORE_DATA_IMM;
+            cmd.command_type = CMD_MI;
+            return cmd;
+        }
+
+        /**
+         * @brief Creates an MI_STORE_DATA_IMM command for a 64-bit QWord store operation.
+         *
+         * @param graphics_address The 64-bit target graphics address (Must be 8B aligned).
+         * @param data The 64-bit QWord value to store.
+         * @param use_ggtt Set to true to use Global GTT, false for PPGTT.
+         */
+        [[nodiscard]] static constexpr MI_STORE_DATA_IMM create_qword(
+            u64 graphics_address, u64 data, bool use_ggtt = false
+        ) {
+            MI_STORE_DATA_IMM cmd = create();
+            cmd.store_qword = 1;
+            cmd.dword_length = LENGTH_STORE_QWORD;
+            cmd.use_global_gtt = use_ggtt ? 1 : 0;
+
+            // Address assignment (Bits [47:2] valid)
+            cmd.address = static_cast<u32>((graphics_address >> 2) & 0x3FFFFFFF);
+            cmd.address_high = static_cast<u32>((graphics_address >> 32) & 0xFFFF);
+
+            // Data payload
+            cmd.data_dword_0 = static_cast<u32>(data & 0xFFFFFFFF);
+            cmd.data_dword_1 = static_cast<u32>((data >> 32) & 0xFFFFFFFF);
+
+            return cmd;
+        }
+
+        /**
+         * @brief Creates an MI_STORE_DATA_IMM command for a 32-bit DWord store operation.
+         *
+         * @param graphics_address The 64-bit target graphics address (Must be 4B aligned).
+         * @param data The 32-bit DWord value to store.
+         * @param use_ggtt Set to true to use Global GTT, false for PPGTT.
+         */
+        [[nodiscard]] static constexpr MI_STORE_DATA_IMM create_dword(
+            u64 graphics_address, u32 data, bool use_ggtt = false
+        ) {
+            MI_STORE_DATA_IMM cmd = create();
+            cmd.store_qword = 0;
+            cmd.dword_length = LENGTH_STORE_DWORD;
+            cmd.use_global_gtt = use_ggtt ? 1 : 0;
+
+            cmd.address = static_cast<u32>((graphics_address >> 2) & 0x3FFFFFFF);
+            cmd.address_high = static_cast<u32>((graphics_address >> 32) & 0xFFFF);
+
+            cmd.data_dword_0 = data;
+            cmd.data_dword_1 = 0;
+
+            return cmd;
+        }
+    };
+
+    static_assert(sizeof(MI_STORE_DATA_IMM) == 20, "MI_STORE_DATA_IMM must be 5 DWords (20 bytes)");
+
+    /**
+     * @brief MI_LOAD_REGISTER_IMM command (3 DWords for a single register write).
+     *
+     * Requests a write of up to a DWord constant supplied in the command
+     * to the specified Register Offset (MMIO range).
+     *
+     * @see IHD-OS-KBL-Vol 2a-1.17, pp. 1002 (MI_LOAD_REGISTER_IMM)
+     */
+    union MI_LOAD_REGISTER_IMM {
+        enum CommandOpcode : u32 {
+            OPCODE_MI_LOAD_REGISTER_IMM = 0x22,
+        };
+
+        enum CommandType : u32 {
+            CMD_MI = 0x0,
+        };
+
+        struct {
+            // DWord 0
+            u32 dword_length         : 8;  ///< [7:0]   Total Length - 2. Default: 0x1 (1 DWord extra)
+            u32 byte_write_disables  : 4;  ///< [11:8]  Bit 8=Byte0, Bit 11=Byte3. '1111b' = NOOP
+            u32 reserved0_12         : 1;  ///< [12]    Reserved
+            u32 reserved0_13         : 6;  ///< [18:13] MBZ
+            u32 reserved0_19         : 1;  ///< [19]    Reserved
+            u32 reserved0_20         : 3;  ///< [22:20] MBZ
+            u32 mi_command_opcode    : 6;  ///< [28:23] Default: 0x22 (MI_LOAD_REGISTER_IMM)
+            u32 command_type         : 3;  ///< [31:29] Default: 0x0 (MI_COMMAND)
+
+            // DWord 1
+            u32 reserved1_0          : 2;  ///< [1:0]   MBZ
+            u32 register_offset      : 21; ///< [22:2]  Bits [22:2] of Register Offset (MMIO DWord Offset)
+            u32 reserved1_23         : 9;  ///< [31:23] MBZ
+
+            // DWord 2
+            u32 data_dword;                ///< [31:0]  32-bit Data DWord to write to register
+        } __attribute__((packed));
+
+        u32 raw[3];
+
+        /**
+         * @brief Creates a default-initialized MI_LOAD_REGISTER_IMM command.
+         */
+        [[nodiscard]] static constexpr MI_LOAD_REGISTER_IMM create() {
+            MI_LOAD_REGISTER_IMM cmd{};
+            cmd.dword_length = 1; // 3 DWords total -> Length - 2 = 1
+            cmd.byte_write_disables = 0; // All bytes enabled by default
+            cmd.mi_command_opcode = OPCODE_MI_LOAD_REGISTER_IMM;
+            cmd.command_type = CMD_MI;
+            return cmd;
+        }
+
+        /**
+         * @brief Creates an MI_LOAD_REGISTER_IMM command for writing a 32-bit value to a MMIO register offset.
+         *
+         * @param mmio_offset The byte-aligned MMIO register offset (e.g. 0x20D8). Bits [1:0] will be stripped.
+         * @param data The 32-bit DWord value to write to the register.
+         * @param byte_disables Mask of byte write disables (4 bits, default 0 = enable all bytes).
+         */
+        [[nodiscard]] static constexpr MI_LOAD_REGISTER_IMM create(
+            u32 mmio_offset, u32 data, u8 byte_disables = 0
+        ) {
+            MI_LOAD_REGISTER_IMM cmd = create();
+            cmd.byte_write_disables = byte_disables & 0xF;
+            cmd.register_offset = (mmio_offset >> 2) & 0x1FFFFF; // Bits [22:2]
+            cmd.data_dword = data;
+
+            return cmd;
+        }
+    };
+
+    static_assert(sizeof(MI_LOAD_REGISTER_IMM) == 12, "MI_LOAD_REGISTER_IMM must be 3 DWords (12 bytes)");
 } // namespace gpu::intel::core
 
 #endif // VESPERAOS_MI_COMMANDS_H

@@ -65,6 +65,7 @@ namespace gpu::intel::core {
     struct GgttAllocation {
         virt_addr_t cpu_addr{};
         gfx_addr_t gfx_addr{};
+        phys_addr_t phys_addr{};
     };
 
     struct GgttBlock {
@@ -101,6 +102,8 @@ namespace gpu::intel::core {
         [[nodiscard]] GgttAllocation alloc_transient(usize num_pages, u64 flags, u8 pat_index);
 
         void free_transient(const GgttAllocation& alloc, usize num_pages);
+
+        [[nodiscard]] virt_addr_t gfx_to_virt(gfx_addr_t addr) const;
 
         [[nodiscard]] u32 persistent_used_pages() const {
             return persistent_next_ - persistent_base_;

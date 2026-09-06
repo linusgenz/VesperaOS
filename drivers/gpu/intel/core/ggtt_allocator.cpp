@@ -375,6 +375,15 @@ namespace gpu::intel::core {
         asm volatile("mfence" ::: "memory");
     }
 
+    virt_addr_t GgttAllocator::gfx_to_virt(const gfx_addr_t addr) const {
+        const u32 gtt_index = static_cast<u32>(gfx_raw(addr) / PAGE_SIZE);
+
+        const u64 raw_entry = gtt_entries_[gtt_index];
+        const phys_addr_t phys = make_phys(raw_entry & GTT_PHYS_ADDR_MASK);
+
+        return phys_to_virt(phys);
+    }
+
     GgttAllocation GgttAllocator::alloc_persistent(usize num_pages, u64 flags, u8 pat_index) {
         const phys_addr_t phys = kernel::memory::request_pages_phys(num_pages);
         const virt_addr_t cpu = phys_to_virt(phys);
@@ -390,7 +399,7 @@ namespace gpu::intel::core {
 
         write_entries(gtt_index, phys, num_pages, pat_index);
 
-        return {cpu, make_gfx(static_cast<u64>(gtt_index) * PAGE_SIZE)};
+        return {cpu, make_gfx(static_cast<u64>(gtt_index) * PAGE_SIZE), phys};
     }
 
     GgttAllocation GgttAllocator::alloc_transient(usize num_pages, u64 flags, u8 pat_index) {
@@ -409,7 +418,7 @@ namespace gpu::intel::core {
 
         write_entries(gtt_index, phys, num_pages, pat_index);
 
-        return {cpu, make_gfx(static_cast<u64>(gtt_index) * PAGE_SIZE)};
+        return {cpu, make_gfx(static_cast<u64>(gtt_index) * PAGE_SIZE), phys};
     }
 
     void GgttAllocator::free_transient(const GgttAllocation& alloc, usize num_pages) {

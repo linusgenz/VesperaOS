@@ -91,7 +91,6 @@ namespace gpu::intel::core {
      * above) or risk clobbering them via a naive full-register write.
      */
     class IntelGpuDevice final : public IDeviceInfo, public IRenderDriver, public CharDevice {
-        // TODO shouldnt be CharDevice, implement IoctlHandler or similar later.
     public:
         /// Sentinel returned by allocate_irq_vector() on failure.
         static constexpr u8 INVALID_VECTOR = 0xFF;

@@ -30,6 +30,7 @@
 #include <gpu/intel/regs/gt_interrupt_regs.h>
 #include <gpu/intel/regs/interrupt_regs.h>
 #include "intel_engine.h"
+#include "mocs_init.h"
 #include "drivers/mmio_post_write.h"
 #include "filesystem/devfs.h"
 #include "gpu/intel/rcs/intel_rcs.h"
@@ -304,15 +305,6 @@ namespace gpu::intel::core {
                 volatile u32 post_iir = gt0->iir.raw;
                 (void)post_iir;
 
-                // Debug: decode and log EVERY RCS/BCS bit that was pending,
-                // not just the one this driver's completion path (pipe_
-                // control_notify) cares about. A page_fault or master_error
-                // bit here — even if never explicitly checked before —
-                // would explain "no hang, HWSP correct, nothing rendered":
-                // the GPU could be silently faulting on some later command
-                // (e.g. an out-of-range surface/binding-table/kernel
-                // address) without that ever reaching seqno_wait(), since
-                // seqno_wait() only watches for pipe_control_notify.
                 GT0_IIR_REG decoded{};
                 decoded.raw = pending;
 
