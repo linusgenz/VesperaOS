@@ -62,16 +62,28 @@
 #include "commands/cmd_vertex_elements.h"
 #include "commands/cmd_viewport.h"
 #include "drivers/mmio_post_write.h"
+#include "gpu/intel/bcs/blt_commands.h"
+#include "gpu/intel/core/mi_commands.h"
+#include "gpu/intel/core/mocs_init.h"
 #include "klib/string.h"
 #include "state/blend_state.h"
 #include "state/primitive_topology.h"
 #include "state/surface_format.h"
+#include "vespera/time.h"
 #include "vespera/mm/memory.h"
 
 struct ShaderOffsets {
     u32 vs_offset;
     u32 ps_offset;
 };
+
+namespace {
+    // Software-assigned Context ID for RCS's single execlist context (CONTEXT_DESCRIPTOR::sw_context_id,
+    // 11 bits, up to 2048 per VF — see execlist_regs.h). Only one RCS context exists right now, so any
+    // small nonzero value works; bump this into a proper per-context allocator once RCS supports more
+    // than one context.
+    constexpr u32 RCS_SW_CONTEXT_ID = 1;
+}
 
 
 namespace gpu::intel::rcs {
@@ -94,6 +106,8 @@ namespace gpu::intel::rcs {
         if (!engine_reset()) return false;
         Log::debug("RCS reset successful");
 
+        core::MocsTable(device()).init();
+
         hwsp_alloc();
         ring_alloc_and_init(RCS_RING_BUFFER_SIZE);
 
@@ -110,11 +124,21 @@ namespace gpu::intel::rcs {
             return false;
         }
 
-        Log::info("intel-rcs: ring + HWSP initialized (legacy ring-buffer mode, Milestone 1)");
+        if (!lrc_alloc_and_init(core::LRC_SIZE_RCS, RCS_SW_CONTEXT_ID)) {
+            Log::info("intel-rcs: LRC allocation/init failed");
+            return false;
+        }
+
+        log_lrc_context_image();
+
+       set_submission_mode(core::SubmissionMode::Execlist);
+
+       Log::info("intel-rcs: ring + HWSP + LRC initialized (Execlist mode)");
 
         rcs_error_reporting_init();
 
         if (!select_pipeline(PIPELINE_SELECT::PIPELINE_3D)) {
+            log_lrc_context_image();
             Log::info("intel-rcs: pipeline select failed");
             return false;
         }
@@ -185,15 +209,15 @@ namespace gpu::intel::rcs {
         volatile RCS_IMR_REG& imr = *reinterpret_cast<volatile RCS_IMR_REG*>(engine_regs() + ENGINE_IMR_OFF);
 
         RCS_IMR_REG rcs_imr{};
-        rcs_imr.bits.user_irq = 1;
+        rcs_imr.bits.user_irq = 0;
         rcs_imr.bits.pipe_control_notify = 0;
         rcs_imr.bits.master_error = 0;
-        rcs_imr.bits.timeout = 1;
+        rcs_imr.bits.timeout = 0;
         rcs_imr.bits.page_fault = 0;
         rcs_imr.bits.ctx_switch = 1;
-        rcs_imr.bits.invalid_tile = 1;
-        rcs_imr.bits.l3_counter = 1;
-        rcs_imr.bits.wait_sem = 1;
+        rcs_imr.bits.invalid_tile = 0;
+        rcs_imr.bits.l3_counter = 0;
+        rcs_imr.bits.wait_sem = 0;
         imr.raw = rcs_imr.raw;
         MMIO_POST_WRITE(rcs_imr);
     }
@@ -237,18 +261,16 @@ namespace gpu::intel::rcs {
         }
     }
 
-    //
     bool IntelRcs::select_pipeline(PIPELINE_SELECT::PipelineSelection mode) {
         const PIPELINE_SELECT cmd = PIPELINE_SELECT::create(mode);
         ring_write_cmd(cmd);
         const u32 target_seqno = seqno_next();
         emit_flush(target_seqno);
 
-        ring_flush();
+        submit_ring();
 
         return seqno_wait(target_seqno, 5'000'000, completion_flag_);
     }
-
 
     bool IntelRcs::state_base_address_setup() {
         // 64 KB persistent zone, 16 KB frame zone, 3 ring slots
@@ -274,7 +296,7 @@ namespace gpu::intel::rcs {
         const u32 target_seqno = seqno_next();
         emit_flush(target_seqno);
 
-        ring_flush();
+        submit_ring();
 
         const bool ok = seqno_wait(target_seqno, 5'000'000, completion_flag_);
 
@@ -413,7 +435,7 @@ namespace gpu::intel::rcs {
 
         const u32 seqno = seqno_next();
         emit_flush(seqno);
-        ring_flush();
+        submit_ring();
         return seqno_wait(seqno, 5'000'000, completion_flag_);
     }
 
@@ -432,7 +454,7 @@ namespace gpu::intel::rcs {
 
         const u32 target_seqno = seqno_next();
         emit_flush(target_seqno);
-        ring_flush();
+        submit_ring();
 
         return seqno_wait(target_seqno, 5'000'000, completion_flag_);
     }
@@ -450,7 +472,7 @@ namespace gpu::intel::rcs {
 
         const u32 target_seqno = seqno_next();
         emit_flush(target_seqno);
-        ring_flush();
+        submit_ring();
         const bool ok = seqno_wait(target_seqno, 5'000'000, completion_flag_);
 
         Log::info("intel-rcs: VS constant buffer (MVP) at GFX=0x%llx", alloc.offset);
@@ -479,7 +501,7 @@ namespace gpu::intel::rcs {
         const u32 target_seqno = seqno_next();
         emit_flush(target_seqno);
 
-        ring_flush();
+        submit_ring();
 
         const bool ok = seqno_wait(target_seqno, 5'000'000, completion_flag_);
 
@@ -562,18 +584,15 @@ namespace gpu::intel::rcs {
         // inv_cmd.vf_cache_invalidation_enable = 1;        // Vertex Fetch Cache
         inv_cmd.tlb_invalidate = 1; // Render Engine TLBs
 
-        const u64 hwsp_seqno_addr = gfx_raw(hwsp_gfx_addr_) + core::HWSP_SEQNO_OFFSET;
-        inv_cmd.store_data_index = 0; // Wir übergeben jetzt eine volle Adresse, kein Page-Index mehr
-        inv_cmd.set_write_immediate(hwsp_seqno_addr, seqno, /* use_ggtt */ true);
-
+        inv_cmd.post_sync_operation = PIPE_CONTROL::WRITE_IMMEDIATE_DATA;
+        inv_cmd.destination_address_type = 0;
+        inv_cmd.store_data_index = 1;
+        inv_cmd.address_lo = core::PPHWSP_SEQNO_DWORD_INDEX;
+        inv_cmd.address_hi = 0;
+        inv_cmd.immediate_data = seqno;
         inv_cmd.notify_enable = 1;
 
         ring_write_cmd(inv_cmd);
-
-        /*MI_USER_INTERRUPT_CMD ui{};
-        ui.opcode = OPCODE_MI_USER_INTERRUPT;
-        ui.client = CLIENT_MI;
-        ring_write_cmd(ui);*/
     }
 
     ShaderOffsets IntelRcs::upload_shaders() {
@@ -670,7 +689,7 @@ namespace gpu::intel::rcs {
         const u32 target_seqno = seqno_next();
         emit_flush(target_seqno);
 
-        ring_flush();
+        submit_ring();
 
         const bool ok = seqno_wait(target_seqno, 5'000'000, completion_flag_);
 
@@ -713,7 +732,7 @@ namespace gpu::intel::rcs {
 
         const u32 target_seqno = seqno_next();
         emit_flush(target_seqno);
-        ring_flush();
+        submit_ring();
 
         return seqno_wait(target_seqno, 5'000'000, completion_flag_);
     }

@@ -45,7 +45,7 @@ namespace gpu::intel::rcs {
     constexpr u32 FORCEWAKE_RENDER_ENABLE = 0x00010001;
     constexpr u32 FORCEWAKE_RENDER_TIMEOUT = 1000;
 
-    constexpr u32 RCS_RING_BUFFER_SIZE = 64u * 1024u;
+    constexpr u32 RCS_RING_BUFFER_SIZE = 16u * 1024u;
 
     /**
      * @brief Render Command Streamer engine.
@@ -79,6 +79,7 @@ namespace gpu::intel::rcs {
         core::StateAllocator state_allocator_;
 
         void debug_dump_error_regs(const char* label) const;
+        void dump_context_status_buffer() const;
         bool select_pipeline(PIPELINE_SELECT::PipelineSelection mode);
         bool state_base_address_setup();
         bool setup_shaders_and_pipeline(const ShaderOffsets& offsets);

@@ -129,7 +129,7 @@ union PIPE_CONTROL {
     constexpr void set_write_immediate(u64 addr, u64 data, bool use_ggtt = true) {
         post_sync_operation = WRITE_IMMEDIATE_DATA;
         destination_address_type = use_ggtt ? 1 : 0;
-        address_lo = static_cast<u32>(addr) & ~0x3u;
+        address_lo = static_cast<u32>(addr >> 2);
         address_hi = static_cast<u32>(addr >> 32);
         immediate_data = data;
     }
@@ -143,7 +143,7 @@ union PIPE_CONTROL {
     constexpr void set_write_timestamp(u64 addr, bool use_ggtt = true) {
         post_sync_operation = WRITE_TIMESTAMP;
         destination_address_type = use_ggtt ? 1 : 0;
-        address_lo = static_cast<u32>(addr) & ~0x3u;
+        address_lo = static_cast<u32>(addr >> 2);
         address_hi = static_cast<u32>(addr >> 32);
     }
 };
