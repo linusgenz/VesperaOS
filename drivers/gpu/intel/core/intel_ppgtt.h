@@ -82,6 +82,8 @@ namespace gpu::intel::core {
             gfx_addr_t gpu_addr, phys_addr_t phys_start, usize size,
             PpgttCaching caching, bool writable
         );
+        void* gpu_to_virt(gfx_addr_t gpu_addr) const;
+        void dump_batch_buffer(gfx_addr_t batch_addr, u32 batch_len) const;
 
         [[nodiscard]] u64 pml4_phys_addr_bytes() const {
             return pml4_phys_addr_;

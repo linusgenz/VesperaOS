@@ -129,19 +129,21 @@ namespace gpu::intel::rcs {
             return false;
         }
 
-        log_lrc_context_image();
-
        set_submission_mode(core::SubmissionMode::Execlist);
 
        Log::info("intel-rcs: ring + HWSP + LRC initialized (Execlist mode)");
 
         rcs_error_reporting_init();
 
-        if (!select_pipeline(PIPELINE_SELECT::PIPELINE_3D)) {
-            log_lrc_context_image();
+        /*if (!select_pipeline(PIPELINE_SELECT::PIPELINE_3D)) {
+        //    log_lrc_context_image();
             Log::info("intel-rcs: pipeline select failed");
             return false;
-        }
+        }*/
+
+        return true;
+
+        // LEGACY SETUP ↓
 
         if (!state_base_address_setup()) {
             Log::info("intel-rcs: STATE_BASE_ADDRESS setup failed");
@@ -214,7 +216,7 @@ namespace gpu::intel::rcs {
         rcs_imr.bits.master_error = 0;
         rcs_imr.bits.timeout = 0;
         rcs_imr.bits.page_fault = 0;
-        rcs_imr.bits.ctx_switch = 1;
+        rcs_imr.bits.ctx_switch = 0;
         rcs_imr.bits.invalid_tile = 0;
         rcs_imr.bits.l3_counter = 0;
         rcs_imr.bits.wait_sem = 0;
@@ -561,6 +563,7 @@ namespace gpu::intel::rcs {
     }
 
     void IntelRcs::on_gt_user_interrupt() {
+        Log::debug("on_gt_user_interrupt");
         completion_flag_.set();
     }
 

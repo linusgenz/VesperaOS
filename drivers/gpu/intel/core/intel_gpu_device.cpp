@@ -489,7 +489,50 @@ namespace gpu::intel::core {
             return false;
         }
 
+        // purged objects already returned their pages in gem_madvise();
+        // nothing left to free here beyond the slot itself.
+        if (!obj->is_userptr && !obj->purged) {
+            const usize page_count = (obj->size + PAGE_SIZE - 1) / PAGE_SIZE;
+            kernel::memory::free_pages_phys(obj->phys_addr, page_count);
+        }
+
         *obj = LucGemObject{};
+        return true;
+    }
+
+    bool IntelGpuDevice::gem_madvise(const lucifer_gem_madvise& args, bool* out_retained) {
+        LucGemObject* obj = lookup_gem(args.handle);
+        if (!obj || obj->is_userptr) {
+            Log::log_dbc("intel-gpu: GEM_MADVISE failed (bad handle)");
+            return false;
+        }
+
+        if (args.state == LUCIFER_MADVICE_DONT_NEED) {
+            if (!obj->purged) {
+                // Bring-up assumption: caller has already VM_BIND UNMAP'd
+                // this object on every VM it was bound to -- see the
+                // `purged` field comment on LucGemObject. Not verified
+                // here (no back-reference from GEM object to bindings).
+                const usize page_count = (obj->size + PAGE_SIZE - 1) / PAGE_SIZE;
+                kernel::memory::free_pages_phys(obj->phys_addr, page_count);
+                obj->phys_addr = phys_addr_t{};
+                obj->purged = true;
+            }
+
+            *out_retained = false; // DONTNEED never reports resident
+            return true;
+        }
+
+        // LUCIFER_MADVICE_WILL_NEED
+        if (obj->purged) {
+            // Backing store is gone and this bring-up path never
+            // reallocates it -- caller (lucifer_bo_madvise()) is expected
+            // to see retained == false and recreate the BO.
+            *out_retained = false;
+            return true;
+        }
+
+        *out_retained = true; // was never purged, still live
         return true;
     }
 
@@ -529,22 +572,24 @@ namespace gpu::intel::core {
             // Fail loudly rather than binding garbage.
             Log::log_dbc("intel-gpu: VM_BIND MAP_USERPTR not yet implemented");
             return false;
-        } else {
-            LucGemObject* obj = lookup_gem(args.handle);
-            if (!obj || obj->is_userptr) {
-                Log::log_dbc("intel-gpu: VM_BIND failed (bad handle)");
-                return false;
-            }
-
-            phys_start = phys_add(obj->phys_addr, args.obj_offset);
-
-            // NOTE: args.pat_index is *not* used for caching here. Gen9.5
-            // never populates devinfo->pat in Mesa (that table is only
-            // filled from GFX12_PAT_ENTRIES onward)
-            caching = obj->cpu_caching == LUCIFER_GEM_CPU_CACHING_WC
-                          ? PpgttCaching::NONE
-                          : PpgttCaching::LLC;
         }
+
+        LucGemObject* obj = lookup_gem(args.handle);
+        if (!obj || obj->is_userptr || obj->purged) {
+            Log::log_dbc("intel-gpu: VM_BIND failed (bad handle)");
+            return false;
+        }
+
+        Log::log_dbc("exec: mapping BO gpu_addr=0x%llx phys=0x%llx offset=0x%llu", (args.addr), phys_raw(obj->phys_addr), args.obj_offset);
+
+        phys_start = phys_add(obj->phys_addr, args.obj_offset);
+
+        // NOTE: args.pat_index is *not* used for caching here. Gen9.5
+        // never populates devinfo->pat in Mesa (that table is only
+        // filled from GFX12_PAT_ENTRIES onward)
+        caching = obj->cpu_caching == LUCIFER_GEM_CPU_CACHING_WC
+                      ? PpgttCaching::NONE
+                      : PpgttCaching::LLC;
 
         // Bring-up: everything bound today is writable (matches Mesa's BOs,
         // which are all CPU+GPU read/write). Read-only mappings would need a
@@ -633,8 +678,12 @@ namespace gpu::intel::core {
             }
         }
 
+        Log::log_dbc("exec: userspace batch_addr=0x%llx (from ioctl)", args.batch_addr);
+
+        vm->dump_batch_buffer(make_gfx(args.batch_addr), args.batch_len);
+
         u32 seqno = 0;
-        if (!engine->dispatch_batch(make_gfx(args.batch_addr), args.batch_len, &seqno)) {
+        if (!engine->dispatch_batch(make_gfx(args.batch_addr), args.batch_len, &seqno, vm)) {
             Log::log_dbc("intel-gpu: EXEC failed (dispatch_batch)");
             return false;
         }
@@ -978,6 +1027,21 @@ namespace gpu::intel::core {
             }
 
             return gem_close(close->handle) ? 0 : -1;
+        }
+
+        if (request == LUCIFER_IOCTL_GEM_MADVISE) {
+            auto* madvise = static_cast<lucifer_gem_madvise*>(arg);
+            if (!madvise) {
+                return -1;
+            }
+
+            bool retained = false;
+            if (!gem_madvise(*madvise, &retained)) {
+                return -1;
+            }
+
+            madvise->retained = retained ? 1 : 0;
+            return 0;
         }
 
         if (request == LUCIFER_IOCTL_VM_BIND) {

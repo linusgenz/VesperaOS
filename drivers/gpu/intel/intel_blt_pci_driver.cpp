@@ -155,16 +155,17 @@ namespace gpu::intel {
         }
 
         rcs_ = new rcs::IntelRcs(*device_);
-      /*  if (!rcs_->init_device(resolution)) {
+        if (!rcs_->init_device(resolution)) {
             Log::warning("intel-blt: RCS init failed, continuing with BCS only");
             delete rcs_;
             rcs_ = nullptr;
         } else {
             rcs_->set_bcs(bcs_);
-        }*/
+        }
 
        // bcs_->start_device(resolution);
 
+        device_->add_rcs(rcs_);
         device_->add_bcs(bcs_);
 
      //   const DisplayBackend be{device_, device_->get_kd()};

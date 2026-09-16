@@ -79,7 +79,6 @@ namespace gpu::intel::rcs {
         core::StateAllocator state_allocator_;
 
         void debug_dump_error_regs(const char* label) const;
-        void dump_context_status_buffer() const;
         bool select_pipeline(PIPELINE_SELECT::PipelineSelection mode);
         bool state_base_address_setup();
         bool setup_shaders_and_pipeline(const ShaderOffsets& offsets);
@@ -89,7 +88,7 @@ namespace gpu::intel::rcs {
         u32 gt_debug_irq_bitmask() const override;
         void on_gt_user_interrupt() override;
         void rcs_interrupts_enable() const;
-        void emit_flush(u32 seqno);
+        void emit_flush(u32 seqno) override;
         ShaderOffsets upload_shaders();
 
         bool vertex_buffer_setup();

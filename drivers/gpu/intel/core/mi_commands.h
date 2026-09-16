@@ -147,16 +147,13 @@ namespace gpu::intel::core {
     };
 
     /**
-     * @brief MI_BATCH_BUFFER_START command structure (2 DWords / 64 bits).
-     *
-     * Initiates execution of commands stored in a batch buffer. Can be used for
-     * first-level chaining or second-level batch buffer invocation.
-     *
-     * @note Graphics Address is a 48-bit GPU virtual address [47:0] where bits [1:0] MBZ.
-     * @note DWord length bias is 2, so dword_length = 0x1 (2 DWords - 2).
-     *
-     * @see IHD-OS-KBL-Vol 2a-1.17, pp. 968-971 (MI_BATCH_BUFFER_START)
-     */
+ * @brief MI_BATCH_BUFFER_START command structure (3 DWords / 96 bits).
+ *
+ * @note Graphics Address is a 48-bit GPU virtual address [47:2] (bits [1:0] MBZ).
+ * @note DWord length bias is 2, so dword_length = 0x1 (3 DWords - 2).
+ *
+ * @see IHD-OS-KBL-Vol 2a-1.17, pp. 968-971 (MI_BATCH_BUFFER_START)
+ */
     union MI_BATCH_BUFFER_START {
         enum CommandOpcode : u32 {
             OPCODE_MI_BATCH_BUFFER_START = 0x31,
@@ -166,38 +163,29 @@ namespace gpu::intel::core {
             // ====================================================================
             // DWord 0
             // ====================================================================
-            u32 dword_length              : 8; ///< [7:0]   Default: 0x1 (2 DWords - 2)
-            u32 address_space_indicator   : 1; ///< [8]     AddressSpaceIndicator (0 = GGTT, 1 = PPGTT)
+            u32 dword_length              : 8; ///< [7:0]   Default: 0x1 (3 DWords - 2 = 1)
+            u32 address_space_indicator   : 1; ///< [8]     0 = GGTT, 1 = PPGTT
             u32 reserved0_9               : 1; ///< [9]     MBZ
-            u32 resource_streamer_enable  : 1; ///< [10]    RenderCS specific: Resource Streamer enable
+            u32 resource_streamer_enable  : 1; ///< [10]    RenderCS: Resource Streamer enable
             u32 reserved0_11              : 4; ///< [14:11] MBZ
-            u32 predication_enable        : 1; ///< [15]    RenderCS specific: Enable predication
-            u32 add_offset_enable         : 1; ///< [16]    RenderCS specific: Add BB OFFSET MMIO register
+            u32 predication_enable        : 1; ///< [15]    RenderCS: Enable predication
+            u32 add_offset_enable         : 1; ///< [16]    RenderCS: Add BB_OFFSET MMIO register
             u32 reserved0_17              : 2; ///< [18:17] MBZ
             u32 reserved0_19              : 1; ///< [19]    MBZ
             u32 reserved0_20              : 2; ///< [21:20] MBZ
-            u32 second_level_batch_buffer : 1; ///< [22]    SecondLevelBatchBuffer (0 = First level, 1 = Second level)
-            u32 opcode                    : 6; ///< [28:23] Default: 0x31 (MI_BATCH_BUFFER_START)
+            u32 second_level_batch_buffer : 1; ///< [22]    0 = First level, 1 = Second level
+            u32 opcode                    : 6; ///< [28:23] Default: 0x31
             u32 command_type              : 3; ///< [31:29] Default: 0x0 (MI_COMMAND)
 
             // ====================================================================
-            // DWord 1
+            // DWord 1 & 2 (48-bit Graphics Address)
             // ====================================================================
-            u32 batch_buffer_start_address_low : 32;
-            ///< [31:0] Lower 32 bits of GraphicsAddress [31:2] (bits [1:0] MBZ)
+            u32 batch_buffer_start_address_low;  ///< DWord 1: Bits [31:0] (Bits [1:0] MBZ)
+            u32 batch_buffer_start_address_high; ///< DWord 2: Bits [47:32] (Bits [63:48] MBZ)
         } __attribute__((packed));
 
-        u32 raw[2];
+        u32 raw[3];
 
-        /**
-         * @brief Creates an MI_BATCH_BUFFER_START command for a 32-bit GPU address.
-         *
-         * @param gpu_address             32-bit or 48-bit GPU address (DWord-aligned, bits [1:0] == 0).
-         * @param is_ppgtt                true for PPGTT (Non-Privileged), false for GGTT (Privileged).
-         * @param is_second_level         true for 2nd level batch buffer, false for 1st level chain.
-         * @param add_offset              RenderCS: Add BB_OFFSET MMIO register to start address.
-         * @param predication             RenderCS: Enable predication based on MI_PREDICATE_RESULT_1.
-         */
         [[nodiscard]] static constexpr MI_BATCH_BUFFER_START create(
             u64 gpu_address,
             bool is_ppgtt = true,
@@ -206,23 +194,27 @@ namespace gpu::intel::core {
             bool predication = false
         ) {
             MI_BATCH_BUFFER_START cmd{};
-            cmd.command_type = CMD_MI;
+            cmd.command_type = 0x0; // MI_COMMAND
             cmd.opcode = OPCODE_MI_BATCH_BUFFER_START;
-            cmd.second_level_batch_buffer = is_second_level ? BATCH_LEVEL_SECOND : BATCH_LEVEL_FIRST;
+            cmd.second_level_batch_buffer = is_second_level ? 1 : 0;
             cmd.add_offset_enable = add_offset ? 1 : 0;
             cmd.predication_enable = predication ? 1 : 0;
-            cmd.resource_streamer_enable = 0;
-            cmd.address_space_indicator = is_ppgtt ? ADDRESS_SPACE_PPGTT : ADDRESS_SPACE_GGTT;
-            cmd.dword_length = 0x1; // 2 DWords total - 2 = 1
+            cmd.resource_streamer_enable = 1;
+            cmd.address_space_indicator = is_ppgtt ? 1 : 0;
 
-            // GraphicsAddress[31:2], bits [1:0] MBZ
-            cmd.batch_buffer_start_address_low = static_cast<u32>(gpu_address & 0xFFFFFFFF) & ~0x3U;
+            // 3 DWords Total - Bias 2 = 1
+            cmd.dword_length = 0x1;
+
+            // (48-Bit Virtual Address, Bits [1:0] MBZ)
+            u64 aligned_addr = gpu_address & ~0x3ULL;
+            cmd.batch_buffer_start_address_low = static_cast<u32>(aligned_addr & 0xFFFFFFFFULL);
+            cmd.batch_buffer_start_address_high = static_cast<u32>((aligned_addr >> 32) & 0xFFFFULL);
 
             return cmd;
         }
     };
 
-    static_assert(sizeof(MI_BATCH_BUFFER_START) == 8, "MI_BATCH_BUFFER_START must be exactly 2 DWords (8 bytes)");
+    static_assert(sizeof(MI_BATCH_BUFFER_START) == 12, "MI_BATCH_BUFFER_START must be exactly 3 DWords (12 bytes)");
 
 
     /**
@@ -390,22 +382,22 @@ namespace gpu::intel::core {
 
         struct {
             // DWord 0
-            u32 dword_length         : 8;  ///< [7:0]   Total Length - 2. Default: 0x1 (1 DWord extra)
-            u32 byte_write_disables  : 4;  ///< [11:8]  Bit 8=Byte0, Bit 11=Byte3. '1111b' = NOOP
-            u32 reserved0_12         : 1;  ///< [12]    Reserved
-            u32 reserved0_13         : 6;  ///< [18:13] MBZ
-            u32 reserved0_19         : 1;  ///< [19]    Reserved
-            u32 reserved0_20         : 3;  ///< [22:20] MBZ
-            u32 mi_command_opcode    : 6;  ///< [28:23] Default: 0x22 (MI_LOAD_REGISTER_IMM)
-            u32 command_type         : 3;  ///< [31:29] Default: 0x0 (MI_COMMAND)
+            u32 dword_length        : 8; ///< [7:0]   Total Length - 2. Default: 0x1 (1 DWord extra)
+            u32 byte_write_disables : 4; ///< [11:8]  Bit 8=Byte0, Bit 11=Byte3. '1111b' = NOOP
+            u32 reserved0_12        : 1; ///< [12]    Reserved
+            u32 reserved0_13        : 6; ///< [18:13] MBZ
+            u32 reserved0_19        : 1; ///< [19]    Reserved
+            u32 reserved0_20        : 3; ///< [22:20] MBZ
+            u32 mi_command_opcode   : 6; ///< [28:23] Default: 0x22 (MI_LOAD_REGISTER_IMM)
+            u32 command_type        : 3; ///< [31:29] Default: 0x0 (MI_COMMAND)
 
             // DWord 1
-            u32 reserved1_0          : 2;  ///< [1:0]   MBZ
-            u32 register_offset      : 21; ///< [22:2]  Bits [22:2] of Register Offset (MMIO DWord Offset)
-            u32 reserved1_23         : 9;  ///< [31:23] MBZ
+            u32 reserved1_0     : 2;  ///< [1:0]   MBZ
+            u32 register_offset : 21; ///< [22:2]  Bits [22:2] of Register Offset (MMIO DWord Offset)
+            u32 reserved1_23    : 9;  ///< [31:23] MBZ
 
             // DWord 2
-            u32 data_dword;                ///< [31:0]  32-bit Data DWord to write to register
+            u32 data_dword; ///< [31:0]  32-bit Data DWord to write to register
         } __attribute__((packed));
 
         u32 raw[3];
@@ -415,7 +407,7 @@ namespace gpu::intel::core {
          */
         [[nodiscard]] static constexpr MI_LOAD_REGISTER_IMM create() {
             MI_LOAD_REGISTER_IMM cmd{};
-            cmd.dword_length = 1; // 3 DWords total -> Length - 2 = 1
+            cmd.dword_length = 1;        // 3 DWords total -> Length - 2 = 1
             cmd.byte_write_disables = 0; // All bytes enabled by default
             cmd.mi_command_opcode = OPCODE_MI_LOAD_REGISTER_IMM;
             cmd.command_type = CMD_MI;

@@ -207,7 +207,7 @@ namespace gpu::intel::bcs {
             gfx_addr_t dest, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2, gfx_addr_t mono_src,
             u32 src_bit_pos, bool transparency, u32 bg_color, u32 fg_color
         );
-        void emit_mi_flush(u32 seqno);
+        void emit_flush(u32 seqno) override;
 
         // HW init / power
         void bcs_power_enable() const;

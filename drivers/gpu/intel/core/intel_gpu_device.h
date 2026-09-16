@@ -274,6 +274,11 @@ namespace gpu::intel::core {
 
             /// Physical backing, allocated up front in gem_create()
             phys_addr_t phys_addr = phys_addr_t{};
+
+            /// GEM_MADVISE state. false (WILLNEED, the default) means the
+            /// backing above is live. true (DONTNEED) means gem_madvise()
+            /// has already returned phys_addr's pages to the allocator
+            bool purged = false;
         };
 
         static constexpr usize MAX_LUCIFER_GEM_OBJECTS = 4096;
@@ -283,6 +288,17 @@ namespace gpu::intel::core {
         [[nodiscard]] u32 gem_create_userptr(const struct lucifer_gem_userptr& args);
         bool gem_close(u32 handle);
         [[nodiscard]] LucGemObject* lookup_gem(u32 handle);
+
+        /// Backs LUCIFER_IOCTL_GEM_MADVISE. WILLNEED on an already-live
+        /// object is a no-op that reports retained. DONTNEED frees
+        /// phys_addr's pages via free_pages_phys() and marks the object
+        /// purged; a later WILLNEED on a purged object reports not
+        /// retained (backing store lost) rather than reallocating it --
+        /// matching lucifer_bo_madvise()'s userspace contract, which
+        /// expects the caller to recreate the BO in that case. Returns
+        /// false only for a bad/userptr handle; out_retained is only
+        /// meaningful when this returns true.
+        [[nodiscard]] bool gem_madvise(const struct lucifer_gem_madvise& args, bool* out_retained);
 
         /// Encodes a GEM handle into a page-aligned "fake" mmap offset for
         /// LUCIFER_IOCTL_GEM_MMAP_OFFSET

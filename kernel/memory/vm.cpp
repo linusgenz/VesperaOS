@@ -20,6 +20,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <filesystem/devfs.h>
 #include <filesystem/vfs_handle.h>
 #include <filesystem/vfs_node.h>
 #include <klib/string.h>
@@ -27,6 +28,7 @@
 #include <realm/handle_table.h>
 #include <realm/realm.h>
 #include <units/unit.h>
+#include <vespera/devices/char_device.h>
 #include <vespera/mm/file_backing.h>
 #include <vespera/mm/memory.h>
 #include <vespera/mm/shm.h>
@@ -34,10 +36,10 @@
 #include <vespera/sys/mman.h>
 #include <vespera_errno.h>
 
+#include "vespera/log.h"
+
 namespace kernel::vm {
-
     namespace {
-
         constexpr uptr MMAP_BASE = 0x0000'6000'0000'0000ULL;
         constexpr uptr MMAP_END = 0x0000'7FFF'FF00'0000ULL;
         constexpr uptr USER_HEAP_MAX = 0x0000'7FFE'0000'0000ULL;
@@ -72,9 +74,9 @@ namespace kernel::vm {
         PageTableManager* ptm_for(const Unit* u) {
             return u->parent->address_space->page_table();
         }
+    } // namespace
 
-    }  // namespace
-
+    // TODO BRING UP OF INTEL GPU DRIVER, GEM OBJECTS GET LEAKED; THEY NEVER GET FREED. TODO FIX THIS
     i64 mmap(Unit* u, uptr addr, usize length, const u64 prot, const u64 flags, const u64 handle, const u64 offset) {
         if (length == 0) return -EINVAL;
         if (!u || !u->is_user) return -EACCES;
@@ -89,38 +91,64 @@ namespace kernel::vm {
         PageTableManager* ptm = ptm_for(u);
         kernel::vm::VmBackingObject* backing_obj = nullptr;
 
+        u64 hdl_type = 0;
+
         if (!(flags & MAP_ANONYMOUS)) {
             HandleEntry* he = u->parent->handle_table->lookup(handle);
             if (!he) {
                 return -EBADH;
             }
 
-            if (he->type == HANDLE_TYPE_SHM) {
+            hdl_type = he->type;
+
+            if (hdl_type == HANDLE_TYPE_SHM) {
                 backing_obj = static_cast<ShmObject*>(he->resource);
-            } else if (he->type == HANDLE_TYPE_FILE) {
+            } else if (hdl_type == HANDLE_TYPE_FILE) {
                 const auto* vfs_handle = static_cast<VfsHandle*>(he->resource);
                 if (!vfs_handle || !vfs_handle->node) return -EBADH;
                 backing_obj = FileBackingObject::get_or_create(vfs_handle->node);
+            } else if (hdl_type == HANDLE_TYPE_DEVICE) {
+                const auto* vfs_handle = static_cast<VfsHandle*>(he->resource);
+                if (!vfs_handle || !vfs_handle->node) return -EBADH;
+
+                CharFile* cf = DevFs::get_char_file(vfs_handle->node);
+                const auto* entry = static_cast<DevfsEntry*>(vfs_handle->node->internal_data);
+                if (!cf || !entry || !entry->device || !entry->device->chardev) {
+                    return -EBADH;
+                }
+
+                backing_obj = entry->device->chardev->get_backing_object(cf, offset);
             } else {
                 return -EBADH;
             }
 
-            if (!backing_obj) return -EBADH;
+            if (!backing_obj) {
+                return -EBADH;
+            }
 
             const usize backing_size = backing_obj->get_size();
             const usize backing_page_aligned_size = (backing_size + PAGE_SIZE - 1) & ~usize(PAGE_SIZE - 1);
-            if (offset + length > backing_page_aligned_size) {
-                return -EINVAL;
+
+            if (hdl_type == HANDLE_TYPE_DEVICE) {
+                if (length > backing_page_aligned_size) {
+                    return -EINVAL;
+                }
+            } else {
+                if (offset + length > backing_page_aligned_size) {
+                    return -EINVAL;
+                }
             }
+
             backing_obj->add_mapping();
         }
 
+        const usize page_offset = (hdl_type == HANDLE_TYPE_DEVICE) ? 0 : offset;
         for (usize i = 0; i < npages; i++) {
             phys_addr_t phys;
             if (flags & MAP_ANONYMOUS) {
                 phys = kernel::memory::request_page_phys();
             } else {
-                phys = backing_obj->get_page(offset + i * PAGE_SIZE);
+                phys = backing_obj->get_page(page_offset + i * PAGE_SIZE);
             }
 
             if (phys_null(phys)) {
@@ -305,7 +333,7 @@ namespace kernel::vm {
         return 0;
     }
 
-i64 mprotect(Unit* u, const uptr addr, usize length, const u64 prot) {
+    i64 mprotect(Unit* u, const uptr addr, usize length, const u64 prot) {
         if (!u || !u->is_user) return -EACCES;
         if (length == 0) return -EINVAL;
 
@@ -408,5 +436,4 @@ i64 mprotect(Unit* u, const uptr addr, usize length, const u64 prot) {
 
         return 0;
     }
-
-}  // namespace kernel::vm
+} // namespace kernel::vm

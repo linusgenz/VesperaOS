@@ -271,7 +271,7 @@ namespace gpu::intel::bcs {
         ring_write_cmd(cmd);
     }
 
-    void IntelBcs::emit_mi_flush(u32 seqno) {
+    void IntelBcs::emit_flush(u32 seqno) {
         core::MI_FLUSH_DW_CMD cmd{};
 
         cmd.dw0.client = CLIENT_MI;
@@ -661,7 +661,7 @@ namespace gpu::intel::bcs {
         );
 
         const u32 target_seqno = seqno_next();
-        emit_mi_flush(target_seqno);
+        emit_flush(target_seqno);
         ring_flush();
 
         return seqno_wait(target_seqno, 500'000, completion_flag_);
@@ -701,7 +701,7 @@ namespace gpu::intel::bcs {
         );
 
         const u32 target_seqno = seqno_next();
-        emit_mi_flush(target_seqno);
+        emit_flush(target_seqno);
         ring_flush();
 
         return seqno_wait(target_seqno, 500'000, completion_flag_);
@@ -719,7 +719,7 @@ namespace gpu::intel::bcs {
         );
 
         const u32 target_seqno = seqno_next();
-        emit_mi_flush(target_seqno);
+        emit_flush(target_seqno);
         ring_flush();
 
         return seqno_wait(target_seqno, 5'000'000, completion_flag_);
@@ -757,7 +757,7 @@ namespace gpu::intel::bcs {
         );
 
         const u32 seqno = seqno_next();
-        emit_mi_flush(seqno);
+        emit_flush(seqno);
         ring_flush();
         seqno_wait(seqno, 500'000, completion_flag_);
     }
