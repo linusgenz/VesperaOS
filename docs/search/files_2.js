@@ -1,5 +1,6 @@
 var searchData=
 [
   ['dirent_2eh_0',['dirent.h',['../include_2uapi_2vespera_2dirent_8h.html',1,'(Global Namespace)'],['../userspace_2lib_2include_2dirent_8h.html',1,'(Global Namespace)']]],
-  ['dlfcn_2eh_1',['dlfcn.h',['../dlfcn_8h.html',1,'']]]
+  ['dlfcn_2eh_1',['dlfcn.h',['../dlfcn_8h.html',1,'']]],
+  ['drm_2eh_2',['drm.h',['../drm_8h.html',1,'']]]
 ];

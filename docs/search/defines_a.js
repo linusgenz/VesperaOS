@@ -34,7 +34,7 @@ var searchData=
   ['log_5fcrit_31',['LOG_CRIT',['../sys_2syslog_8h.html#aaa731313f5c63e855fefb5f6519c3283',1,'syslog.h']]],
   ['log_5fcron_32',['LOG_CRON',['../sys_2syslog_8h.html#a285963d2ea1986d2f31ae7c6c0b5dc4e',1,'syslog.h']]],
   ['log_5fdaemon_33',['LOG_DAEMON',['../sys_2syslog_8h.html#a9961fc94ec213d970dc7c8d9608e1d42',1,'syslog.h']]],
-  ['log_5fdebug_34',['log_debug',['../sys_2syslog_8h.html#a6ff63e8955665c4a58b1598f2b07c51a',1,'LOG_DEBUG:&#160;syslog.h'],['../log__client_8h.html#a2332264037abe02c8041a498b2fa1627',1,'LOG_DEBUG:&#160;log_client.h']]],
+  ['log_5fdebug_34',['log_debug',['../log__client_8h.html#a2332264037abe02c8041a498b2fa1627',1,'LOG_DEBUG:&#160;log_client.h'],['../sys_2syslog_8h.html#a6ff63e8955665c4a58b1598f2b07c51a',1,'LOG_DEBUG:&#160;syslog.h']]],
   ['log_5femerg_35',['LOG_EMERG',['../sys_2syslog_8h.html#a5c6e8b60c2512dfc0e0224d25a61cb2c',1,'syslog.h']]],
   ['log_5ferr_36',['LOG_ERR',['../sys_2syslog_8h.html#a96fad55b3f5adf08c39e4c877cf185e3',1,'syslog.h']]],
   ['log_5ferror_37',['LOG_ERROR',['../log__client_8h.html#a7ebf4c3b4fb05d6f9094089ded75cbdd',1,'log_client.h']]],
@@ -85,8 +85,11 @@ var searchData=
   ['lucifer_5fioctl_5fgem_5fset_5fcaching_82',['LUCIFER_IOCTL_GEM_SET_CACHING',['../lucifer__drm_8h.html#a98cf6cbf8c4b6d06cda70704bd83fbd3',1,'lucifer_drm.h']]],
   ['lucifer_5fioctl_5fgem_5fuserptr_83',['LUCIFER_IOCTL_GEM_USERPTR',['../lucifer__drm_8h.html#a96604161d8062225ce329c07b3aa0959',1,'lucifer_drm.h']]],
   ['lucifer_5fioctl_5fquery_84',['LUCIFER_IOCTL_QUERY',['../lucifer__drm_8h.html#a735cf9ac6402825a4ca8ad06d7250702',1,'lucifer_drm.h']]],
-  ['lucifer_5fioctl_5fversion_85',['LUCIFER_IOCTL_VERSION',['../lucifer__drm_8h.html#a2e436cc971b02e8c70bea47c3f795888',1,'lucifer_drm.h']]],
-  ['lucifer_5fioctl_5fvm_5fbind_86',['LUCIFER_IOCTL_VM_BIND',['../lucifer__drm_8h.html#a8c3cf8cccb859df4842b4312153fe03f',1,'lucifer_drm.h']]],
-  ['lucifer_5fioctl_5fvm_5fcreate_87',['LUCIFER_IOCTL_VM_CREATE',['../lucifer__drm_8h.html#aa74c23eedd095697dcfe8743afea52c6',1,'lucifer_drm.h']]],
-  ['lucifer_5fioctl_5fvm_5fdestroy_88',['LUCIFER_IOCTL_VM_DESTROY',['../lucifer__drm_8h.html#acb925da397dda586d1e403ed4ceac597',1,'lucifer_drm.h']]]
+  ['lucifer_5fioctl_5fsyncobj_5fcreate_85',['LUCIFER_IOCTL_SYNCOBJ_CREATE',['../lucifer__drm_8h.html#a2d533a269b600579e6550103bc26d0ba',1,'lucifer_drm.h']]],
+  ['lucifer_5fioctl_5fsyncobj_5fdestroy_86',['LUCIFER_IOCTL_SYNCOBJ_DESTROY',['../lucifer__drm_8h.html#a920179dc166d9e5d66567c44834d58c2',1,'lucifer_drm.h']]],
+  ['lucifer_5fioctl_5fsyncobj_5fwait_87',['LUCIFER_IOCTL_SYNCOBJ_WAIT',['../lucifer__drm_8h.html#a9234ae0248490ff493fea6d2bb68df23',1,'lucifer_drm.h']]],
+  ['lucifer_5fioctl_5fversion_88',['LUCIFER_IOCTL_VERSION',['../lucifer__drm_8h.html#a2e436cc971b02e8c70bea47c3f795888',1,'lucifer_drm.h']]],
+  ['lucifer_5fioctl_5fvm_5fbind_89',['LUCIFER_IOCTL_VM_BIND',['../lucifer__drm_8h.html#a8c3cf8cccb859df4842b4312153fe03f',1,'lucifer_drm.h']]],
+  ['lucifer_5fioctl_5fvm_5fcreate_90',['LUCIFER_IOCTL_VM_CREATE',['../lucifer__drm_8h.html#aa74c23eedd095697dcfe8743afea52c6',1,'lucifer_drm.h']]],
+  ['lucifer_5fioctl_5fvm_5fdestroy_91',['LUCIFER_IOCTL_VM_DESTROY',['../lucifer__drm_8h.html#acb925da397dda586d1e403ed4ceac597',1,'lucifer_drm.h']]]
 ];

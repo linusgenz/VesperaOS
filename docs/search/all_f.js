@@ -13,7 +13,7 @@ var searchData=
   ['o_5fwronly_10',['O_WRONLY',['../include_2uapi_2vespera_2fcntl_8h.html#a11b644a8526139c4cc1850dac1271ced',1,'fcntl.h']]],
   ['obj_5foffset_11',['obj_offset',['../structlucifer__vm__bind.html#a1c7a5eef384782df7a251c7d55b20632',1,'lucifer_vm_bind']]],
   ['oem_12',['oem',['../structbattery__info.html#a4656736fb802340b1f5189a7d22dfa3c',1,'battery_info']]],
-  ['off_5ft_13',['off_t',['../include_2uapi_2vespera_2types_8h.html#a053c614b69adbac710bb132a6eb9ccf6',1,'off_t:&#160;types.h'],['../unistd_8h.html#a053c614b69adbac710bb132a6eb9ccf6',1,'off_t:&#160;unistd.h']]],
+  ['off_5ft_13',['off_t',['../unistd_8h.html#a053c614b69adbac710bb132a6eb9ccf6',1,'off_t:&#160;unistd.h'],['../include_2uapi_2vespera_2types_8h.html#a053c614b69adbac710bb132a6eb9ccf6',1,'off_t:&#160;types.h']]],
   ['offset_14',['offset',['../structlucifer__gem__mmap__offset.html#a7378031f00c7222c8fccfe89184708d6',1,'lucifer_gem_mmap_offset']]],
   ['offsetof_15',['offsetof',['../stddef_8h.html#a276e8a32e0bbf024aadd9420b8f2d3b3',1,'stddef.h']]],
   ['old_5fparent_5fid_16',['old_parent_id',['../structvbus__orphaned.html#a375997700f797b1e45a802ca342cff8a',1,'vbus_orphaned']]],
@@ -22,7 +22,7 @@ var searchData=
   ['online_19',['online',['../structvbus__ac.html#ad7f67a5b287c6ce94e5d5aaffa45885d',1,'vbus_ac']]],
   ['op_20',['op',['../structlucifer__vm__bind.html#a48714cd057a819a3b620623ad165b2ab',1,'lucifer_vm_bind']]],
   ['opa_21',['Opa',['../namespacestella.html#ac98bce39648f27dd6443ad0814cc6968',1,'stella']]],
-  ['open_22',['open',['../structvbus__lid.html#aaa1791405f167208b6f634ba31966b6b',1,'vbus_lid::open'],['../userspace_2lib_2include_2fcntl_8h.html#ad586f56cb2d7d849a4cb20dbd792b543',1,'open(const char *path, int flags,...):&#160;fcntl.h']]],
+  ['open_22',['open',['../userspace_2lib_2include_2fcntl_8h.html#ad586f56cb2d7d849a4cb20dbd792b543',1,'open():&#160;fcntl.h'],['../structvbus__lid.html#aaa1791405f167208b6f634ba31966b6b',1,'vbus_lid::open']]],
   ['open_5fmemstream_23',['open_memstream',['../stdio_8h.html#ab47b5eafe8b07200760d16307980ecc1',1,'stdio.h']]],
   ['openat_24',['openat',['../userspace_2lib_2include_2fcntl_8h.html#a17d44d955aa2afafbfd74e2537101109',1,'fcntl.h']]],
   ['opendir_25',['opendir',['../userspace_2lib_2include_2dirent_8h.html#ad759a0269427a564f3ce672d43e885cf',1,'dirent.h']]],
@@ -32,6 +32,8 @@ var searchData=
   ['operator_20stella_5fwidget_5ft_29',['operator stella_widget_t',['../classstella_1_1Widget.html#ac8a1f45cbedec9a3f882dc6fa4e88ef8',1,'stella::Widget']]],
   ['operator_3d_30',['operator=',['../classstella_1_1Timer.html#a17343e142cb021e8227e3c44cb267377',1,'stella::Timer::operator=()'],['../classstella_1_1Window.html#a5740245c473787e5c6cca0bef3199298',1,'stella::Window::operator=()']]],
   ['optimize_5fcoding_31',['optimize_coding',['../structjpeg__save__options__t.html#ad2b0c13b97e9ebd7cf4939078068f3a6',1,'jpeg_save_options_t']]],
-  ['output_5fformat_32',['output_format',['../structjpeg__load__options__t.html#ad0eea45bcf9a3ee56591140097860aea',1,'jpeg_load_options_t']]],
-  ['owner_33',['owner',['../structpthread__mutex__t.html#abb954059f8fa5ea4eacf57dd0bcf5330',1,'pthread_mutex_t']]]
+  ['out_5fseqno_32',['out_seqno',['../structlucifer__exec.html#a9bcbc350b57c200bc7ecef8340454d5f',1,'lucifer_exec']]],
+  ['out_5fsyncobj_33',['out_syncobj',['../structlucifer__exec.html#a6a2f3200944be96fa4502830219f9542',1,'lucifer_exec']]],
+  ['output_5fformat_34',['output_format',['../structjpeg__load__options__t.html#ad0eea45bcf9a3ee56591140097860aea',1,'jpeg_load_options_t']]],
+  ['owner_35',['owner',['../structpthread__mutex__t.html#abb954059f8fa5ea4eacf57dd0bcf5330',1,'pthread_mutex_t']]]
 ];

@@ -109,9 +109,14 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a365533284598bdfb11a4fe9ada4dc14a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad767cbe6a6a37e2c997416ba9541af2f" id="r_ad767cbe6a6a37e2c997416ba9541af2f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlucifer__exec.html#ad767cbe6a6a37e2c997416ba9541af2f">batch_len</a></td></tr>
 <tr class="separator:ad767cbe6a6a37e2c997416ba9541af2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9bcbc350b57c200bc7ecef8340454d5f" id="r_a9bcbc350b57c200bc7ecef8340454d5f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlucifer__exec.html#a9bcbc350b57c200bc7ecef8340454d5f">out_seqno</a></td></tr>
+<tr class="separator:a9bcbc350b57c200bc7ecef8340454d5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a2f3200944be96fa4502830219f9542" id="r_a6a2f3200944be96fa4502830219f9542"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlucifer__exec.html#a6a2f3200944be96fa4502830219f9542">out_syncobj</a></td></tr>
+<tr class="separator:a6a2f3200944be96fa4502830219f9542"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Minimal batch submission: one batch buffer's GPU address against a given vm_id / engine. </p>
+<div class="textblock"><p>Minimal batch submission: one batch buffer's GPU address against a given vm_id / engine.</p>
+<p>Every EXEC is assigned a monotonically increasing per-engine sequence number (out_seqno) at submission time, before the batch is handed to the hardware. This seqno is the fence value for this submission: it becomes signaled once the engine's completed-seqno counter reaches or passes it (see LUCIFER_IOCTL_SYNCOBJ_WAIT). Userspace normally wraps out_seqno in a syncobj via LUCIFER_IOCTL_SYNCOBJ_CREATE rather than tracking raw seqnos itself, mirroring how iris/Mesa expects an opaque handle to wait on. </p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
 <a id="a365533284598bdfb11a4fe9ada4dc14a" name="a365533284598bdfb11a4fe9ada4dc14a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a365533284598bdfb11a4fe9ada4dc14a">&#9670;&#160;</a></span>batch_addr</h2>
@@ -155,6 +160,36 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>in, enum lucifer_engine_class </p>
+
+</div>
+</div>
+<a id="a9bcbc350b57c200bc7ecef8340454d5f" name="a9bcbc350b57c200bc7ecef8340454d5f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9bcbc350b57c200bc7ecef8340454d5f">&#9670;&#160;</a></span>out_seqno</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> lucifer_exec::out_seqno</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>out, fence value for this submission </p>
+
+</div>
+</div>
+<a id="a6a2f3200944be96fa4502830219f9542" name="a6a2f3200944be96fa4502830219f9542"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6a2f3200944be96fa4502830219f9542">&#9670;&#160;</a></span>out_syncobj</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a> lucifer_exec::out_syncobj</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>in, optional DRM syncobj handle to bind to this submission's completion (0 = none) </p>
 
 </div>
 </div>
