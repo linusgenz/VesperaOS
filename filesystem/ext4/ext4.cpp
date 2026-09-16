@@ -756,6 +756,7 @@ namespace ext4 {
 
         const u32 new_lblock = block_count;
         if (!extent_tree_append(dir_inode, new_lblock, new_pblock)) {
+            free_block(new_pblock);
             return false;
         }
 
@@ -1454,6 +1455,7 @@ namespace ext4 {
                 }
 
                 if (!extent_tree_append(inode, lblock, pblock)) {
+                    free_block(pblock);
                     kernel::memory::free(block_buf);
                     return Result<usize>::err(Error::NoSpc);
                 }
@@ -1589,7 +1591,10 @@ namespace ext4 {
         Inode new_dir_inode{};
         if (!read_inode(new_inode, new_dir_inode)) return Result<u32>::err(Error::Io);
 
-        if (!extent_tree_append(new_dir_inode, 0, new_pblock)) return Result<u32>::err(Error::NoSpc);
+        if (!extent_tree_append(new_dir_inode, 0, new_pblock)) {
+            free_block(new_pblock);
+            return Result<u32>::err(Error::NoSpc);
+        }
 
         const u64 blocks_512 = bsize / 512;
         new_dir_inode.i_blocks_lo = static_cast<u32>(blocks_512);
@@ -1607,10 +1612,11 @@ namespace ext4 {
             write_inode(dir_inode_no, parent_inode);
         }
 
+        const u32 new_inode_group = (new_inode - 1) / superblock_.s_inodes_per_group;
         GroupDesc gd{};
-        if (read_group_desc(parent_group, gd)) {
+        if (read_group_desc(new_inode_group, gd)) {
             gd.bg_used_dirs_count_lo++;
-            write_group_desc(parent_group, gd);
+            write_group_desc(new_inode_group, gd);
         }
 
         return Result<u32>::ok(new_inode);
