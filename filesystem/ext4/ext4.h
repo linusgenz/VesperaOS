@@ -358,7 +358,12 @@ namespace ext4 {
         u64 alloc_block(u64 near_block);
         bool free_block(u64 phys_block);
         bool free_blocks_for_inode(const Inode& inode);
+        bool extent_leaf_append(u64 leaf_phys, u32 logical_block, u64 phys_block);
+        u64 extent_alloc_leaf(u64 near_block);
         bool extent_tree_append(Inode& inode, u32 logical_block, u64 phys_block);
+
+        bool collect_metadata_blocks(const Inode& inode, Vector<u64>& out_blocks) const;
+        bool collect_metadata_blocks_node(u64 phys_block, u16 depth, Vector<u64>& out_blocks) const;
     };
 } // namespace ext4
 

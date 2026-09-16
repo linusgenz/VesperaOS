@@ -39,13 +39,13 @@ using namespace ext4;
 static VfsNodeType ext4_type_to_vfs_type(DirEntryType type) {
     switch (type) {
         case DirEntryType::Directory: return VfsNodeType::Directory;
-        case DirEntryType::Fifo:      return VfsNodeType::Fifo;
-        case DirEntryType::RegularFile:   return VfsNodeType::File;
-        case DirEntryType::SymbolicLink:   return VfsNodeType::Symlink;
-        case DirEntryType::CharDevice:   return VfsNodeType::CharDevice;
-        case DirEntryType::BlockDevice:  return VfsNodeType::BlockDevice;
-        case DirEntryType::Socket:    return VfsNodeType::Socket;
-        default:                      return VfsNodeType::OtherDevice;
+        case DirEntryType::Fifo: return VfsNodeType::Fifo;
+        case DirEntryType::RegularFile: return VfsNodeType::File;
+        case DirEntryType::SymbolicLink: return VfsNodeType::Symlink;
+        case DirEntryType::CharDevice: return VfsNodeType::CharDevice;
+        case DirEntryType::BlockDevice: return VfsNodeType::BlockDevice;
+        case DirEntryType::Socket: return VfsNodeType::Socket;
+        default: return VfsNodeType::OtherDevice;
     }
 }
 
@@ -169,7 +169,7 @@ static Result<bool> ext4_readdir(void* dir_handle, dirent_t* out) {
     auto* h = static_cast<Ext4DirHandle*>(dir_handle);
     if (!h) return Error::Inval;
 
-    if (h->index >= h->count) return Result<bool>::ok(false);  // end of directory
+    if (h->index >= h->count) return Result<bool>::ok(false); // end of directory
 
     const FileEntry& fe = h->entries[h->index++];
     const usize len = strlen(fe.name);
@@ -279,24 +279,24 @@ static VoidResult ext4_chmod(VfsNode* node, u16 new_mode) {
 }
 
 static VfsNodeOps ext4_ops = {
-    .read = ext4_read,
-    .write = ext4_write,
-    .find = ext4_find,
-    .close = ext4_close,
-    .opendir = ext4_opendir,
-    .readdir = ext4_readdir,
+    .read     = ext4_read,
+    .write    = ext4_write,
+    .find     = ext4_find,
+    .close    = ext4_close,
+    .opendir  = ext4_opendir,
+    .readdir  = ext4_readdir,
     .closedir = ext4_closedir,
-    .create = ext4_create,
-    .rename = ext4_rename,
-    .mkdir = ext4_mkdir,
-    .rmdir = ext4_rmdir,
-    .unlink = ext4_unlink,
-    .ioctl = nullptr,
-    .stat = ext4_stat,
+    .create   = ext4_create,
+    .rename   = ext4_rename,
+    .mkdir    = ext4_mkdir,
+    .rmdir    = ext4_rmdir,
+    .unlink   = ext4_unlink,
+    .ioctl    = nullptr,
+    .stat     = ext4_stat,
     .truncate = ext4_truncate,
-    .chown = ext4_chown,
-    .chmod = ext4_chmod,
-    .poll = nullptr,
+    .chown    = ext4_chown,
+    .chmod    = ext4_chmod,
+    .poll     = nullptr,
 };
 
 static VfsNode* wrap_ext4_root(FileSystem* fs) {
@@ -360,14 +360,26 @@ static VfsNode* ext4_mount(BlockDevice* dev) {
     return root;
 }
 
-static bool ext4_unmount(VfsNode* /*node*/) {
-    // TODO: release FileSystem and all cached nodes.
+static bool ext4_unmount(VfsNode* root) {
+    // TODO: all cached nodes.
+    if (!root) return false;
+
+    auto* extnode = static_cast<Ext4Node*>(root->internal_data);
+    if (!extnode) return false;
+
+    FileSystem* fs = extnode->fs;
+    if (!fs) return false;
+
+    delete fs;
+    delete extnode;
+    delete root;
+
     return true;
 }
 
 FileSystemDriver ext4_driver = {
-    .name = "ext4",
-    .probe = ext4_probe,
-    .mount = ext4_mount,
+    .name    = "ext4",
+    .probe   = ext4_probe,
+    .mount   = ext4_mount,
     .unmount = ext4_unmount,
 };

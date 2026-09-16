@@ -152,17 +152,20 @@ namespace ext4 {
     }
 
     bool FileSystem::write_superblock() const {
-        const u32 start_sector = SUPERBLOCK_OFFSET / sector_size_;
-        const u32 sector_count = (sizeof(Ext4Superblock) + sector_size_ - 1) / sector_size_;
-        const u32 buf_size = sector_count * sector_size_;
+        const u32 bsize = get_block_size();
+        const u64 sb_block = SUPERBLOCK_OFFSET / bsize;
+        const u32 sb_off_in_block = SUPERBLOCK_OFFSET % bsize;
 
-        auto* buf = static_cast<u8*>(kernel::memory::malloc(buf_size));
+        auto* buf = static_cast<u8*>(kernel::memory::malloc(bsize));
         if (!buf) return false;
 
-        bool ok = device_->read(start_sector, sector_count, buf, buf_size);
+        // Read-modify-write so we don't clobber the rest of the block (only
+        // matters when bsize > 1024, i.e. the superblock shares its block
+        // with other data).
+        bool ok = read_block(sb_block, buf, bsize);
         if (ok) {
-            memcpy(buf + (SUPERBLOCK_OFFSET % sector_size_), &superblock_, sizeof(Ext4Superblock));
-            ok = device_->write(start_sector, sector_count, buf, buf_size);
+            memcpy(buf + sb_off_in_block, &superblock_, sizeof(Ext4Superblock));
+            ok = write_block(sb_block, buf, bsize);
         }
 
         kernel::memory::free(buf);
@@ -309,21 +312,20 @@ namespace ext4 {
         const u32 bsize = get_block_size();
         const u32 desc_stride = group_desc_stride();
         const u64 gd_offset = group_desc_offset(group, bsize, desc_stride);
-        const u64 start_sect = gd_offset / sector_size_;
-        const u32 count = (desc_stride + sector_size_ - 1) / sector_size_;
-        const u32 buf_size = count * sector_size_;
+        const u64 gd_block = gd_offset / bsize;
+        const u32 off_in_block = static_cast<u32>(gd_offset % bsize);
 
-        auto* buf = static_cast<u8*>(kernel::memory::malloc(buf_size));
+        auto* buf = static_cast<u8*>(kernel::memory::malloc(bsize));
         if (!buf) return false;
 
-        const bool ok = device_->read(start_sect, count, buf, buf_size);
+        const bool ok = read_block(gd_block, buf, bsize);
         if (ok) {
             out_gd = GroupDesc{};
             // Only copy as many bytes as actually exist on disk for this
             // descriptor (32 on legacy filesystems, 64 with the 64bit
             // feature) - never read past what's really there.
             const u32 copy_size = desc_stride < sizeof(GroupDesc) ? desc_stride : sizeof(GroupDesc);
-            memcpy(&out_gd, buf + (gd_offset % sector_size_), copy_size);
+            memcpy(&out_gd, buf + off_in_block, copy_size);
         }
 
         kernel::memory::free(buf);
@@ -334,19 +336,19 @@ namespace ext4 {
         const u32 bsize = get_block_size();
         const u32 desc_stride = group_desc_stride();
         const u64 gd_offset = group_desc_offset(group, bsize, desc_stride);
-        const u64 start_sect = gd_offset / sector_size_;
-        const u32 count = (desc_stride + sector_size_ - 1) / sector_size_;
-        const u32 buf_size = count * sector_size_;
+        const u64 gd_block = gd_offset / bsize;
+        const u32 off_in_block = static_cast<u32>(gd_offset % bsize);
 
-        auto* buf = static_cast<u8*>(kernel::memory::malloc(buf_size));
+        auto* buf = static_cast<u8*>(kernel::memory::malloc(bsize));
         if (!buf) return false;
 
-        // Read-modify-write um benachbarte Desktriptoren nicht zu beschädigen.
-        bool ok = device_->read(start_sect, count, buf, buf_size);
+        // Read-modify-write um benachbarte Deskriptoren im selben Block nicht
+        // zu beschädigen.
+        bool ok = read_block(gd_block, buf, bsize);
         if (ok) {
             const u32 copy_size = desc_stride < sizeof(GroupDesc) ? desc_stride : sizeof(GroupDesc);
-            memcpy(buf + (gd_offset % sector_size_), &gd, copy_size);
-            ok = device_->write(start_sect, count, buf, buf_size);
+            memcpy(buf + off_in_block, &gd, copy_size);
+            ok = write_block(gd_block, buf, bsize);
         }
 
         kernel::memory::free(buf);
@@ -966,6 +968,65 @@ namespace ext4 {
         return parse_extents_raw(inode, out_extents);
     }
 
+    // Counterpart to parse_extents_node(): instead of collecting data
+    // extents, collects the physical block number of every metadata node
+    // visited below phys_block (i.e. phys_block itself, plus recursively any
+    // children it indexes). Leaf nodes (depth == 0) are metadata blocks too
+    // - they hold the Extent array - so they're recorded here even though
+    // parse_extents_node() doesn't descend further into them.
+    bool FileSystem::collect_metadata_blocks_node(u64 phys_block, u16 depth, Vector<u64>& out_blocks) const {
+        out_blocks.push_back(phys_block);
+
+        if (depth == 0) return true; // leaf: no children, nothing more to walk
+
+        const u32 bsize = get_block_size();
+        auto* buf = static_cast<u8*>(kernel::memory::malloc(bsize));
+        if (!buf) return false;
+
+        if (!read_block(phys_block, buf, bsize)) {
+            kernel::memory::free(buf);
+            return false;
+        }
+
+        ExtentHeader eh{};
+        memcpy(&eh, buf, sizeof(ExtentHeader));
+
+        if (eh.eh_magic != EXT4_EXTENT_MAGIC) {
+            kernel::memory::free(buf);
+            return false;
+        }
+
+        const u8* base = buf + sizeof(ExtentHeader);
+        bool ok = true;
+        for (u16 i = 0; i < eh.eh_entries && ok; ++i) {
+            ExtentIdx idx{};
+            memcpy(&idx, base + i * sizeof(ExtentIdx), sizeof(ExtentIdx));
+            const u64 child_phys = (static_cast<u64>(idx.ei_leaf_hi) << 32) | idx.ei_leaf_lo;
+            ok = collect_metadata_blocks_node(child_phys, eh.eh_depth - 1, out_blocks);
+        }
+
+        kernel::memory::free(buf);
+        return ok;
+    }
+
+    bool FileSystem::collect_metadata_blocks(const Inode& inode, Vector<u64>& out_blocks) const {
+        ExtentHeader eh{};
+        memcpy(&eh, &inode.i_block[0], sizeof(ExtentHeader));
+
+        if (eh.eh_magic != EXT4_EXTENT_MAGIC) return false;
+        if (eh.eh_depth == 0) return true; // inline extents only: no metadata blocks on disk
+
+        const auto* base = reinterpret_cast<const u8*>(&inode.i_block[0]) + sizeof(ExtentHeader);
+        bool ok = true;
+        for (u16 i = 0; i < eh.eh_entries && ok; ++i) {
+            ExtentIdx idx{};
+            memcpy(&idx, base + i * sizeof(ExtentIdx), sizeof(ExtentIdx));
+            const u64 child_phys = (static_cast<u64>(idx.ei_leaf_hi) << 32) | idx.ei_leaf_lo;
+            ok = collect_metadata_blocks_node(child_phys, eh.eh_depth - 1, out_blocks);
+        }
+        return ok;
+    }
+
     bool FileSystem::map_logical_to_physical(const Inode& inode, u32 lblock, u64& out_pblock) const {
         // An inode using the extent format stores an ExtentHeader in the first
         // 12 bytes of i_block[], not direct block pointers. If we fall through to
@@ -1131,10 +1192,105 @@ namespace ext4 {
         for (const ExtentMap& em : extents) {
             for (u32 i = 0; i < em.length; ++i) free_block(em.phys_start + i);
         }
+
+        // The extent tree's own leaf/index blocks (allocated by
+        // extent_alloc_leaf() once the 4 inline slots are exhausted) are
+        // metadata, not file data, so parse_extents_raw() above never
+        // touches them - without this they'd stay marked "allocated" in the
+        // block bitmap forever after the inode is freed.
+        Vector<u64> meta_blocks;
+        if (collect_metadata_blocks(inode, meta_blocks)) {
+            for (u64 b : meta_blocks) free_block(b);
+        }
         return true;
     }
 
-    // append new lead extent
+    // append new leaf extent
+
+    // Appends one Extent entry into a leaf block's ExtentHeader/Extent array,
+    // merging with the last entry if it's contiguous. Returns false if the
+    // leaf is full and a new entry can't be added.
+    bool FileSystem::extent_leaf_append(u64 leaf_phys, u32 logical_block, u64 phys_block) {
+        const u32 bsize = get_block_size();
+        auto* buf = static_cast<u8*>(kernel::memory::malloc(bsize));
+        if (!buf) return false;
+
+        if (!read_block(leaf_phys, buf, bsize)) {
+            kernel::memory::free(buf);
+            return false;
+        }
+
+        auto* eh = reinterpret_cast<ExtentHeader*>(buf);
+
+        if (eh->eh_magic != EXT4_EXTENT_MAGIC || eh->eh_depth != 0) {
+            kernel::memory::free(buf);
+            return false;
+        }
+
+        if (eh->eh_entries > 0) {
+            auto* last = reinterpret_cast<Extent*>(buf + sizeof(ExtentHeader) + (eh->eh_entries - 1) * sizeof(Extent));
+
+            bool last_unwritten = false;
+            const u32 last_len = extent_len_and_unwritten(last->ee_len, last_unwritten);
+            const u64 last_phys_end = ((static_cast<u64>(last->ee_start_hi) << 32) | last->ee_start_lo) + last_len;
+            const u32 last_log_end = last->ee_block + last_len;
+
+            if (last_log_end == logical_block && last_phys_end == phys_block && !last_unwritten &&
+                last_len < 32768) {
+                last->ee_len++;
+                const bool ok = write_block(leaf_phys, buf, bsize);
+                kernel::memory::free(buf);
+                return ok;
+            }
+        }
+
+        if (eh->eh_entries >= eh->eh_max) {
+            kernel::memory::free(buf);
+            return false;
+        }
+
+        auto* ex = reinterpret_cast<Extent*>(buf + sizeof(ExtentHeader) + eh->eh_entries * sizeof(Extent));
+        ex->ee_block = logical_block;
+        ex->ee_len = 1;
+        ex->ee_start_hi = static_cast<u16>(phys_block >> 32);
+        ex->ee_start_lo = static_cast<u32>(phys_block & 0xFFFFFFFFu);
+        eh->eh_entries++;
+
+        const bool ok = write_block(leaf_phys, buf, bsize);
+        kernel::memory::free(buf);
+        return ok;
+    }
+
+    // Allocates a fresh leaf block, formats it as an empty depth-0 extent
+    // node sized for this block size, and writes it out. Returns 0 on failure.
+    u64 FileSystem::extent_alloc_leaf(u64 near_block) {
+        const u32 bsize = get_block_size();
+        const u64 leaf_phys = alloc_block(near_block);
+        if (leaf_phys == 0) return 0;
+
+        auto* buf = static_cast<u8*>(kernel::memory::malloc(bsize));
+        if (!buf) {
+            free_block(leaf_phys);
+            return 0;
+        }
+        memset(buf, 0, bsize);
+
+        auto* eh = reinterpret_cast<ExtentHeader*>(buf);
+        eh->eh_magic = EXT4_EXTENT_MAGIC;
+        eh->eh_entries = 0;
+        eh->eh_max = static_cast<u16>((bsize - sizeof(ExtentHeader)) / sizeof(Extent));
+        eh->eh_depth = 0;
+        eh->eh_generation = 0;
+
+        const bool ok = write_block(leaf_phys, buf, bsize);
+        kernel::memory::free(buf);
+
+        if (!ok) {
+            free_block(leaf_phys);
+            return 0;
+        }
+        return leaf_phys;
+    }
 
     bool FileSystem::extent_tree_append(Inode& inode, u32 logical_block, u64 phys_block) {
         auto* eh = reinterpret_cast<ExtentHeader*>(&inode.i_block[0]);
@@ -1147,44 +1303,113 @@ namespace ext4 {
             eh->eh_generation = 0;
         }
 
-        if (eh->eh_depth != 0) {
-            return false;
-        }
+        // --- Depth 0: entries are inline Extent structs in i_block[] ---
+        if (eh->eh_depth == 0) {
+            if (eh->eh_entries > 0) {
+                auto* last = reinterpret_cast<Extent*>(
+                    reinterpret_cast<u8*>(eh) + sizeof(ExtentHeader) + (eh->eh_entries - 1) * sizeof(Extent)
+                );
 
-        if (eh->eh_entries >= EXT4_MAX_INLINE_EXTENTS) {
-            return false;
-        }
+                bool last_unwritten = false;
+                const u32 last_len = extent_len_and_unwritten(last->ee_len, last_unwritten);
 
-        if (eh->eh_entries > 0) {
-            auto* last = reinterpret_cast<Extent*>(
-                reinterpret_cast<u8*>(eh) + sizeof(ExtentHeader) + (eh->eh_entries - 1) * sizeof(Extent)
-            );
+                const u64 last_phys_end =
+                    ((static_cast<u64>(last->ee_start_hi) << 32) | last->ee_start_lo) + last_len;
+                const u32 last_log_end = last->ee_block + last_len;
 
-            bool last_unwritten = false;
-            const u32 last_len = extent_len_and_unwritten(last->ee_len, last_unwritten);
+                if (last_log_end == logical_block && last_phys_end == phys_block && !last_unwritten &&
+                    last_len < 32768) {
+                    last->ee_len++;
+                    return true;
+                }
+            }
 
-            const u64 last_phys_end =
-                ((static_cast<u64>(last->ee_start_hi) << 32) | last->ee_start_lo) + last_len;
-            const u32 last_log_end = last->ee_block + last_len;
+            if (eh->eh_entries < EXT4_MAX_INLINE_EXTENTS) {
+                auto* ex = reinterpret_cast<Extent*>(
+                    reinterpret_cast<u8*>(eh) + sizeof(ExtentHeader) + eh->eh_entries * sizeof(Extent)
+                );
 
-            if (last_log_end == logical_block && last_phys_end == phys_block && !last_unwritten &&
-                last_len < 32768) {
-                last->ee_len++;
+                ex->ee_block = logical_block;
+                ex->ee_len = 1;
+                ex->ee_start_hi = static_cast<u16>(phys_block >> 32);
+                ex->ee_start_lo = static_cast<u32>(phys_block & 0xFFFFFFFFu);
+                eh->eh_entries++;
                 return true;
             }
+
+            const u64 leaf_phys = extent_alloc_leaf(phys_block);
+            if (leaf_phys == 0) return false;
+
+            const u16 old_entries = eh->eh_entries;
+            const auto* old_extents = reinterpret_cast<const Extent*>(reinterpret_cast<u8*>(eh) + sizeof(ExtentHeader));
+
+            for (u16 i = 0; i < old_entries; ++i) {
+                bool unwritten = false;
+                const u32 len = extent_len_and_unwritten(old_extents[i].ee_len, unwritten);
+                const u64 pstart = (static_cast<u64>(old_extents[i].ee_start_hi) << 32) | old_extents[i].ee_start_lo;
+                // Re-insert one block at a time via extent_leaf_append so
+                // that contiguous runs merge back into single leaf entries.
+                for (u32 b = 0; b < len; ++b) {
+                    if (!extent_leaf_append(leaf_phys, old_extents[i].ee_block + b, pstart + b)) {
+                        free_block(leaf_phys);
+                        return false;
+                    }
+                }
+            }
+
+            eh->eh_magic = EXT4_EXTENT_MAGIC;
+            eh->eh_entries = 1;
+            eh->eh_max = EXT4_MAX_INLINE_EXTENTS; // max ExtentIdx entries inline
+            eh->eh_depth = 1;
+            eh->eh_generation = 0;
+
+            auto* idx = reinterpret_cast<ExtentIdx*>(reinterpret_cast<u8*>(eh) + sizeof(ExtentHeader));
+            idx->ei_block = 0; // this leaf covers logical blocks starting at 0
+            idx->ei_leaf_lo = static_cast<u32>(leaf_phys & 0xFFFFFFFFu);
+            idx->ei_leaf_hi = static_cast<u16>(leaf_phys >> 32);
+            idx->ei_unused = 0;
+
+            return extent_leaf_append(leaf_phys, logical_block, phys_block);
         }
 
-        auto* ex = reinterpret_cast<Extent*>(
-            reinterpret_cast<u8*>(eh) + sizeof(ExtentHeader) + eh->eh_entries * sizeof(Extent)
-        );
+        // --- Depth 1: entries are ExtentIdx structs, each pointing at a leaf ---
+        if (eh->eh_depth == 1) {
+            // Try the last (highest logical range) leaf first - the common
+            // case is sequential append.
+            if (eh->eh_entries > 0) {
+                auto* last_idx = reinterpret_cast<ExtentIdx*>(
+                    reinterpret_cast<u8*>(eh) + sizeof(ExtentHeader) + (eh->eh_entries - 1) * sizeof(ExtentIdx)
+                );
+                const u64 leaf_phys = (static_cast<u64>(last_idx->ei_leaf_hi) << 32) | last_idx->ei_leaf_lo;
+                if (extent_leaf_append(leaf_phys, logical_block, phys_block)) return true;
+            }
 
-        ex->ee_block = logical_block;
-        ex->ee_len = 1;
-        ex->ee_start_hi = static_cast<u16>(phys_block >> 32);
-        ex->ee_start_lo = static_cast<u32>(phys_block & 0xFFFFFFFFu);
-        eh->eh_entries++;
+            // Last leaf is full (or there were no entries yet): allocate a
+            // new leaf and, if there's room, add another ExtentIdx slot.
+            if (eh->eh_entries >= eh->eh_max) return false;
 
-        return true;
+            const u64 new_leaf_phys = extent_alloc_leaf(phys_block);
+            if (new_leaf_phys == 0) return false;
+
+            if (!extent_leaf_append(new_leaf_phys, logical_block, phys_block)) {
+                free_block(new_leaf_phys);
+                return false;
+            }
+
+            auto* idx = reinterpret_cast<ExtentIdx*>(
+                reinterpret_cast<u8*>(eh) + sizeof(ExtentHeader) + eh->eh_entries * sizeof(ExtentIdx)
+            );
+            idx->ei_block = logical_block;
+            idx->ei_leaf_lo = static_cast<u32>(new_leaf_phys & 0xFFFFFFFFu);
+            idx->ei_leaf_hi = static_cast<u16>(new_leaf_phys >> 32);
+            idx->ei_unused = 0;
+            eh->eh_entries++;
+
+            return true;
+        }
+
+        // Depth >= 2 TODO, not implemented
+        return false;
     }
 
     // fs ops
@@ -1935,6 +2160,11 @@ namespace ext4 {
                 for (u32 i = 0; i < em.length; ++i) {
                     if (new_size == 0 || (em.logical_start + i) > new_last_lblock) free_block(em.phys_start + i);
                 }
+            }
+
+            Vector<u64> old_meta_blocks;
+            if (collect_metadata_blocks(inode, old_meta_blocks)) {
+                for (u64 b : old_meta_blocks) free_block(b);
             }
 
             auto* eh = reinterpret_cast<ExtentHeader*>(&inode.i_block[0]);
