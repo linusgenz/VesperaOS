@@ -52,13 +52,13 @@ namespace gpu::intel::core {
 
     constexpr u32 PPHWSP_SEQNO_DWORD_INDEX = 34;
 
-    constexpr u32 ENGINE_RING_IPEIR_OFF = 0x64;    ///< Instruction Parser Error Identification
-    constexpr u32 ENGINE_RING_IPEHR_OFF = 0x68;    ///< Instruction Parser Error Header (the actual bad DWord0)
-    constexpr u32 ENGINE_RING_INSTDONE_OFF = 0x6C; ///< Per-unit "still executing" bits
-    constexpr u32 ENGINE_RING_INSTPS_OFF = 0x70;   ///< Sub-op instruction pointer (RCS pipeline state)
-    constexpr u32 ENGINE_RING_ACTHD_OFF = 0x74;    ///< Active Head Pointer -- where the CS is *actually* executing
-    constexpr u32 ENGINE_RING_ACTHD_UDW_OFF = 0x5c; ///< Active Head Pointer (udw)
-    constexpr u32 ENGINE_RING_DMA_FADD_OFF = 0x78; ///< Faulting DMA address (low32)
+    constexpr u32 ENGINE_RING_IPEIR_OFF = 0x64;        ///< Instruction Parser Error Identification
+    constexpr u32 ENGINE_RING_IPEHR_OFF = 0x68;        ///< Instruction Parser Error Header (the actual bad DWord0)
+    constexpr u32 ENGINE_RING_INSTDONE_OFF = 0x6C;     ///< Per-unit "still executing" bits
+    constexpr u32 ENGINE_RING_INSTPS_OFF = 0x70;       ///< Sub-op instruction pointer (RCS pipeline state)
+    constexpr u32 ENGINE_RING_ACTHD_OFF = 0x74;        ///< Active Head Pointer -- where the CS is *actually* executing
+    constexpr u32 ENGINE_RING_ACTHD_UDW_OFF = 0x5c;    ///< Active Head Pointer (udw)
+    constexpr u32 ENGINE_RING_DMA_FADD_OFF = 0x78;     ///< Faulting DMA address (low32)
     constexpr u32 ENGINE_RING_DMA_FADD_UDW_OFF = 0x60; ///< Faulting DMA address (udw)
     constexpr u32 ENGINE_RING_CMD_BUF_CCTL_OFF = 0x84;
 
@@ -125,6 +125,9 @@ namespace gpu::intel::core {
         [[nodiscard]] bool seqno_wait_blocking(u32 target_seqno, i64 timeout_ns, WaitQueue& waiters) const;
 
         const u32* seqno_ptr_for_read() const;
+
+        void mark_banned() { banned_.set(); }
+        [[nodiscard]] bool is_banned() const { return banned_.load(); }
 
     protected:
         EngineType type_;
@@ -257,6 +260,7 @@ namespace gpu::intel::core {
         void lrc_update_tail(u32 tail_bytes) const;
 
 
+
         gfx_addr_t ring_gfx_addr_{};
         virt_addr_t ring_cpu_addr_{};
         phys_addr_t ring_phys_addr_{};
@@ -273,6 +277,7 @@ namespace gpu::intel::core {
         u32 lrc_sw_context_id_ = 0;
 
         u64 error_count_ = 0;
+        AtomicFlag banned_{};
 
         SubmissionMode submission_mode_ = SubmissionMode::LegacyRing;
 

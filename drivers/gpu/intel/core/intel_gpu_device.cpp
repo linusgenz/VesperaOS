@@ -311,14 +311,25 @@ namespace gpu::intel::core {
                 GT0_IIR_REG decoded{};
                 decoded.raw = pending;
 
+                // master_error/timeout are fatal for the engine's current
+                // batch -- the seqno this engine is working towards will
+                // never retire, so mark it banned here. This is the single
+                // point where a hardware fault becomes visible to anyone
+                // blocked in IntelEngine::seqno_wait()/seqno_wait_blocking()
+                // or polling via syncobj_wait(), which is what eventually
+                // lets Mesa/iris surface it as a GL error instead of
+                // hanging forever on a fence that can't signal.
                 if (decoded.bits.rcs.master_error) {
                     Log::warning("intel-gpu: GT0 IIR RCS master_error pending");
+                    self->rcs_->debug_dump_error_regs("master error");
+                    self->rcs_->mark_banned();
                 }
                 if (decoded.bits.rcs.page_fault) {
                     Log::warning("intel-gpu: GT0 IIR RCS page_fault pending");
                 }
                 if (decoded.bits.rcs.timeout) {
                     Log::warning("intel-gpu: GT0 IIR RCS timeout pending");
+                    self->rcs_->mark_banned();
                 }
                 if (decoded.bits.rcs.invalid_tile) {
                     Log::warning("intel-gpu: GT0 IIR RCS invalid_tile pending");
@@ -328,9 +339,11 @@ namespace gpu::intel::core {
                 }
                 if (decoded.bits.bcs.master_error) {
                     Log::warning("intel-gpu: GT0 IIR BCS master_error pending");
+                    self->bcs_->mark_banned();
                 }
                 if (decoded.bits.bcs.timeout) {
                     Log::warning("intel-gpu: GT0 IIR BCS timeout pending");
+                    self->bcs_->mark_banned();
                 }
 
                 for (usize i = 0; i < self->gt_irq_engine_count_; i++) {
@@ -794,6 +807,12 @@ namespace gpu::intel::core {
             for (u32 i = 0; i < count_handles; ++i) {
                 const LucSyncObj& obj = syncobj_slots_[handles[i] - 1];
                 IntelEngine* engine = obj.has_fence ? engine_for_class(obj.engine) : nullptr;
+
+                if (obj.has_fence && engine && engine->is_banned()) {
+                    Log::log_dbc("intel-gpu: SYNCOBJ_WAIT failed (handle=%u bound to banned engine=%u)",
+                                 handles[i], obj.engine);
+                    return -EIO;
+                }
 
                 if (syncobj_is_signaled_now(obj, engine)) {
                     signaled_count++;

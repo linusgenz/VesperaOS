@@ -243,11 +243,20 @@ namespace gpu::intel::core {
         asm volatile("lfence" ::: "memory");
         if (static_cast<i32>(*seqno_ptr - target_seqno) >= 0) return true;
 
+        if (is_banned()) {
+            error_count_++;
+            return false;
+        }
+
         const u64 deadline_ms = kernel::time::get_uptime_ms() + (timeout_us + 999) / 1000;
         while (true) {
             if (completion_flag.consume()) {
                 asm volatile("lfence" ::: "memory");
                 if (static_cast<i32>(*seqno_ptr - target_seqno) >= 0) return true;
+            }
+            if (is_banned()) {
+                error_count_++;
+                return false;
             }
             if (kernel::time::get_uptime_ms() >= deadline_ms) {
                 error_count_++;
@@ -262,6 +271,8 @@ namespace gpu::intel::core {
         asm volatile("lfence" ::: "memory");
         if (static_cast<i32>(*seqno_ptr - target_seqno) >= 0) return true;
 
+        if (is_banned()) return false;
+
         // timeout_ns < 0 means wait forever -- still park on the WaitQueue
         // rather than busy-polling, we just never race a deadline.
         const bool infinite = timeout_ns < 0;
@@ -275,6 +286,7 @@ namespace gpu::intel::core {
             while (true) {
                 asm volatile("lfence" ::: "memory");
                 if (static_cast<i32>(*seqno_ptr - target_seqno) >= 0) return true;
+                if (is_banned()) return false;
                 if (!infinite && kernel::time::get_uptime_ns() >= deadline_ns) return false;
                 asm volatile("pause" ::: "memory");
             }
@@ -287,6 +299,7 @@ namespace gpu::intel::core {
             // caller's last check and here must not be missed.
             asm volatile("lfence" ::: "memory");
             if (static_cast<i32>(*seqno_ptr - target_seqno) >= 0) return true;
+            if (is_banned()) return false;
 
             waiters.add_wait(cur);
 

@@ -74,11 +74,10 @@ namespace gpu::intel::rcs {
         void set_bcs(bcs::IntelBcs* bcs) { bcs_ = bcs; }
         bool present_to_screen(Resolution res) const;
         void dump_pipeline_stats(const char* label) const;
-
+        void debug_dump_error_regs(const char* label) const;
     private:
         core::StateAllocator state_allocator_;
 
-        void debug_dump_error_regs(const char* label) const;
         bool select_pipeline(PIPELINE_SELECT::PipelineSelection mode);
         bool state_base_address_setup();
         bool setup_shaders_and_pipeline(const ShaderOffsets& offsets);
