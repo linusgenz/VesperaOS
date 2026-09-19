@@ -129,6 +129,9 @@ namespace gpu::intel::core {
         void mark_banned() { banned_.set(); }
         [[nodiscard]] bool is_banned() const { return banned_.load(); }
 
+        void print_execlist_status() const;
+        void dump_error_state(const char* label) const;
+
     protected:
         EngineType type_;
 
@@ -243,7 +246,6 @@ namespace gpu::intel::core {
         ///
         /// @see CONTEXT_DESCRIPTOR::lrca
         [[nodiscard]] bool lrc_alloc_and_init(usize lrc_size_bytes, u32 sw_context_id);
-        void print_execlist_status(u64 reg_value) const;
 
         /// Rewrites just the Ring Tail DWord inside the already-initialized LRC, then submits an
         /// execlist with this context as Element 0 (Element 1 left invalid). Element 1 valid=0 is
@@ -252,7 +254,6 @@ namespace gpu::intel::core {
         u32 read_seqno() const;
         void dump_ppgtt_page_faults() const;
         void log_lrc_context_image() const;
-        void dump_error_state(const char* label) const;
 
         /// Rewrites just LRC_DW_RING_TAIL inside the already-initialized LRC to the given byte
         /// offset. Called by submit_ring() in Execlist mode instead of the RING_BUFFER_TAIL MMIO

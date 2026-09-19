@@ -322,6 +322,7 @@ namespace gpu::intel::core {
                 if (decoded.bits.rcs.master_error) {
                     Log::warning("intel-gpu: GT0 IIR RCS master_error pending");
                     self->rcs_->debug_dump_error_regs("master error");
+                    self->rcs_->dump_error_state("master error");
                     self->rcs_->mark_banned();
                 }
                 if (decoded.bits.rcs.page_fault) {
@@ -451,6 +452,9 @@ namespace gpu::intel::core {
             Log::log_dbc("intel-gpu: GEM_CREATE failed (request_pages_phys)");
             return 0;
         }
+
+        memset(phys_to_virt(phys), 0, PAGE_SIZE * page_count);
+        asm volatile("mfence" ::: "memory");
 
         for (usize i = 0; i < MAX_LUCIFER_GEM_OBJECTS; ++i) {
             if (gem_slots_[i].size != 0 || gem_slots_[i].is_userptr) {

@@ -304,9 +304,6 @@ namespace gpu::intel::core {
             return false;
         }
 
-        Log::log_dbc("ppgtt: insert_range gpu_addr=0x%llx phys=0x%llx size=0x%llx",
-                 gfx_raw(gpu_addr), phys_raw(phys_start), static_cast<u64>(size));
-
         const usize page_count = size / PAGE_SIZE;
         const u64 phys_base = phys_raw(phys_start);
 
@@ -323,21 +320,7 @@ namespace gpu::intel::core {
                 return false;
             }
 
-            const gen_pte_t pte = encode_leaf(page_phys, caching, writable);
-            pt[indexer.pt_i] = pte;
-
-            const gen_pte_t readback = pt[indexer.pt_i];
-            if (readback != pte) {
-                Log::error("ppgtt: READBACK MISMATCH page=%u wrote=0x%llx read=0x%llx",
-                          static_cast<u32>(page), static_cast<u64>(pte), static_cast<u64>(readback));
-            }
-
-            if (page == 0 || page == page_count - 1) {
-                Log::log_dbc("ppgtt:   page=%u gpu=0x%llx -> pml4=%u pdpt=%u pd=%u pt=%u pte=0x%llx",
-                             static_cast<u32>(page), gfx_raw(page_gpu_addr),
-                             indexer.pml4_i, indexer.pdpt_i, indexer.pd_i, indexer.pt_i,
-                             static_cast<u64>(pte));
-            }
+            pt[indexer.pt_i] = encode_leaf(page_phys, caching, writable);
         }
 
         return true;

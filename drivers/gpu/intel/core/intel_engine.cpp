@@ -433,8 +433,6 @@ namespace gpu::intel::core {
 
          const MI_BATCH_BUFFER_START start_cmd = MI_BATCH_BUFFER_START::create(gfx_raw(batch_addr));
          ring_write_cmd(start_cmd);
-         const MI_BATCH_BUFFER_END end_cmd = MI_BATCH_BUFFER_END::create();
-         ring_write_cmd(end_cmd);
 
          *out_seqno = seqno_next();
 
@@ -444,9 +442,6 @@ namespace gpu::intel::core {
 
         Log::log_dbc("dispatch_batch: submitted seqno=%u mode=%s",
                      *out_seqno, submission_mode_ == SubmissionMode::Execlist ? "execlist" : "legacy");
-
-        dump_error_state("after sleep");
-        log_lrc_context_image();
 
         return true;
     }
@@ -534,8 +529,10 @@ namespace gpu::intel::core {
         return true;
     }
 
-    void IntelEngine::print_execlist_status(u64 reg_value) const {
-        EXECLIST_STATUS status{.raw = reg_value};
+    void IntelEngine::print_execlist_status() const {
+        const u64 el_status = engine_reg_read_raw(ENGINE_EXECLIST_STATUS_OFF)
+            | (static_cast<u64>(engine_reg_read_raw(ENGINE_EXECLIST_STATUS_OFF + 4)) << 32);
+        EXECLIST_STATUS status{.raw = el_status};
 
         const char* active_elem_str = "RESERVED";
         switch (status.current_active_element) {
@@ -779,9 +776,7 @@ namespace gpu::intel::core {
         Log::log_dbc("  GFX_MODE:   0x%08x  (bit 15 set = Execlist enable read back as ON)", gfx_mode);
 
         // --- EXECLIST_STATUS, reusing the existing decoder. ---
-        const u64 el_status = engine_reg_read_raw(ENGINE_EXECLIST_STATUS_OFF)
-            | (static_cast<u64>(engine_reg_read_raw(ENGINE_EXECLIST_STATUS_OFF + 4)) << 32);
-        print_execlist_status(el_status);
+        print_execlist_status();
 
         // --- Dump BOTH CSB slots, not just the one Current/Write Pointer
         //     happens to point at right now -- we've been burned once
