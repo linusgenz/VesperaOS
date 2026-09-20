@@ -367,6 +367,7 @@ namespace gpu::intel::core {
             }
         }
 
+        Log::log_dbc("returning to userspace from submit");
         return true;
     }
 
@@ -747,8 +748,18 @@ namespace gpu::intel::core {
             // this struct today.
             const auto* handles = reinterpret_cast<const u32*>(wait->handles);
 
-            return syncobj_wait(handles, wait->count_handles, wait->flags,
-                                wait->timeout_nsec, &wait->first_signaled);
+
+            auto res = syncobj_wait(handles, wait->count_handles, wait->flags,
+                                10000000, &wait->first_signaled);
+
+            if (res == -ETIME) {
+                IntelEngine* engine = device_.engine_for_class(0);
+                if (engine) {
+                    engine->dump_error_state("sync timeout");
+                }
+            }
+
+            return res;
         }
 
         if (request == DRM_IOCTL_SYNCOBJ_RESET) {

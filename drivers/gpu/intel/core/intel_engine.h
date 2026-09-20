@@ -120,9 +120,11 @@ namespace gpu::intel::core {
             return 0;
         }
 
+        bool engine_whitelist_verify() const;
         [[nodiscard]] bool dispatch_batch(gfx_addr_t batch_addr, u64 batch_len, u32* out_seqno, const IntelPpgtt* vm);
 
         [[nodiscard]] bool seqno_wait_blocking(u32 target_seqno, i64 timeout_ns, WaitQueue& waiters) const;
+        bool engine_whitelist_apply() const;
 
         const u32* seqno_ptr_for_read() const;
 
@@ -131,6 +133,7 @@ namespace gpu::intel::core {
 
         void print_execlist_status() const;
         void dump_error_state(const char* label) const;
+        void dump_ring(u32 dwords_before_head, u32 dwords_after_head) const;
 
     protected:
         EngineType type_;
@@ -254,6 +257,7 @@ namespace gpu::intel::core {
         u32 read_seqno() const;
         void dump_ppgtt_page_faults() const;
         void log_lrc_context_image() const;
+        void log_pphwsp() const;
 
         /// Rewrites just LRC_DW_RING_TAIL inside the already-initialized LRC to the given byte
         /// offset. Called by submit_ring() in Execlist mode instead of the RING_BUFFER_TAIL MMIO

@@ -199,7 +199,7 @@ namespace gpu::intel::core {
             cmd.second_level_batch_buffer = is_second_level ? 1 : 0;
             cmd.add_offset_enable = add_offset ? 1 : 0;
             cmd.predication_enable = predication ? 1 : 0;
-            cmd.resource_streamer_enable = 1;
+            cmd.resource_streamer_enable = 0;
             cmd.address_space_indicator = is_ppgtt ? 1 : 0;
 
             // 3 DWords Total - Bias 2 = 1

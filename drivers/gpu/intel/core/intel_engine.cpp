@@ -30,6 +30,7 @@
 #include <gpu/intel/bcs/blt_commands.h>
 #include <gpu/intel/regs/gt_reset_regs.h>
 #include <gpu/intel/regs/ring_regs.h>
+#include <gpu/intel/regs/force_to_nonpriv_regs.h>
 
 #include "mi_commands.h"
 
@@ -74,6 +75,9 @@ namespace gpu::intel::core {
             }
 
             if (is_cleared) {
+                if (!engine_whitelist_apply()) {
+                    Log::error("intel-%s: whitelist restore after engine reset failed", engine_type_to_string(type_));
+                }
                 return true;
             }
 
@@ -417,7 +421,79 @@ namespace gpu::intel::core {
             }
             return false;
         }
+
+        constexpr u32 kRcsWhitelist[] = {
+            GEN8_L3SQCREG4,
+            GEN9_CTX_PREEMPT_REG,
+            GEN8_CS_CHICKEN1,
+            GEN8_HDC_CHICKEN1,
+            COMMON_SLICE_CHICKEN2
+        };
+        static_assert(sizeof(kRcsWhitelist) / sizeof(kRcsWhitelist[0]) <= FORCE_TO_NONPRIV_SLOT_COUNT,
+              "RCS whitelist exceeds the FORCE_TO_NONPRIV slots available");
+
+        struct WhitelistTable {
+            const u32* mmio_offsets;
+            u32 count;
+        };
+
+        WhitelistTable whitelist_for_engine(EngineType type) {
+            switch (type) {
+                case EngineType::RCS:
+                    return {kRcsWhitelist, static_cast<u32>(sizeof(kRcsWhitelist) / sizeof(kRcsWhitelist[0]))};
+                default:
+                    return {nullptr, 0};
+            }
+        }
     } // namespace
+
+    bool IntelEngine::engine_whitelist_apply() const {
+        const auto table = whitelist_for_engine(type_);
+
+        for (u32 i = 0; i < table.count; ++i) {
+            if (!FORCE_TO_NONPRIV::is_whitelistable(table.mmio_offsets[i])) {
+                Log::error("intel-%s: whitelist entry 0x%x is not a valid MMIO address for FORCE_TO_NONPRIV",
+                           engine_type_to_string(type_), table.mmio_offsets[i]);
+                return false;
+            }
+        }
+
+        for (u32 slot = 0; slot < FORCE_TO_NONPRIV_SLOT_COUNT; ++slot) {
+            const auto value = (slot < table.count)
+                ? FORCE_TO_NONPRIV::for_register(table.mmio_offsets[slot])
+                : FORCE_TO_NONPRIV::unused();
+
+            engine_reg_write(ENGINE_FORCE_TO_NONPRIV_OFF + slot * sizeof(u32), value);
+
+            if (slot < table.count) {
+                Log::log_dbc("intel-%s: FORCE_TO_NONPRIV[%u] <- reg 0x%05x",
+                             engine_type_to_string(type_), slot, table.mmio_offsets[slot]);
+            }
+        }
+
+        asm volatile("mfence" ::: "memory");
+        return true;
+    }
+
+    bool IntelEngine::engine_whitelist_verify() const {
+        const auto table = whitelist_for_engine(type_);
+        bool ok = true;
+
+        for (u32 slot = 0; slot < FORCE_TO_NONPRIV_SLOT_COUNT; ++slot) {
+            const u32 expected = (slot < table.count)
+                ? FORCE_TO_NONPRIV::for_register(table.mmio_offsets[slot]).raw
+                : FORCE_TO_NONPRIV_DEFAULT;
+            const u32 actual = engine_reg_read_raw(ENGINE_FORCE_TO_NONPRIV_OFF + slot * sizeof(u32));
+
+            if (actual != expected) {
+                Log::error("intel-%s: FORCE_TO_NONPRIV[%u] readback 0x%08x != expected 0x%08x",
+                           engine_type_to_string(type_), slot, actual, expected);
+                ok = false;
+            }
+        }
+
+        return ok;
+    }
 
     bool IntelEngine::dispatch_batch(const gfx_addr_t batch_addr, const u64 batch_len, u32* out_seqno, const IntelPpgtt* vm) {
         (void)batch_len;
@@ -519,6 +595,14 @@ namespace gpu::intel::core {
         lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_PDP0_UDW_OFF, static_cast<u32>(pml4_addr >> 32));
 
         asm volatile("mfence" ::: "memory");
+
+        if (!engine_whitelist_apply()) {
+            return false;
+        }
+        if (!engine_whitelist_verify()) {
+            Log::error("intel-%s: FORCE_TO_NONPRIV readback mismatch - whitelist may not be active",
+                       engine_type_to_string(type_));
+        }
 
         GFX_MODE mode{};
         mode.set_execlist_enable(true);
@@ -654,6 +738,10 @@ namespace gpu::intel::core {
         }
         Log::log_dbc("-------------------------------------------------------");
 
+        log_pphwsp();
+    }
+
+    void IntelEngine::log_pphwsp() const {
         Log::log_dbc("--- PPHWSP HEX DUMP ---");
 
         const u8* hwsp_bytes = static_cast<const u8*>(lrc_cpu_addr_.ptr);
@@ -766,9 +854,6 @@ namespace gpu::intel::core {
         if (hws_pga != (submission_mode_ == SubmissionMode::Execlist
                             ? static_cast<u32>(gfx_raw(lrc_gfx_addr_))
                             : static_cast<u32>(gfx_raw(hwsp_gfx_addr_)))) {
-            Log::log_dbc("  *** MISMATCH: RING_HWS_PGA does not match the address this driver "
-                "thinks the HWSP/LRC lives at -- this alone would explain writes/reads "
-                "going to different physical pages. ***");
         }
 
         // --- GFX_MODE, to confirm Execlist enable actually stuck. ---
@@ -777,6 +862,8 @@ namespace gpu::intel::core {
 
         // --- EXECLIST_STATUS, reusing the existing decoder. ---
         print_execlist_status();
+
+        log_pphwsp();
 
         // --- Dump BOTH CSB slots, not just the one Current/Write Pointer
         //     happens to point at right now -- we've been burned once

@@ -280,34 +280,22 @@ namespace gpu::intel::rcs {
 
     void IntelRcs::emit_flush(u32 seqno) {
         PIPE_CONTROL flush_cmd = PIPE_CONTROL::create();
-
-        flush_cmd.command_streamer_stall_enable = 1;
         flush_cmd.render_target_cache_flush_enable = 1;
         flush_cmd.depth_cache_flush_enable = 1;
         flush_cmd.dc_flush_enable = 1;
-
         ring_write_cmd(flush_cmd);
 
-        PIPE_CONTROL inv_cmd = PIPE_CONTROL::create();
-
-        inv_cmd.command_streamer_stall_enable = 1;
-        inv_cmd.state_cache_invalidation_enable = 1;     // State Cache (L1/L2)
-        inv_cmd.texture_cache_invalidation_enable = 1;   // Texture Cache
-        inv_cmd.instruction_cache_invalidate_enable = 1; // Instruction Cache (EU)
-        inv_cmd.constant_cache_invalidation_enable = 1;  // Push Constant Cache
-        inv_cmd.vf_cache_invalidation_enable = 1;        // Vertex Fetch Cache
-        inv_cmd.flush_llc = 1;
-        inv_cmd.tlb_invalidate = 1; // Render Engine TLBs
-
-        inv_cmd.post_sync_operation = PIPE_CONTROL::WRITE_IMMEDIATE_DATA;
-        inv_cmd.destination_address_type = 0;
-        inv_cmd.store_data_index = 1;
-        inv_cmd.address_lo = core::PPHWSP_SEQNO_DWORD_INDEX;
-        inv_cmd.address_hi = 0;
-        inv_cmd.immediate_data = seqno;
-        inv_cmd.notify_enable = 1;
-
-        ring_write_cmd(inv_cmd);
+        PIPE_CONTROL seqno_cmd = PIPE_CONTROL::create();
+        seqno_cmd.pipe_control_flush_enable = 1;
+        seqno_cmd.command_streamer_stall_enable = 1;
+        seqno_cmd.post_sync_operation = PIPE_CONTROL::WRITE_IMMEDIATE_DATA;
+        seqno_cmd.destination_address_type = 0;
+        seqno_cmd.store_data_index = 1;
+        seqno_cmd.address_lo = core::PPHWSP_SEQNO_DWORD_INDEX;
+        seqno_cmd.address_hi = 0;
+        seqno_cmd.immediate_data = seqno;
+        seqno_cmd.notify_enable = 1;
+        ring_write_cmd(seqno_cmd);
     }
 
     void IntelRcs::debug_dump_render_target(u32 width, u32 height, u32 pitch) const {
