@@ -37,15 +37,13 @@ namespace gpu::intel::core {
     //        -> PD (512 entries, 2MB each)
     //            -> PT (512 entries, 4KB each)
     //
-    // All four levels are single 4KB pages allocated via the same
-    // ggtt().alloc_persistent() path used for the ring/LRC/HWSP elsewhere (a
-    // convenient, already-phys-contiguous, already-CPU-mapped source - not
-    // because the tables need to live in the GGTT aperture). The GPU walks this
-    // structure exclusively through physical/bus addresses in every PTE/PDE/
-    // PDPE/PML4E, never through GGTT offsets; GGTT mappings for these pages are
-    // only used CPU-side, to get a writable pointer for editing table entries.
-    // This is a distinct table format from kernel::memory::PageTableManager (CPU
-    // MMU paging); the two share no code.
+    // All four levels are single 4KB pages allocated via
+    // ggtt().alloc_transient() (a per-VM pool that can be freed again via
+    // free_transient() -- see destroy() below), not the persistent bump
+    // allocator used for the ring/LRC/HWSP elsewhere: a PPGTT is now
+    // per-context (see LucFile), so its GGTT pages need to be reclaimable
+    // when the context goes away, unlike the once-per-device allocations
+    // that share the persistent pool.
     constexpr usize PPGTT_ENTRIES_PER_TABLE = 512;
     constexpr usize PPGTT_PT_COVERAGE = 4096ull * PPGTT_ENTRIES_PER_TABLE;             // 2MB
     constexpr usize PPGTT_PD_COVERAGE = PPGTT_PT_COVERAGE * PPGTT_ENTRIES_PER_TABLE;   // 1GB
@@ -72,11 +70,16 @@ namespace gpu::intel::core {
         explicit IntelPpgtt(GgttAllocator& ggtt) : ggtt_(ggtt) {
         }
 
-        ~IntelPpgtt() = default;
+        ~IntelPpgtt() {
+            destroy();
+        }
 
         IntelPpgtt(const IntelPpgtt&) = delete;
         IntelPpgtt& operator=(const IntelPpgtt&) = delete;
         [[nodiscard]] bool init();
+
+        /// Releases every GGTT allocation this PPGTT made
+        void destroy();
 
         [[nodiscard]] bool insert_range(
             gfx_addr_t gpu_addr, phys_addr_t phys_start, usize size,
@@ -105,18 +108,18 @@ namespace gpu::intel::core {
             u32 pt_i;
         };
 
+        /// One GGTT-backed table page this PPGTT allocated (PDPT/PD/PT from
+        /// ensure_pt(), or a scratch-chain level).
         struct TablePage {
-            u64 phys_addr;
-            u64 ggtt_addr;
+            GgttAllocation alloc;
         };
 
         static constexpr usize MAX_TABLE_PAGES = 4096;
         TablePage table_pages_[MAX_TABLE_PAGES] = {};
         usize table_page_count_ = 0;
 
-        // Records a freshly allocated table page's phys/GGTT pair. Logs and drops
-        // the mapping if the table is full (bring-up limit, see MAX_TABLE_PAGES).
-        void record_table_page(u64 phys_addr, u64 ggtt_addr);
+        // Records a freshly allocated table page's full GgttAllocation.
+        void record_table_page(const GgttAllocation& alloc);
 
         // Looks up the GGTT address for a table page previously recorded via
         // record_table_page(), given its phys address (as read back out of a
@@ -131,6 +134,12 @@ namespace gpu::intel::core {
         [[nodiscard]] gen_pte_t* ensure_pt(u32 pml4_i, u32 pdpt_i, u32 pd_i);
 
         [[nodiscard]] gen_pte_t* table_virt(u64 ggtt_addr) const;
+
+        GgttAllocation scratch_page_alloc_{};
+        GgttAllocation scratch_pt_alloc_{};
+        GgttAllocation scratch_pd_alloc_{};
+        GgttAllocation scratch_pdpt_alloc_{};
+        GgttAllocation pml4_alloc_{};
 
         u64 scratch_page_phys_addr_ = 0;
         u64 scratch_pt_phys_addr_ = 0;

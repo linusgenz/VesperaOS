@@ -22,36 +22,35 @@
 
 #include "intel_gem_backing.h"
 
-#include "intel_gpu_device.h"
+#include "intel_luc_file.h"
 
 namespace gpu::intel::core {
 
-    IntelGemBackingObject::IntelGemBackingObject(IntelGpuDevice* device, const u32 handle)
-        : device_(device)
-        , handle_(handle) {
+    IntelGemBackingObject::IntelGemBackingObject(const LucFile* file, const u32 handle)
+        : obj_(file->gem_get_ref(handle)) {
+    }
+
+    IntelGemBackingObject::~IntelGemBackingObject() {
+        if (obj_) {
+            obj_->dec_ref();
+        }
     }
 
     phys_addr_t IntelGemBackingObject::get_page(const usize offset_in_bytes) {
-        IntelGpuDevice::GemObjectInfo info{};
-        if (!device_->query_gem_object(handle_, &info)) {
+        if (!obj_ || obj_->is_userptr) {
             return phys_addr_t{};
         }
 
-        if (offset_in_bytes >= info.size) {
+        if (offset_in_bytes >= obj_->size) {
             return phys_addr_t{};
         }
 
-        // GEM_CREATE's backing is contiguous (see LucGemObject), so any
-        // in-range offset is just phys_addr + offset — no page table walk.
-        return phys_add(info.phys_addr, offset_in_bytes);
+        // GEM_CREATE's backing is contiguous → no page table walk
+        return phys_add(obj_->phys_addr, offset_in_bytes);
     }
 
     usize IntelGemBackingObject::get_size() const {
-        IntelGpuDevice::GemObjectInfo info{};
-        if (!device_->query_gem_object(handle_, &info)) {
-            return 0;
-        }
-        return info.size;
+        return obj_ ? obj_->size : 0;
     }
 
 } // namespace gpu::intel::core

@@ -26,7 +26,6 @@
 #include <gpu/intel/core/intel_engine.h>
 #include <gpu/intel/bcs/intel_bcs.h>
 #include <vespera/graphics/display_types.h>
-#include <gpu/intel/core/state_allocator.h>
 
 struct Mat4;
 struct ShaderOffsets;
@@ -76,8 +75,6 @@ namespace gpu::intel::rcs {
         void dump_pipeline_stats(const char* label) const;
         void debug_dump_error_regs(const char* label) const;
     private:
-        core::StateAllocator state_allocator_;
-
         bool select_pipeline(PIPELINE_SELECT::PipelineSelection mode);
         bool state_base_address_setup();
         bool setup_shaders_and_pipeline(const ShaderOffsets& offsets);

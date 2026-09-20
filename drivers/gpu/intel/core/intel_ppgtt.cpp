@@ -67,19 +67,19 @@ namespace gpu::intel::core {
         return static_cast<gen_pte_t*>(virt_ptr(ggtt_.gfx_to_virt(make_gfx(ggtt_addr))));
     }
 
-    void IntelPpgtt::record_table_page(const u64 phys_addr, const u64 ggtt_addr) {
+    void IntelPpgtt::record_table_page(const GgttAllocation& alloc) {
         if (table_page_count_ >= MAX_TABLE_PAGES) {
             Log::error("intel-ppgtt: table_pages_ full, cannot record phys=0x%llx ggtt=0x%llx",
-                       phys_addr, ggtt_addr);
+                       phys_raw(alloc.phys_addr), gfx_raw(alloc.gfx_addr));
             return;
         }
-        table_pages_[table_page_count_++] = TablePage{phys_addr, ggtt_addr};
+        table_pages_[table_page_count_++] = TablePage{alloc};
     }
 
     u64 IntelPpgtt::ggtt_for_phys(const u64 phys_addr) const {
         for (usize i = 0; i < table_page_count_; i++) {
-            if (table_pages_[i].phys_addr == phys_addr) {
-                return table_pages_[i].ggtt_addr;
+            if (phys_raw(table_pages_[i].alloc.phys_addr) == phys_addr) {
+                return gfx_raw(table_pages_[i].alloc.gfx_addr);
             }
         }
         Log::error("intel-ppgtt: no GGTT mapping recorded for phys=0x%llx", phys_addr);
@@ -92,25 +92,28 @@ namespace gpu::intel::core {
         // supposed to fault" rationale - our command streams don't rely on
         // overfetch, but read-only-present is still safer bring-up behavior than
         // leaving entries absent (absent -> page fault -> FAULT_AND_HANG).
-        auto scratch_page = ggtt_.alloc_persistent(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        auto scratch_page = ggtt_.alloc_transient(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
         if (virt_null(scratch_page.cpu_addr)) {
             Log::error("intel-ppgtt: scratch page allocation failed");
             return false;
         }
         memset(virt_ptr(scratch_page.cpu_addr), 0, PAGE_SIZE);
         scratch_page_phys_addr_ = phys_raw(scratch_page.phys_addr);
+        scratch_page_alloc_ = scratch_page;
         // The scratch page is only ever used as a PTE leaf target, never as a
         // parent whose entries we need to CPU-edit later, so it doesn't need a
-        // table_pages_ entry.
+        // table_pages_ entry -- destroy() frees scratch_page_alloc_ directly
+        // instead.
 
         // Scratch PT: every entry points at the scratch page.
-        auto scratch_pt = ggtt_.alloc_persistent(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        auto scratch_pt = ggtt_.alloc_transient(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
         if (virt_null(scratch_pt.cpu_addr)) {
             Log::error("intel-ppgtt: scratch PT allocation failed");
             return false;
         }
         scratch_pt_phys_addr_ = phys_raw(scratch_pt.phys_addr);
-        record_table_page(scratch_pt_phys_addr_, gfx_raw(scratch_pt.gfx_addr));
+        scratch_pt_alloc_ = scratch_pt;
+        record_table_page(scratch_pt);
         {
             auto* entries = static_cast<gen_pte_t*>(virt_ptr(scratch_pt.cpu_addr));
             const gen_pte_t leaf = encode_leaf(scratch_page_phys_addr_, PpgttCaching::NONE, false);
@@ -120,13 +123,14 @@ namespace gpu::intel::core {
         }
 
         // Scratch PD: every entry points at the scratch PT.
-        auto scratch_pd = ggtt_.alloc_persistent(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        auto scratch_pd = ggtt_.alloc_transient(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
         if (virt_null(scratch_pd.cpu_addr)) {
             Log::error("intel-ppgtt: scratch PD allocation failed");
             return false;
         }
         scratch_pd_phys_addr_ = phys_raw(scratch_pd.phys_addr);
-        record_table_page(scratch_pd_phys_addr_, gfx_raw(scratch_pd.gfx_addr));
+        scratch_pd_alloc_ = scratch_pd;
+        record_table_page(scratch_pd);
         {
             auto* entries = static_cast<gen_pte_t*>(virt_ptr(scratch_pd.cpu_addr));
             const gen_pte_t ptr = encode_table_pointer(scratch_pt_phys_addr_);
@@ -136,13 +140,14 @@ namespace gpu::intel::core {
         }
 
         // Scratch PDPT: every entry points at the scratch PD.
-        auto scratch_pdpt = ggtt_.alloc_persistent(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        auto scratch_pdpt = ggtt_.alloc_transient(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
         if (virt_null(scratch_pdpt.cpu_addr)) {
             Log::error("intel-ppgtt: scratch PDPT allocation failed");
             return false;
         }
         scratch_pdpt_phys_addr_ = phys_raw(scratch_pdpt.phys_addr);
-        record_table_page(scratch_pdpt_phys_addr_, gfx_raw(scratch_pdpt.gfx_addr));
+        scratch_pdpt_alloc_ = scratch_pdpt;
+        record_table_page(scratch_pdpt);
         {
             auto* entries = static_cast<gen_pte_t*>(virt_ptr(scratch_pdpt.cpu_addr));
             const gen_pte_t ptr = encode_table_pointer(scratch_pd_phys_addr_);
@@ -155,15 +160,17 @@ namespace gpu::intel::core {
     }
 
     bool IntelPpgtt::alloc_root() {
-        auto pml4 = ggtt_.alloc_persistent(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        auto pml4 = ggtt_.alloc_transient(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
         if (virt_null(pml4.cpu_addr)) {
             Log::error("intel-ppgtt: PML4 allocation failed");
             return false;
         }
         pml4_phys_addr_ = phys_raw(pml4.phys_addr);
         pml4_virt_ = static_cast<gen_pte_t*>(virt_ptr(pml4.cpu_addr));
+        pml4_alloc_ = pml4;
         // PML4 is the root - nothing ever reads a "parent" entry pointing at it,
-        // so no table_pages_ entry is needed for it either.
+        // so no table_pages_ entry is needed for it either -- destroy() frees
+        // pml4_alloc_ directly instead.
 
         const gen_pte_t ptr = encode_table_pointer(scratch_pdpt_phys_addr_);
         for (usize i = 0; i < PPGTT_ENTRIES_PER_TABLE; i++) {
@@ -199,15 +206,14 @@ namespace gpu::intel::core {
         u64 pdpt_phys_addr = pml4_entry & ~static_cast<u64>(0xFFF);
 
         if (pdpt_phys_addr == scratch_pdpt_phys_addr_) {
-            auto alloc = ggtt_.alloc_persistent(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
+            auto alloc = ggtt_.alloc_transient(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
             if (virt_null(alloc.cpu_addr)) {
                 Log::error("intel-ppgtt: PDPT allocation failed (pml4_i=%u)", pml4_i);
                 return nullptr;
             }
 
             pdpt_phys_addr = phys_raw(alloc.phys_addr);
-            const u64 pdpt_ggtt_addr = gfx_raw(alloc.gfx_addr);
-            record_table_page(pdpt_phys_addr, pdpt_ggtt_addr);
+            record_table_page(alloc);
 
             auto* entries = static_cast<gen_pte_t*>(virt_ptr(alloc.cpu_addr));
             const gen_pte_t ptr = encode_table_pointer(scratch_pd_phys_addr_);
@@ -230,15 +236,14 @@ namespace gpu::intel::core {
         u64 pd_phys_addr = pdpt_entry & ~static_cast<u64>(0xFFF);
 
         if (pd_phys_addr == scratch_pd_phys_addr_) {
-            auto alloc = ggtt_.alloc_persistent(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
+            auto alloc = ggtt_.alloc_transient(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
             if (virt_null(alloc.cpu_addr)) {
                 Log::error("intel-ppgtt: PD allocation failed (pml4_i=%u pdpt_i=%u)", pml4_i, pdpt_i);
                 return nullptr;
             }
 
             pd_phys_addr = phys_raw(alloc.phys_addr);
-            const u64 pd_ggtt_addr = gfx_raw(alloc.gfx_addr);
-            record_table_page(pd_phys_addr, pd_ggtt_addr);
+            record_table_page(alloc);
 
             auto* entries = static_cast<gen_pte_t*>(virt_ptr(alloc.cpu_addr));
             const gen_pte_t ptr = encode_table_pointer(scratch_pt_phys_addr_);
@@ -262,15 +267,14 @@ namespace gpu::intel::core {
         u64 pt_phys_addr = pd_entry & ~static_cast<u64>(0xFFF);
 
         if (pt_phys_addr == scratch_pt_phys_addr_) {
-            auto alloc = ggtt_.alloc_persistent(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
+            auto alloc = ggtt_.alloc_transient(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
             if (virt_null(alloc.cpu_addr)) {
                 Log::error("intel-ppgtt: PT allocation failed (pml4_i=%u pdpt_i=%u pd_i=%u)", pml4_i, pdpt_i, pd_i);
                 return nullptr;
             }
 
             pt_phys_addr = phys_raw(alloc.phys_addr);
-            const u64 pt_ggtt_addr = gfx_raw(alloc.gfx_addr);
-            record_table_page(pt_phys_addr, pt_ggtt_addr);
+            record_table_page(alloc);
 
             auto* entries = static_cast<gen_pte_t*>(virt_ptr(alloc.cpu_addr));
             const gen_pte_t leaf = encode_leaf(scratch_page_phys_addr_, PpgttCaching::NONE, false);
@@ -348,6 +352,38 @@ namespace gpu::intel::core {
         const u64 page_off = gfx_raw(gpu_addr) & 0xFFF;
 
         return static_cast<u8*>(virt_ptr(phys_to_virt(make_phys(page_phys)))) + page_off;
+    }
+
+    void IntelPpgtt::destroy() {
+        for (usize i = 0; i < table_page_count_; i++) {
+            ggtt_.free_transient(table_pages_[i].alloc, 1);
+        }
+        table_page_count_ = 0;
+
+        if (!virt_null(scratch_page_alloc_.cpu_addr)) {
+            ggtt_.free_transient(scratch_page_alloc_, 1);
+        }
+        if (!virt_null(pml4_alloc_.cpu_addr)) {
+            ggtt_.free_transient(pml4_alloc_, 1);
+        }
+
+        for (auto & table_page : table_pages_) {
+            table_page = TablePage{};
+        }
+
+        scratch_page_alloc_ = GgttAllocation{};
+        scratch_pt_alloc_ = GgttAllocation{};
+        scratch_pd_alloc_ = GgttAllocation{};
+        scratch_pdpt_alloc_ = GgttAllocation{};
+        pml4_alloc_ = GgttAllocation{};
+
+        scratch_page_phys_addr_ = 0;
+        scratch_pt_phys_addr_ = 0;
+        scratch_pd_phys_addr_ = 0;
+        scratch_pdpt_phys_addr_ = 0;
+
+        pml4_phys_addr_ = 0;
+        pml4_virt_ = nullptr;
     }
 
     void IntelPpgtt::dump_batch_buffer(const gfx_addr_t batch_addr, const u32 batch_len) const {

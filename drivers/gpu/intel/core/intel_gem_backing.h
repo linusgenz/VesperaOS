@@ -28,20 +28,23 @@
 #include <vespera/mm/vm_backing.h>
 
 namespace gpu::intel::core {
-    class IntelGpuDevice;
- 
+    struct LucFile;
+    struct GemObject;
+
     /**
-     * One instance is created per mmap() call (see IntelGpuDevice::
-     * get_backing_object()) rather than cached per-handle: bring-up scope
-     * doesn't need the shared-object lifetime tracking ShmObject/
-     * FileBackingObject do, so add_mapping()/remove_mapping() are no-ops
-     * for now. Revisit if multiple concurrent mmap()s of the same handle
-     * need to share teardown/refcounting.
+     * Holds its own ref on the underlying GemObject (see
+     * intel_luc_file.h), taken at construction and dropped in the
+     * destructor. That ref is what keeps the object's pages alive if the
+     * owning LucFile's GEM_CLOSE (or the whole file's release()) runs
+     * while this mapping is still around -- add_mapping()/remove_mapping()
+     * are still no-ops today (nothing here needs a *second* refcount on
+     * top of the GemObject's own), but the constructor/destructor pair
+     * now does real ref-holding instead of just remembering a handle.
      */
     class IntelGemBackingObject final : public kernel::vm::VmBackingObject {
     public:
-        IntelGemBackingObject(IntelGpuDevice* device, u32 handle);
-        ~IntelGemBackingObject() override = default;
+        IntelGemBackingObject(const LucFile* file, u32 handle);
+        ~IntelGemBackingObject() override;
 
         IntelGemBackingObject(const IntelGemBackingObject&) = delete;
         IntelGemBackingObject& operator=(const IntelGemBackingObject&) = delete;
@@ -53,8 +56,7 @@ namespace gpu::intel::core {
         void remove_mapping() override {}
 
     private:
-        IntelGpuDevice* device_;
-        u32 handle_;
+        GemObject* obj_; ///< ref held for this object's lifetime
     };
 } // namespace gpu::intel::core
 

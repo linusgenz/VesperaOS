@@ -17,6 +17,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
 #ifndef VESPERAOS_INTEL_GPU_DEVICE_H
 #define VESPERAOS_INTEL_GPU_DEVICE_H
 
@@ -52,6 +53,7 @@ namespace gpu::intel::rcs {
 
 namespace gpu::intel::core {
     class IntelEngine;
+    struct LucFile;
 
     constexpr u64 GTTMMADR_ADDR_MASK = ~0xFULL;
     constexpr usize BAR0_SIZE = 16ull * 1024 * 1024;
@@ -158,28 +160,28 @@ namespace gpu::intel::core {
             rcs_ = engine;
         }
 
+        /// Creates a LucFile and hangs it off cf->driver_private -- every
+        /// VM/GEM/syncobj handle table from here on is owned by that one
+        /// LucFile, not by the device. See intel_luc_file.h for why.
         int open(CharFile** out_cf) override;
+
+        /// Deletes the LucFile behind cf, which tears down every VM/GEM/
+        /// syncobj it still owns in a fixed order (~LucFile()) before cf
+        /// itself is freed.
         int release(CharFile* cf) override;
-
-
-        struct GemObjectInfo {
-            phys_addr_t phys_addr;
-            u64 size;
-        };
-        [[nodiscard]] bool query_gem_object(u32 handle, GemObjectInfo* out);
 
         isize read(CharFile* cf, void* buffer, usize count, usize offset) override { return -ENOTTY; };
         isize write(CharFile* cf, const void* buffer, usize count) override { return -ENOTTY; };
 
-        int ioctl(CharFile*, u32, void*) override;
+        /// Forwards to the calling process's LucFile::ioctl() -- every
+        /// LUCIFER_IOCTL_*/DRM_IOCTL_SYNCOBJ_* request operates on
+        /// per-file handle tables now, so the device itself no longer
+        /// interprets any of them.
+        int ioctl(CharFile* cf, u32 request, void* arg) override;
 
-        /// Decodes `offset` back into a GEM handle via
-        /// gem_handle_from_mmap_offset() and hands back an
-        /// IntelGemBackingObject for it, so kernel::vm::mmap() can map a
-        /// GEM object without linking against anything GEM- or GPU-
-        /// specific. Returns nullptr for userptr handles (no kernel-owned
-        /// phys backing — see query_gem_object()) or an offset that
-        /// doesn't decode to a live handle.
+        /// Forwards to the calling process's LucFile::get_backing_object()
+        /// -- GEM handles are per-file now, so decoding the mmap offset
+        /// has to go through that file's own handle table.
         [[nodiscard]] kernel::vm::VmBackingObject* get_backing_object(CharFile* cf, u64 offset) override;
 
         /// Drives one ForceWake domain: write request, poll ack, timeout.
@@ -229,6 +231,12 @@ namespace gpu::intel::core {
         void de_pipe_a_disarm_vblank() const;
 
     private:
+        /// LucFile::ioctl()/exec_submit()/syncobj_wait() need
+        /// query_fuse_topology() and engine_for_class() below -- both are
+        /// still device-level (shared hardware state), just no longer
+        /// public API surface for anyone else.
+        friend struct LucFile;
+
         /// The single MSI/MSI-X handler installed for this device's GT0 +
         /// DE Pipe A interrupts. Reads MASTER_INT_CTL once to see which
         /// subsystem is pending, dispatches to the GT0 engine registry
@@ -251,144 +259,17 @@ namespace gpu::intel::core {
 
         [[nodiscard]] FuseTopology query_fuse_topology() const;
 
-        static constexpr usize MAX_LUCIFER_VMS = 64;
-        IntelPpgtt* vm_slots_[MAX_LUCIFER_VMS] = {};
-
-        [[nodiscard]] u32 create_vm();
-        bool destroy_vm(u32 vm_id);
-        [[nodiscard]] IntelPpgtt* lookup_vm(u32 vm_id) const;
-
-        /// Minimal bring-up bookkeeping for one GEM object. Deliberately
-        /// thin for now — just enough for gem_create/gem_create_userptr/
-        /// gem_close to round-trip a handle. No backing allocation lives
-        /// here yet (no phys pages, no GGTT/PPGTT binding); that arrives
-        /// with VM_BIND. Mirrors the vm_slots_ handle scheme below rather
-        /// than introducing a second allocation strategy.
-        struct LucGemObject {
-            u64 size = 0;         ///< requested size in bytes (0 for userptr)
-            u32 placement = 0;    ///< memory region bitmask, from GEM_CREATE
-            u32 flags = 0;         ///< enum lucifer_gem_create_flags
-            u32 cpu_caching = 0;   ///< enum lucifer_gem_cpu_caching
-            bool is_userptr = false;
-            u64 userptr = 0;       ///< user VA, only valid when is_userptr
-
-            /// Physical backing, allocated up front in gem_create()
-            phys_addr_t phys_addr = phys_addr_t{};
-
-            /// GEM_MADVISE state. false (WILLNEED, the default) means the
-            /// backing above is live. true (DONTNEED) means gem_madvise()
-            /// has already returned phys_addr's pages to the allocator
-            bool purged = false;
-        };
-
-        static constexpr usize MAX_LUCIFER_GEM_OBJECTS = 4096;
-        LucGemObject gem_slots_[MAX_LUCIFER_GEM_OBJECTS] = {};
-
-        [[nodiscard]] u32 gem_create(const struct lucifer_gem_create& args);
-        [[nodiscard]] u32 gem_create_userptr(const struct lucifer_gem_userptr& args);
-        bool gem_close(u32 handle);
-        [[nodiscard]] LucGemObject* lookup_gem(u32 handle);
-
-        /// Backs LUCIFER_IOCTL_GEM_MADVISE. WILLNEED on an already-live
-        /// object is a no-op that reports retained. DONTNEED frees
-        /// phys_addr's pages via free_pages_phys() and marks the object
-        /// purged; a later WILLNEED on a purged object reports not
-        /// retained (backing store lost) rather than reallocating it --
-        /// matching lucifer_bo_madvise()'s userspace contract, which
-        /// expects the caller to recreate the BO in that case. Returns
-        /// false only for a bad/userptr handle; out_retained is only
-        /// meaningful when this returns true.
-        [[nodiscard]] bool gem_madvise(const struct lucifer_gem_madvise& args, bool* out_retained);
-
-        /// Encodes a GEM handle into a page-aligned "fake" mmap offset for
-        /// LUCIFER_IOCTL_GEM_MMAP_OFFSET
-        [[nodiscard]] bool gem_mmap_offset(const struct lucifer_gem_mmap_offset& args, u64* out_offset);
-
-        /// Inverse of gem_mmap_offset(): recovers the GEM handle encoded in
-        /// an mmap() offset. Returns 0 (invalid handle) if `offset` isn't
-        /// page-aligned or doesn't decode to a live GEM object.
-        [[nodiscard]] u32 gem_handle_from_mmap_offset(u64 offset) const;
-
-        /// Binds/unbinds a GEM object (or userptr range) into the PPGTT
-        /// identified by vm_id.
-        bool vm_bind(const struct lucifer_vm_bind& args);
-
-        /// Backs DRM_IOCTL_SYNCOBJ_WAIT (see syncobj_wait() below)
+        /// Backs DRM_IOCTL_SYNCOBJ_WAIT (see LucFile::syncobj_wait()).
+        /// Device-level, not per-LucFile: a syncobj created by one process
+        /// can reference a seqno on an engine another process is also
+        /// submitting to, so the wakeup has to reach every waiter
+        /// regardless of which file it's parked under.
         static constexpr usize LUCIFER_NUM_ENGINE_CLASSES = 2; // RENDER, COPY
         WaitQueue engine_waiters_[LUCIFER_NUM_ENGINE_CLASSES];
 
         [[nodiscard]] IntelEngine* engine_for_class(u32 engine_class) const;
 
         void engine_signal_seqno(u32 engine_class);
-
-        /// Submits one batch to the given engine via
-        /// IntelEngine::dispatch_batch(). Returns the assigned seqno via
-        /// args.out_seqno, or false on failure (bad vm_id/engine/handle,
-        /// bad batch, or a bad entry in args.syncs).
-        ///
-        /// args.syncs points to an array of args.num_syncs
-        /// struct lucifer_sync entries (userspace pointer, mirrors how
-        /// DRM_IOCTL_SYNCOBJ_WAIT/RESET/SIGNAL already pass their handle
-        /// arrays below). Entries WITHOUT LUCIFER_SYNC_FLAG_SIGNAL are WAIT
-        /// entries: all of them are waited on (blocking, wait-all) before
-        /// the batch is dispatched. Entries WITH the flag set are SIGNAL
-        /// entries: once dispatch succeeds, each has this submission's
-        /// (engine, seqno) fence bound onto it, same as the old single
-        /// out_syncobj field used to.
-        ///
-        /// Every SIGNAL handle is validated (exists, currently fence-less)
-        /// *before* the batch is dispatched -- never submit and then fail
-        /// to attach a fence. WAIT handles just need to exist; being
-        /// currently fence-less is fine (an unsignaled wait handle blocks
-        /// until SIGNALed/timeout, matching normal DRM syncobj semantics).
-        [[nodiscard]] bool exec_submit(lucifer_exec& args);
-
-        /// One DRM syncobj slot. A syncobj is a handle to a fence, not a
-        /// fence itself
-        ///
-        /// Bring-up scope: binary only (signaled or not) -- no timeline
-        /// points, no fd import/export.
-        struct LucSyncObj {
-            bool in_use = false;      ///< handle is allocated
-            bool has_fence = false;   ///< a fence is currently bound (false right after CREATE, or after RESET)
-            bool pre_signaled = false; ///< set by DRM_SYNCOBJ_CREATE_SIGNALED when has_fence is also false
-            u32 engine = 0;            ///< enum lucifer_engine_class, valid iff has_fence
-            u64 target_seqno = 0;      ///< valid iff has_fence
-        };
-
-        static constexpr usize MAX_LUCIFER_SYNCOBJS = 4096;
-        LucSyncObj syncobj_slots_[MAX_LUCIFER_SYNCOBJS] = {};
-
-        [[nodiscard]] u32 syncobj_create(const struct drm_syncobj_create& args);
-        bool syncobj_destroy(u32 handle);
-
-        /// Binds this submission's (engine, seqno) fence onto an existing,
-        /// currently fence-less syncobj handle. Called by exec_submit() for
-        /// each SIGNAL entry in lucifer_exec::syncs, after dispatch. Fails
-        /// (returns false) if the handle doesn't exist or already holds a
-        /// live fence -- callers must RESET a reused handle first. By the
-        /// time exec_submit() calls this it has already been validated, so
-        /// in practice this can't fail from that call site.
-        [[nodiscard]] bool syncobj_bind_fence(u32 handle, u32 engine, u64 target_seqno);
-        bool syncobj_is_signaled_now(const LucSyncObj& obj, IntelEngine* engine);
-
-        /// Backs DRM_IOCTL_SYNCOBJ_WAIT.
-        [[nodiscard]] int syncobj_wait(const u32* handles, u32 count_handles, u32 flags,
-                                       i64 timeout_ns, u32* out_first_signaled);
-
-        /// Backs DRM_IOCTL_SYNCOBJ_RESET: clears the bound fence (if any)
-        /// on each of the given handles, leaving them allocated but
-        /// fence-less -- ready to be reused by a future exec_submit().
-        bool syncobj_reset(const u32* handles, u32 count_handles);
-
-        /// Backs DRM_IOCTL_SYNCOBJ_SIGNAL: force-signals each of the given
-        /// handles immediately, independent of any engine seqno. Bring-up
-        /// note: modeled as pre_signaled = true, has_fence = false, since
-        /// there's no real fence object to mark signaled here -- a
-        /// subsequent WAIT on the handle succeeds immediately, matching
-        /// observable DRM semantics even though the underlying
-        /// representation is simplified.
-        bool syncobj_signal(const u32* handles, u32 count_handles);
 
         volatile INTEL_IGP_PCI_CONFIG* igp_cfg_;
         pci::pci_id pci_id_;
