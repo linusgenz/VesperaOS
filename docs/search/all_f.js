@@ -33,7 +33,6 @@ var searchData=
   ['operator_3d_30',['operator=',['../classstella_1_1Timer.html#a17343e142cb021e8227e3c44cb267377',1,'stella::Timer::operator=()'],['../classstella_1_1Window.html#a5740245c473787e5c6cca0bef3199298',1,'stella::Window::operator=()']]],
   ['optimize_5fcoding_31',['optimize_coding',['../structjpeg__save__options__t.html#ad2b0c13b97e9ebd7cf4939078068f3a6',1,'jpeg_save_options_t']]],
   ['out_5fseqno_32',['out_seqno',['../structlucifer__exec.html#a9bcbc350b57c200bc7ecef8340454d5f',1,'lucifer_exec']]],
-  ['out_5fsyncobj_33',['out_syncobj',['../structlucifer__exec.html#a6a2f3200944be96fa4502830219f9542',1,'lucifer_exec']]],
-  ['output_5fformat_34',['output_format',['../structjpeg__load__options__t.html#ad0eea45bcf9a3ee56591140097860aea',1,'jpeg_load_options_t']]],
-  ['owner_35',['owner',['../structpthread__mutex__t.html#abb954059f8fa5ea4eacf57dd0bcf5330',1,'pthread_mutex_t']]]
+  ['output_5fformat_33',['output_format',['../structjpeg__load__options__t.html#ad0eea45bcf9a3ee56591140097860aea',1,'jpeg_load_options_t']]],
+  ['owner_34',['owner',['../structpthread__mutex__t.html#abb954059f8fa5ea4eacf57dd0bcf5330',1,'pthread_mutex_t']]]
 ];

@@ -70,15 +70,15 @@ var NAVTREEINDEX =
 "gpu__api_8h.html#a7c544c9357006ae0ed5fd15f80962d6e",
 "include_2uapi_2vespera_2vbus_8h.html",
 "ioctl__tty_8h_source.html",
-"math_8h.html#a7a6da394f9bb299615662c0ea45d7eea",
-"pthread_8h.html#ac2530d4faf68aaab3605c92ea8e78a03",
-"stdlib_8h.html#a311071298c2fe3e5d7057f396a6acfdc",
-"structElf32__Ehdr.html#a00601af5187a1b3f8babfe9cddd95c15",
-"structfb__info.html#a6af69c9c6d737cb22583b57297e1f677",
-"structpthread__barrier__t.html#abb8495ca52d8318879637a88f42b4235",
-"structvbus__display__input__event__t.html#a455ae939666d21810eedc81823df7f95",
-"unionvbus__payload__t.html#a38bbc4cc2ef9a576bf73844c128b9462",
-"userspace_2lib_2include_2time_8h.html"
+"math_8h.html#a6da34b1c74aa3cf204f2461a8822cf9d",
+"pthread_8h.html#aa1587e01856a579b78effd0a1a284a47",
+"stdlib_8h.html#a1964abca2fa8601fcc112f68ede27c63",
+"strings_8h.html#ac0c482ce69d275a8d0244af38b3a5550",
+"structfb__blit.html#a7e9d90d33f52e5762caa1ddbe759f2ce",
+"structmice__event.html",
+"structvbus__battery.html#a1908bc97d00a056dca3290a96ffc0aa8",
+"tmp_8h.html#a954ebc1cfd4a2abafd8cc846afc0ab3a",
+"userspace_2lib_2include_2sys_2sysinfo_8h.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

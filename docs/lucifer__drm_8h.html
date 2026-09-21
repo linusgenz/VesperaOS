@@ -138,7 +138,13 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlucifer__vm__bind.html">lucifer_vm_bind</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlucifer__sync.html">lucifer_sync</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlucifer__exec.html">lucifer_exec</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlucifer__gem__set__tiling.html">lucifer_gem_set_tiling</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlucifer__gem__get__tiling.html">lucifer_gem_get_tiling</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
@@ -173,6 +179,10 @@ Macros</h2></td></tr>
 <tr class="separator:a920179dc166d9e5d66567c44834d58c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9234ae0248490ff493fea6d2bb68df23" id="r_a9234ae0248490ff493fea6d2bb68df23"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="lucifer__drm_8h.html#a9234ae0248490ff493fea6d2bb68df23">LUCIFER_IOCTL_SYNCOBJ_WAIT</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aff3864fa34e2475dde335a390493f24f">IOWR</a>('L', 0x0F, struct lucifer_syncobj_wait)</td></tr>
 <tr class="separator:a9234ae0248490ff493fea6d2bb68df23"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e9edfd4e0689e567812d2c9450d3956" id="r_a5e9edfd4e0689e567812d2c9450d3956"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="lucifer__drm_8h.html#a5e9edfd4e0689e567812d2c9450d3956">LUCIFER_IOCTL_GEM_SET_TILING</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aff3864fa34e2475dde335a390493f24f">IOWR</a>('L', 0x10, struct <a class="el" href="structlucifer__gem__set__tiling.html">lucifer_gem_set_tiling</a>)</td></tr>
+<tr class="separator:a5e9edfd4e0689e567812d2c9450d3956"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac0890d4c6e61210fb2c1f03f8954a783" id="r_ac0890d4c6e61210fb2c1f03f8954a783"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="lucifer__drm_8h.html#ac0890d4c6e61210fb2c1f03f8954a783">LUCIFER_IOCTL_GEM_GET_TILING</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aff3864fa34e2475dde335a390493f24f">IOWR</a>('L', 0x11, struct <a class="el" href="structlucifer__gem__get__tiling.html">lucifer_gem_get_tiling</a>)</td></tr>
+<tr class="separator:ac0890d4c6e61210fb2c1f03f8954a783"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -214,6 +224,14 @@ Enumerations</h2></td></tr>
 <tr class="memitem:a404c5cac9ae9f1e3b2d6b1d938b6c528" id="r_a404c5cac9ae9f1e3b2d6b1d938b6c528"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="lucifer__drm_8h.html#a404c5cac9ae9f1e3b2d6b1d938b6c528">lucifer_vm_bind_flags</a> { <a class="el" href="lucifer__drm_8h.html#a404c5cac9ae9f1e3b2d6b1d938b6c528a14ad227b5f2a9195a6a49ff9a1c9ca1c">LUCIFER_VM_BIND_FLAG_DUMPABLE</a> = 1u &lt;&lt; 0
  }</td></tr>
 <tr class="separator:a404c5cac9ae9f1e3b2d6b1d938b6c528"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac744d4694ad76207194b51e1016211d7" id="r_ac744d4694ad76207194b51e1016211d7"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="lucifer__drm_8h.html#ac744d4694ad76207194b51e1016211d7">lucifer_sync_flags</a> { <a class="el" href="lucifer__drm_8h.html#ac744d4694ad76207194b51e1016211d7ae45eba02f628edbbef3254ee9ce5f37a">LUCIFER_SYNC_FLAG_SIGNAL</a> = 1u &lt;&lt; 0
+ }</td></tr>
+<tr class="separator:ac744d4694ad76207194b51e1016211d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ec8d136d834e6807e8fd890b8529114" id="r_a6ec8d136d834e6807e8fd890b8529114"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="lucifer__drm_8h.html#a6ec8d136d834e6807e8fd890b8529114">lucifer_tiling_mode</a> { <a class="el" href="lucifer__drm_8h.html#a6ec8d136d834e6807e8fd890b8529114a4f2717f8f8057dcb2a6183bccd70f352">LUCIFER_TILING_NONE</a> = 0
+, <a class="el" href="lucifer__drm_8h.html#a6ec8d136d834e6807e8fd890b8529114ae32e2cb74251325448930d9be8cbd619">LUCIFER_TILING_X</a> = 1
+, <a class="el" href="lucifer__drm_8h.html#a6ec8d136d834e6807e8fd890b8529114acfcdc495c9a5ea449822b777661b8bfa">LUCIFER_TILING_Y</a> = 2
+ }</td></tr>
+<tr class="separator:a6ec8d136d834e6807e8fd890b8529114"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="a111dd46dc7af5069574aa7e33753b278" name="a111dd46dc7af5069574aa7e33753b278"></a>
@@ -258,6 +276,20 @@ Enumerations</h2></td></tr>
 
 </div>
 </div>
+<a id="ac0890d4c6e61210fb2c1f03f8954a783" name="ac0890d4c6e61210fb2c1f03f8954a783"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac0890d4c6e61210fb2c1f03f8954a783">&#9670;&#160;</a></span>LUCIFER_IOCTL_GEM_GET_TILING</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define LUCIFER_IOCTL_GEM_GET_TILING&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aff3864fa34e2475dde335a390493f24f">IOWR</a>('L', 0x11, struct <a class="el" href="structlucifer__gem__get__tiling.html">lucifer_gem_get_tiling</a>)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="aadacb8a5acd329f0ebd5bbd0734e2fed" name="aadacb8a5acd329f0ebd5bbd0734e2fed"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aadacb8a5acd329f0ebd5bbd0734e2fed">&#9670;&#160;</a></span>LUCIFER_IOCTL_GEM_MADVISE</h2>
 
@@ -294,6 +326,20 @@ Enumerations</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define LUCIFER_IOCTL_GEM_SET_CACHING&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aaeaa9a3c5d36256209ca5c628b75df91">IOW</a> ('L', 0x0A, struct <a class="el" href="structlucifer__gem__set__caching.html">lucifer_gem_set_caching</a>)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5e9edfd4e0689e567812d2c9450d3956" name="a5e9edfd4e0689e567812d2c9450d3956"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5e9edfd4e0689e567812d2c9450d3956">&#9670;&#160;</a></span>LUCIFER_IOCTL_GEM_SET_TILING</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define LUCIFER_IOCTL_GEM_SET_TILING&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aff3864fa34e2475dde335a390493f24f">IOWR</a>('L', 0x10, struct <a class="el" href="structlucifer__gem__set__tiling.html">lucifer_gem_set_tiling</a>)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -519,6 +565,45 @@ Enumerations</h2></td></tr>
 <tr><td class="fieldname"><a id="a52eb02f85faa136a734a99f45ed4ee17a94997f5cf27060db4d3059eab8359c85" name="a52eb02f85faa136a734a99f45ed4ee17a94997f5cf27060db4d3059eab8359c85"></a>LUCIFER_QUERY_MEM_REGIONS&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a52eb02f85faa136a734a99f45ed4ee17a469ab8e27f33f2ffc5916833ca1b8d02" name="a52eb02f85faa136a734a99f45ed4ee17a469ab8e27f33f2ffc5916833ca1b8d02"></a>LUCIFER_QUERY_PCI_INFO&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a52eb02f85faa136a734a99f45ed4ee17ac0ef5f8da1446813024b5101fea6dd4e" name="a52eb02f85faa136a734a99f45ed4ee17ac0ef5f8da1446813024b5101fea6dd4e"></a>LUCIFER_QUERY_ENGINES&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+</div>
+</div>
+<a id="ac744d4694ad76207194b51e1016211d7" name="ac744d4694ad76207194b51e1016211d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac744d4694ad76207194b51e1016211d7">&#9670;&#160;</a></span>lucifer_sync_flags</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="lucifer__drm_8h.html#ac744d4694ad76207194b51e1016211d7">lucifer_sync_flags</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>One synchronization operation attached to an EXEC. Binary syncobjs only (no timeline points) &ndash; sufficient for bring-up where a submission either waits on another submission's completion syncobj, or signals its own.</p>
+<p>WAIT entries are waited on by the kernel before the batch is handed to the hardware. SIGNAL entries have their syncobj's fence replaced with a fence for this submission's completion (i.e. armed at EXEC time, signaled once the engine's completed-seqno counter reaches this submission's seqno). handle == 0 is invalid &ndash; omit the entry instead of zero-filling. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ac744d4694ad76207194b51e1016211d7ae45eba02f628edbbef3254ee9ce5f37a" name="ac744d4694ad76207194b51e1016211d7ae45eba02f628edbbef3254ee9ce5f37a"></a>LUCIFER_SYNC_FLAG_SIGNAL&#160;</td><td class="fielddoc"><p>signal, rather than wait on, this handle </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a id="a6ec8d136d834e6807e8fd890b8529114" name="a6ec8d136d834e6807e8fd890b8529114"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6ec8d136d834e6807e8fd890b8529114">&#9670;&#160;</a></span>lucifer_tiling_mode</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="lucifer__drm_8h.html#a6ec8d136d834e6807e8fd890b8529114">lucifer_tiling_mode</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a6ec8d136d834e6807e8fd890b8529114a4f2717f8f8057dcb2a6183bccd70f352" name="a6ec8d136d834e6807e8fd890b8529114a4f2717f8f8057dcb2a6183bccd70f352"></a>LUCIFER_TILING_NONE&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a6ec8d136d834e6807e8fd890b8529114ae32e2cb74251325448930d9be8cbd619" name="a6ec8d136d834e6807e8fd890b8529114ae32e2cb74251325448930d9be8cbd619"></a>LUCIFER_TILING_X&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a6ec8d136d834e6807e8fd890b8529114acfcdc495c9a5ea449822b777661b8bfa" name="a6ec8d136d834e6807e8fd890b8529114acfcdc495c9a5ea449822b777661b8bfa"></a>LUCIFER_TILING_Y&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
 </div>

@@ -16,9 +16,13 @@ var searchData=
   ['lucifer_5fquery_5fmem_5fregions_13',['LUCIFER_QUERY_MEM_REGIONS',['../lucifer__drm_8h.html#a52eb02f85faa136a734a99f45ed4ee17a94997f5cf27060db4d3059eab8359c85',1,'lucifer_drm.h']]],
   ['lucifer_5fquery_5fpci_5finfo_14',['LUCIFER_QUERY_PCI_INFO',['../lucifer__drm_8h.html#a52eb02f85faa136a734a99f45ed4ee17a469ab8e27f33f2ffc5916833ca1b8d02',1,'lucifer_drm.h']]],
   ['lucifer_5fquery_5ftopology_15',['LUCIFER_QUERY_TOPOLOGY',['../lucifer__drm_8h.html#a52eb02f85faa136a734a99f45ed4ee17af36134778a410cb33bbbc83c1637142a',1,'lucifer_drm.h']]],
-  ['lucifer_5fvm_5fbind_5fflag_5fdumpable_16',['LUCIFER_VM_BIND_FLAG_DUMPABLE',['../lucifer__drm_8h.html#a404c5cac9ae9f1e3b2d6b1d938b6c528a14ad227b5f2a9195a6a49ff9a1c9ca1c',1,'lucifer_drm.h']]],
-  ['lucifer_5fvm_5fbind_5fop_5fmap_17',['LUCIFER_VM_BIND_OP_MAP',['../lucifer__drm_8h.html#ae774c3b984c63df6ed02027ffdd1e4d2aee4863bd0a99e5a8ac6a5092c7e2e82e',1,'lucifer_drm.h']]],
-  ['lucifer_5fvm_5fbind_5fop_5fmap_5fuserptr_18',['LUCIFER_VM_BIND_OP_MAP_USERPTR',['../lucifer__drm_8h.html#ae774c3b984c63df6ed02027ffdd1e4d2a2d4ad83ed6850055356e60acc41fd315',1,'lucifer_drm.h']]],
-  ['lucifer_5fvm_5fbind_5fop_5funmap_19',['LUCIFER_VM_BIND_OP_UNMAP',['../lucifer__drm_8h.html#ae774c3b984c63df6ed02027ffdd1e4d2a5033c26fdca64e57fce69ea1188edab3',1,'lucifer_drm.h']]],
-  ['lucifer_5fvm_5fcreate_5fflag_5fnone_20',['LUCIFER_VM_CREATE_FLAG_NONE',['../lucifer__drm_8h.html#a820a358516b2ce171830dd64ac681953aef7e25dd410240fa28baee8a10895d61',1,'lucifer_drm.h']]]
+  ['lucifer_5fsync_5fflag_5fsignal_16',['LUCIFER_SYNC_FLAG_SIGNAL',['../lucifer__drm_8h.html#ac744d4694ad76207194b51e1016211d7ae45eba02f628edbbef3254ee9ce5f37a',1,'lucifer_drm.h']]],
+  ['lucifer_5ftiling_5fnone_17',['LUCIFER_TILING_NONE',['../lucifer__drm_8h.html#a6ec8d136d834e6807e8fd890b8529114a4f2717f8f8057dcb2a6183bccd70f352',1,'lucifer_drm.h']]],
+  ['lucifer_5ftiling_5fx_18',['LUCIFER_TILING_X',['../lucifer__drm_8h.html#a6ec8d136d834e6807e8fd890b8529114ae32e2cb74251325448930d9be8cbd619',1,'lucifer_drm.h']]],
+  ['lucifer_5ftiling_5fy_19',['LUCIFER_TILING_Y',['../lucifer__drm_8h.html#a6ec8d136d834e6807e8fd890b8529114acfcdc495c9a5ea449822b777661b8bfa',1,'lucifer_drm.h']]],
+  ['lucifer_5fvm_5fbind_5fflag_5fdumpable_20',['LUCIFER_VM_BIND_FLAG_DUMPABLE',['../lucifer__drm_8h.html#a404c5cac9ae9f1e3b2d6b1d938b6c528a14ad227b5f2a9195a6a49ff9a1c9ca1c',1,'lucifer_drm.h']]],
+  ['lucifer_5fvm_5fbind_5fop_5fmap_21',['LUCIFER_VM_BIND_OP_MAP',['../lucifer__drm_8h.html#ae774c3b984c63df6ed02027ffdd1e4d2aee4863bd0a99e5a8ac6a5092c7e2e82e',1,'lucifer_drm.h']]],
+  ['lucifer_5fvm_5fbind_5fop_5fmap_5fuserptr_22',['LUCIFER_VM_BIND_OP_MAP_USERPTR',['../lucifer__drm_8h.html#ae774c3b984c63df6ed02027ffdd1e4d2a2d4ad83ed6850055356e60acc41fd315',1,'lucifer_drm.h']]],
+  ['lucifer_5fvm_5fbind_5fop_5funmap_23',['LUCIFER_VM_BIND_OP_UNMAP',['../lucifer__drm_8h.html#ae774c3b984c63df6ed02027ffdd1e4d2a5033c26fdca64e57fce69ea1188edab3',1,'lucifer_drm.h']]],
+  ['lucifer_5fvm_5fcreate_5fflag_5fnone_24',['LUCIFER_VM_CREATE_FLAG_NONE',['../lucifer__drm_8h.html#a820a358516b2ce171830dd64ac681953aef7e25dd410240fa28baee8a10895d61',1,'lucifer_drm.h']]]
 ];

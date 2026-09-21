@@ -17,13 +17,18 @@ var lucifer__drm_8h =
     [ "lucifer_gem_madvise", "structlucifer__gem__madvise.html", "structlucifer__gem__madvise" ],
     [ "lucifer_gem_set_caching", "structlucifer__gem__set__caching.html", "structlucifer__gem__set__caching" ],
     [ "lucifer_vm_bind", "structlucifer__vm__bind.html", "structlucifer__vm__bind" ],
+    [ "lucifer_sync", "structlucifer__sync.html", "structlucifer__sync" ],
     [ "lucifer_exec", "structlucifer__exec.html", "structlucifer__exec" ],
+    [ "lucifer_gem_set_tiling", "structlucifer__gem__set__tiling.html", "structlucifer__gem__set__tiling" ],
+    [ "lucifer_gem_get_tiling", "structlucifer__gem__get__tiling.html", "structlucifer__gem__get__tiling" ],
     [ "LUCIFER_IOCTL_EXEC", "lucifer__drm_8h.html#a111dd46dc7af5069574aa7e33753b278", null ],
     [ "LUCIFER_IOCTL_GEM_CLOSE", "lucifer__drm_8h.html#a5a0d71eec04008e3b648e328e3b40fdc", null ],
     [ "LUCIFER_IOCTL_GEM_CREATE", "lucifer__drm_8h.html#afbf9f48fcae57b4788d6404e6626b9c0", null ],
+    [ "LUCIFER_IOCTL_GEM_GET_TILING", "lucifer__drm_8h.html#ac0890d4c6e61210fb2c1f03f8954a783", null ],
     [ "LUCIFER_IOCTL_GEM_MADVISE", "lucifer__drm_8h.html#aadacb8a5acd329f0ebd5bbd0734e2fed", null ],
     [ "LUCIFER_IOCTL_GEM_MMAP_OFFSET", "lucifer__drm_8h.html#a18ea6ce816ac581ab50f3200b09d3bc9", null ],
     [ "LUCIFER_IOCTL_GEM_SET_CACHING", "lucifer__drm_8h.html#a98cf6cbf8c4b6d06cda70704bd83fbd3", null ],
+    [ "LUCIFER_IOCTL_GEM_SET_TILING", "lucifer__drm_8h.html#a5e9edfd4e0689e567812d2c9450d3956", null ],
     [ "LUCIFER_IOCTL_GEM_USERPTR", "lucifer__drm_8h.html#a96604161d8062225ce329c07b3aa0959", null ],
     [ "LUCIFER_IOCTL_QUERY", "lucifer__drm_8h.html#a735cf9ac6402825a4ca8ad06d7250702", null ],
     [ "LUCIFER_IOCTL_SYNCOBJ_CREATE", "lucifer__drm_8h.html#a2d533a269b600579e6550103bc26d0ba", null ],
@@ -56,6 +61,14 @@ var lucifer__drm_8h =
       [ "LUCIFER_QUERY_MEM_REGIONS", "lucifer__drm_8h.html#a52eb02f85faa136a734a99f45ed4ee17a94997f5cf27060db4d3059eab8359c85", null ],
       [ "LUCIFER_QUERY_PCI_INFO", "lucifer__drm_8h.html#a52eb02f85faa136a734a99f45ed4ee17a469ab8e27f33f2ffc5916833ca1b8d02", null ],
       [ "LUCIFER_QUERY_ENGINES", "lucifer__drm_8h.html#a52eb02f85faa136a734a99f45ed4ee17ac0ef5f8da1446813024b5101fea6dd4e", null ]
+    ] ],
+    [ "lucifer_sync_flags", "lucifer__drm_8h.html#ac744d4694ad76207194b51e1016211d7", [
+      [ "LUCIFER_SYNC_FLAG_SIGNAL", "lucifer__drm_8h.html#ac744d4694ad76207194b51e1016211d7ae45eba02f628edbbef3254ee9ce5f37a", null ]
+    ] ],
+    [ "lucifer_tiling_mode", "lucifer__drm_8h.html#a6ec8d136d834e6807e8fd890b8529114", [
+      [ "LUCIFER_TILING_NONE", "lucifer__drm_8h.html#a6ec8d136d834e6807e8fd890b8529114a4f2717f8f8057dcb2a6183bccd70f352", null ],
+      [ "LUCIFER_TILING_X", "lucifer__drm_8h.html#a6ec8d136d834e6807e8fd890b8529114ae32e2cb74251325448930d9be8cbd619", null ],
+      [ "LUCIFER_TILING_Y", "lucifer__drm_8h.html#a6ec8d136d834e6807e8fd890b8529114acfcdc495c9a5ea449822b777661b8bfa", null ]
     ] ],
     [ "lucifer_vm_bind_flags", "lucifer__drm_8h.html#a404c5cac9ae9f1e3b2d6b1d938b6c528", [
       [ "LUCIFER_VM_BIND_FLAG_DUMPABLE", "lucifer__drm_8h.html#a404c5cac9ae9f1e3b2d6b1d938b6c528a14ad227b5f2a9195a6a49ff9a1c9ca1c", null ]

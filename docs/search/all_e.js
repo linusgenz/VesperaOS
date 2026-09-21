@@ -32,5 +32,6 @@ var searchData=
   ['null_29',['NULL',['../stddef_8h.html#a070d2ce7b6bb7e5c05602aa8c308d0c4',1,'stddef.h']]],
   ['num_5fconfigurations_30',['num_configurations',['../structusb__device__info.html#a18e5d2888c081b12a42ee813fcdc8010',1,'usb_device_info']]],
   ['num_5fengines_31',['num_engines',['../structlucifer__query__engines.html#a64573d4ca0f30214156276e2aa002d38',1,'lucifer_query_engines']]],
-  ['num_5finterfaces_32',['num_interfaces',['../structusb__device__info.html#aadaa4148b1fdfa0996764ae3149e2233',1,'usb_device_info']]]
+  ['num_5finterfaces_32',['num_interfaces',['../structusb__device__info.html#aadaa4148b1fdfa0996764ae3149e2233',1,'usb_device_info']]],
+  ['num_5fsyncs_33',['num_syncs',['../structlucifer__exec.html#acf16dcc1ef467fce5c8127591836331b',1,'lucifer_exec']]]
 ];
