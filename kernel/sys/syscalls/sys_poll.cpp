@@ -98,7 +98,7 @@ namespace syscalls::internal {
                         continue;
                     }
 
-                    if (vh->node->ops && vh->node->ops->poll) mask = vh->node->ops->poll(vh->node);
+                    if (vh->node->ops && vh->node->ops->poll) mask = vh->node->ops->poll(vh->node, vh->context);
                 }
 
                 const int always_reported = mask & (POLLERR | POLLHUP);

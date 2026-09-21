@@ -35,7 +35,18 @@ struct VfsHandleContext {
     u32 open_flags; // O_RDONLY, O_WRONLY, O_RDWR
     usize position; // used for offset
     capability_set required_caps;
-    VfsDir* type_specific_data;
+    /// Per-session state, meaning depends on node->type -- there is
+    /// exactly one live interpretation at a time, discriminated the same
+    /// way ~VfsHandle() below already discriminates it:
+    ///   - Directory:  VfsDir*   (from VFS::opendir(), see sys_open.cpp)
+    ///   - CharDevice/
+    ///     BlockDevice: CharFile* (from DevFs::open(), see devfs.cpp) --
+    ///                  one per open() call now, not one per VfsNode; this
+    ///                  field existing per-VfsHandleContext (not per-node)
+    ///                  is what fixes two opens of the same device path
+    ///                  silently sharing one CharFile*.
+    ///   - everything else: unused, stays nullptr.
+    void* type_specific_data;
     char path[256]{}; // fully resolved path this handle was opened with; required for openat()
 };
 
@@ -86,10 +97,18 @@ private:
 
             if (node->type == VfsNodeType::Directory &&
                 context && context->type_specific_data) {
-                VFS::closedir(context->type_specific_data);
+                VFS::closedir(static_cast<VfsDir*>(context->type_specific_data));
                 context->type_specific_data = nullptr;
             }
 
+            //   1. close_session -- always runs, ends *this* session
+            //      (releases context->type_specific_data for CharDevice/
+            //      BlockDevice, i.e. DevFs's per-open() CharFile*).
+            //   2. close -- only runs when `node`'s dentry-cache refcount
+            //      reaches zero, i.e. only once every session (including
+            //      this one) is gone. This is where a real filesystem
+            //      would free the inode's backing structure etc.
+            VFS::close_session(node, context);
             VFS::close(node);
         }
         delete context;

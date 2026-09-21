@@ -43,14 +43,19 @@ enum class VfsNodeType : u8 {
 };
 
 struct VfsNode;
+struct VfsHandleContext;
 class Channel;
 
 struct VfsNodeOps {
-    Result<usize> (*read)(const VfsNode *node, usize offset, usize size, void *buffer);
+    Result<usize> (*read)(const VfsNode *node, usize offset, usize size, void *buffer, VfsHandleContext *ctx);
 
-    Result<usize> (*write)(VfsNode *node, usize offset, usize size, const void *buffer);
+    Result<usize> (*write)(VfsNode *node, usize offset, usize size, const void *buffer, VfsHandleContext *ctx);
 
     Result<VfsNode *> (*find)(VfsNode *dir, const char *name);
+
+    void (*close_session)(VfsNode *node, VfsHandleContext *ctx);
+
+    VoidResult (*open_session)(VfsNode *node, VfsHandleContext *ctx);
 
     void (*close)(VfsNode *node);
 
@@ -70,7 +75,7 @@ struct VfsNodeOps {
 
     VoidResult (*unlink)(const VfsNode *node, const char *name);
 
-    isize (*ioctl)(const VfsNode *node, u32 cmd, void *arg);
+    isize (*ioctl)(const VfsNode *node, u32 cmd, void *arg, VfsHandleContext *ctx);
 
     VoidResult (*stat)(const VfsNode *, stat *out);
 
@@ -80,7 +85,7 @@ struct VfsNodeOps {
 
     VoidResult (*chmod)(VfsNode *node, u16 mode);
 
-    int (*poll)(const VfsNode *node);
+    int (*poll)(const VfsNode *node, VfsHandleContext *ctx);
 };
 
 struct VfsNode {

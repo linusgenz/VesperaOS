@@ -51,6 +51,10 @@ extern "C" {
 #define LUCIFER_IOCTL_SYNCOBJ_DESTROY  IOW ('L', 0x0E, struct lucifer_syncobj_destroy)
 #define LUCIFER_IOCTL_SYNCOBJ_WAIT     IOWR('L', 0x0F, struct lucifer_syncobj_wait)
 
+#define LUCIFER_IOCTL_GEM_SET_TILING   IOWR('L', 0x10, struct lucifer_gem_set_tiling)
+#define LUCIFER_IOCTL_GEM_GET_TILING   IOWR('L', 0x11, struct lucifer_gem_get_tiling)
+
+
 struct lucifer_version {
     int32_t version_major;
     int32_t version_minor;
@@ -294,16 +298,38 @@ struct lucifer_vm_bind {
 };
 
 /**
+ * One synchronization operation attached to an EXEC. Binary syncobjs only
+ * (no timeline points) -- sufficient for bring-up where a submission either
+ * waits on another submission's completion syncobj, or signals its own.
+ *
+ * WAIT entries are waited on by the kernel before the batch is handed to
+ * the hardware. SIGNAL entries have their syncobj's fence replaced with a
+ * fence for this submission's completion (i.e. armed at EXEC time, signaled
+ * once the engine's completed-seqno counter reaches this submission's
+ * seqno). handle == 0 is invalid -- omit the entry instead of zero-filling.
+ */
+enum lucifer_sync_flags {
+    LUCIFER_SYNC_FLAG_SIGNAL = 1u << 0, /**< signal, rather than wait on, this handle */
+};
+
+struct lucifer_sync {
+    uint32_t handle; /**< in, DRM syncobj handle */
+    uint32_t flags;   /**< in, enum lucifer_sync_flags */
+};
+
+/**
  * Minimal batch submission: one batch buffer's GPU address against a
- * given vm_id / engine.
+ * given vm_id / engine, plus an arbitrary set of syncobjs to wait on
+ * beforehand and/or signal on completion.
  *
  * Every EXEC is assigned a monotonically increasing per-engine sequence
  * number (out_seqno) at submission time, before the batch is handed to the
  * hardware. This seqno is the fence value for this submission: it becomes
  * signaled once the engine's completed-seqno counter reaches or passes it
- * (see LUCIFER_IOCTL_SYNCOBJ_WAIT). Userspace normally wraps out_seqno in a
- * syncobj via LUCIFER_IOCTL_SYNCOBJ_CREATE rather than tracking raw seqnos
- * itself, mirroring how iris/Mesa expects an opaque handle to wait on.
+ * (see LUCIFER_IOCTL_SYNCOBJ_WAIT). Any handle in syncs[] with
+ * LUCIFER_SYNC_FLAG_SIGNAL set is armed with this same fence, rather than
+ * userspace tracking out_seqno itself -- mirroring how iris/Mesa expects
+ * opaque syncobj handles to wait on.
  */
 struct lucifer_exec {
     uint32_t vm_id;  /**< in */
@@ -312,9 +338,31 @@ struct lucifer_exec {
     uint64_t batch_addr; /**< in, GPU virtual address of the batch to run */
     uint64_t batch_len;   /**< in, length in bytes */
 
-    uint64_t out_seqno; /**< out, fence value for this submission */
+    uint64_t syncs;        /**< in, pointer to array of struct lucifer_sync */
+    uint32_t num_syncs;     /**< in */
+    uint32_t pad0;
 
-    uint32_t out_syncobj; /**< in, optional DRM syncobj handle to bind to this submission's completion (0 = none) */
+    uint64_t out_seqno; /**< out, fence value for this submission */
+};
+
+enum lucifer_tiling_mode {
+    LUCIFER_TILING_NONE = 0,
+    LUCIFER_TILING_X    = 1,
+    LUCIFER_TILING_Y    = 2,
+};
+
+struct lucifer_gem_set_tiling {
+    uint32_t handle;       /**< in */
+    uint32_t tiling_mode;  /**< in, enum lucifer_tiling_mode */
+    uint32_t stride;        /**< in, bytes -- row pitch for the tiled layout */
+    uint32_t pad0;
+};
+
+struct lucifer_gem_get_tiling {
+    uint32_t handle;       /**< in */
+    uint32_t tiling_mode;  /**< out, enum lucifer_tiling_mode */
+    uint32_t stride;        /**< out */
+    uint32_t pad0;
 };
 
 #ifdef __cplusplus

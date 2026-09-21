@@ -33,6 +33,7 @@
 class BlockDevice;
 struct FilesystemInfo;
 struct VfsNode;
+struct VfsHandleContext;
 struct BlkDeviceDescriptor;
 enum class VfsNodeType : u8;
 
@@ -73,12 +74,23 @@ class VFS {
 
     static Result<VfsNode*> open(const char* path);
 
+    /// Runs `node`'s per-session bring-up hook (VfsNodeOps::open)
+    /// Only called for blk and char devs, as files do not need session handling
+    static VoidResult open_session(VfsNode* node, VfsHandleContext* ctx);
+
     static Result<VfsDir*> opendir(VfsNode* node);
 
-    static Result<usize> read(const VfsNode* node, usize offset, usize size, void* buffer, u32 flags = 0);
-    static Result<usize> write(VfsNode* node, usize offset, usize size, const void* buffer, u32 flags = 0);
+    static Result<usize> read(const VfsNode* node, usize offset, usize size, void* buffer, VfsHandleContext* ctx,
+                               u32 flags = 0);
+    static Result<usize> write(VfsNode* node, usize offset, usize size, const void* buffer, VfsHandleContext* ctx,
+                                u32 flags = 0);
 
     static Result<bool> readdir(const VfsDir* dir, dirent_t* out);
+
+    /// Ends *this one* session (VfsHandle) on `node` -- always runs, once
+    /// per open() call, regardless of how many other sessions are still
+    /// open on the same node.
+    static void close_session(VfsNode* node, VfsHandleContext* ctx);
 
     static void close(VfsNode* node);
 

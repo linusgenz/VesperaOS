@@ -101,7 +101,7 @@ static Result<VfsNode*> ext4_find(VfsNode* node, const char* name) {
     return Error::NoEnt;
 }
 
-static Result<usize> ext4_read(const VfsNode* node, usize offset, usize size, void* buf) {
+static Result<usize> ext4_read(const VfsNode* node, usize offset, usize size, void* buf, VfsHandleContext* ctx) {
     if (!node) return Error::Inval;
     const auto* en = static_cast<const Ext4Node*>(node->internal_data);
     if (!en) return Error::Inval;
@@ -111,7 +111,7 @@ static Result<usize> ext4_read(const VfsNode* node, usize offset, usize size, vo
     return en->fs->read_file(en->inode, offset, size, buf, update_atime);
 }
 
-static Result<usize> ext4_write(VfsNode* node, usize offset, usize size, const void* buf) {
+static Result<usize> ext4_write(VfsNode* node, usize offset, usize size, const void* buf, VfsHandleContext* ctx) {
     if (!node) return Error::Inval;
     const auto* en = static_cast<const Ext4Node*>(node->internal_data);
     if (!en) return Error::Inval;
@@ -282,6 +282,8 @@ static VfsNodeOps ext4_ops = {
     .read     = ext4_read,
     .write    = ext4_write,
     .find     = ext4_find,
+    .close_session = nullptr,
+    .open_session = nullptr,
     .close    = ext4_close,
     .opendir  = ext4_opendir,
     .readdir  = ext4_readdir,

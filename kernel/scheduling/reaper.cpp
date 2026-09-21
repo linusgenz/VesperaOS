@@ -117,15 +117,20 @@ void Reaper::wait_for_work() {
 }
 
 void Reaper::reap() {
-    Unit* unit = nullptr;
-    {
-        SpinlockGuard guard(lock_);
-        unit = pending_.pop();
-    }
-    while (unit) {
-        Unit* next = unit->next;
-        UnitManager::complete_termination(unit);
-        unit = next;
+    while (true) {
+        Unit* unit = nullptr;
+        {
+            SpinlockGuard guard(lock_);
+            if (pending_.empty()) {
+                break;
+            }
+            unit = pending_.pop();
+        }
+
+        if (unit) {
+            unit->next = nullptr;
+            UnitManager::complete_termination(unit);
+        }
     }
 }
 

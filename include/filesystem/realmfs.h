@@ -62,9 +62,9 @@ public:
     static VoidResult unregister_unit(u64 unit_id);
 
     // VFS operations
-    static Result<usize> read(const VfsNode* node, usize offset, usize size, void* buffer);
-    static Result<usize> write(VfsNode* node, usize offset, usize size, const void* buffer);
-    static isize ioctl(const VfsNode* node, u32 cmd, void* arg);
+    static Result<usize> read(const VfsNode* node, usize offset, usize size, void* buffer, VfsHandleContext* ctx);
+    static Result<usize> write(VfsNode* node, usize offset, usize size, const void* buffer, VfsHandleContext* ctx);
+    static isize ioctl(const VfsNode* node, u32 cmd, void* arg, VfsHandleContext* ctx);
     static void close(VfsNode* node);
 };
 

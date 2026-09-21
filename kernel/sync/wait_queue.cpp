@@ -50,9 +50,7 @@ void WaitQueue::add_wait(Unit *u) {
     }
 }
 
-void WaitQueue::wake_all() {
-    SpinlockGuard guard(lock_);
-
+void WaitQueue::wake_all_impl() {
     const WaitQueueEntry *entry = head_;
     while (entry) {
         if (entry->unit) {
@@ -72,9 +70,18 @@ void WaitQueue::wake_all() {
     head_ = tail_ = nullptr;
 }
 
-void WaitQueue::wake_one() {
+void WaitQueue::wake_all() {
     SpinlockGuard guard(lock_);
 
+    wake_all_impl();
+}
+
+void WaitQueue::wake_all_irq() {
+    SpinlockGuardIrq irq_guard(lock_);
+    wake_all_impl();
+}
+
+void WaitQueue::wake_one_impl() {
     if (!head_) return;
 
     const WaitQueueEntry *entry = head_;
@@ -89,6 +96,16 @@ void WaitQueue::wake_one() {
     }
 
     delete entry;
+}
+
+void WaitQueue::wake_one() {
+    SpinlockGuard guard(lock_);
+    wake_one_impl();
+}
+
+void WaitQueue::wake_one_irq() {
+    SpinlockGuardIrq irq_guard(lock_);
+    wake_one_impl();
 }
 
 bool WaitQueue::remove(const Unit *u) {

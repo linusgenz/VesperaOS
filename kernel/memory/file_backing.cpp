@@ -131,7 +131,7 @@ phys_addr_t FileBackingObject::get_page(usize offset_in_bytes) {
             const usize read_bytes = min(PAGE_SIZE, size_ - offset_in_bytes);
 
             lock_.unlock();
-            VFS::read(node_, offset_in_bytes, read_bytes, virt);
+            VFS::read(node_, offset_in_bytes, read_bytes, virt, nullptr);
             lock_.lock();
         }
 
@@ -151,7 +151,7 @@ void FileBackingObject::sync_page(usize offset_in_bytes, phys_addr_t phys, bool 
         usize write_bytes = min(PAGE_SIZE, size_ - offset_in_bytes);
 
         lock_.unlock();
-        VFS::write(node_, offset_in_bytes, write_bytes, virt);
+        VFS::write(node_, offset_in_bytes, write_bytes, virt, nullptr);
         lock_.lock();
     }
 }

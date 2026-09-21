@@ -46,14 +46,21 @@ namespace kernel::time {
     }
 
     namespace internal {
-        bool thread_sleep_ns(const u64 ns) {
+        bool thread_sleep_until_ns(const u64 target_ns) {
+            const u64 now = get_uptime_ns();
+            if (target_ns <= now) {
+                return true;
+            }
+
             const u32 cpu_id = cpu_manager::get_current_cpu_id();
 
             Unit* current = kernel::scheduling::get_current_unit();
             if (!current || current->is_idle) return true;
 
-            current->sleep_context.wakeup_ns = get_uptime_ns() + ns;
+            current->sleep_context.wakeup_ns = target_ns;
             current->sleep_context.interrupted  = false;
+
+            sleep_timer::notify_sleep(static_cast<u8>(cpu_id), target_ns);
 
             kernel::scheduling::add_blocked_unit(current, cpu_id);
             kernel::scheduling::yield();
@@ -61,38 +68,48 @@ namespace kernel::time {
             return !current->sleep_context.interrupted;
         }
 
-        void busy_sleep_ns(const u64 ns) {
-            const u64 deadline_ns = get_uptime_ns() + ns;
-            while (get_uptime_ns() < deadline_ns) {
+        bool thread_sleep_ns(const u64 ns) {
+            return thread_sleep_until_ns(get_uptime_ns() + ns);
+        }
+
+        void busy_sleep_until_ns(const u64 target_ns) {
+            while (get_uptime_ns() < target_ns) {
                 asm volatile("hlt");
             }
         }
+
+        void busy_sleep_ns(const u64 ns) {
+            busy_sleep_until_ns(get_uptime_ns() + ns);
+        }
     }  // namespace internal
 
-    void sleep_ms(const u64 ms) {
-        uint64_t ns = ms * 1'000'000ULL;
+    bool sleep_until_ns(const u64 target_ns) {
         if (scheduling::is_curent_cpu_enabled()) {
-            internal::thread_sleep_ns(ns);
+            return internal::thread_sleep_until_ns(target_ns);
         } else {
-            internal::busy_sleep_ns(ns);
-        }
-    }
-
-    void sleep_us(const u64 us) {
-        uint64_t ns = us * 1'000ULL;
-        if (scheduling::is_curent_cpu_enabled()) {
-            internal::thread_sleep_ns(ns);
-        } else {
-            internal::busy_sleep_ns(ns);
-        }
-    }
-
-    bool sleep_ns(const u64 ns) {
-        if (scheduling::is_curent_cpu_enabled()) {
-            return internal::thread_sleep_ns(ns);
-        } else {
-            internal::busy_sleep_ns(ns);
+            internal::busy_sleep_until_ns(target_ns);
             return true;
         }
     }
+
+    bool sleep_until_us(const u64 target_us) {
+        return sleep_until_ns(target_us * 1'000ULL);
+    }
+
+    bool sleep_until_ms(const u64 target_ms) {
+        return sleep_until_ns(target_ms * 1'000'000ULL);
+    }
+
+    void sleep_ms(const u64 ms) {
+        sleep_until_ms((get_uptime_ns() / 1'000'000ULL) + ms);
+    }
+
+    void sleep_us(const u64 us) {
+        sleep_until_us((get_uptime_ns() / 1'000ULL) + us);
+    }
+
+    bool sleep_ns(const u64 ns) {
+        return sleep_until_ns(get_uptime_ns() + ns);
+    }
+
 }  // namespace kernel::time

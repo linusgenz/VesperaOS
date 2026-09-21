@@ -53,6 +53,8 @@ Result<void> HandleTable::install_stdio_handle(HandleId hid, const char* dev_pat
         return Error::NoMem;
     }
 
+    VFS::open_session(node, vh->context);
+
     if (lookup(hid)) release(hid);
 
     auto add_res = add_at(

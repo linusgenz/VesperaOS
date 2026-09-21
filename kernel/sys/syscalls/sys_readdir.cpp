@@ -40,7 +40,7 @@ namespace syscalls::internal {
         const auto* vh = rh.resource_as<VfsHandle>();
         if (!vh || !vh->context || !vh->context->type_specific_data) return -EINVAL;
 
-        const VfsDir* dir = vh->context->type_specific_data;
+        const VfsDir* dir = static_cast<VfsDir*>(vh->context->type_specific_data);
 
         const bool has_entry = SYSCALL_TRY(VFS::readdir(dir, ent));
         return has_entry ? 1 : 0;

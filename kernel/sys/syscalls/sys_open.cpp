@@ -174,6 +174,10 @@ namespace syscalls::internal {
                         VFS::close(node);
                         return -ENOMEM;
                     }
+                    if (const auto open_res = VFS::open_session(node, vh->context); open_res.is_err()) {
+                        VfsHandle::destroy(vh);
+                        return open_res.to_errno();
+                    }
                     handle_type = HANDLE_TYPE_DEVICE;
                     break;
 

@@ -38,6 +38,7 @@ namespace syscalls::internal {
         if (!buf || count == 0) return 0;
 
         serial::write(buf, count);
+        Log::print_dbc(buf, count);
 
         const auto rh = SYSCALL_TRY(resolve_handle(hid, /*type_mask=*/0, CAP_WRITE));
 
@@ -50,7 +51,7 @@ namespace syscalls::internal {
 
                 const i64 off = VFS::is_seekable(vh->node) ? vh->context->position : -1;
                 const usize bytes =
-                    SYSCALL_TRY(VFS::write(vh->node, static_cast<usize>(off < 0 ? 0 : off), count, buf, vh->context->open_flags));
+                    SYSCALL_TRY(VFS::write(vh->node, static_cast<usize>(off < 0 ? 0 : off), count, buf, vh->context, vh->context->open_flags));
                 if (bytes > 0 && off >= 0) vh->context->position += bytes;
                 return static_cast<isize>(bytes);
             }

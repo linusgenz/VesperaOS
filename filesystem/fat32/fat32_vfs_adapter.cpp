@@ -38,7 +38,7 @@
 
 using namespace fat32;
 
-static Result<usize> fat32_read(const VfsNode* node, usize offset, usize size, void* buffer) {
+static Result<usize> fat32_read(const VfsNode* node, usize offset, usize size, void* buffer, VfsHandleContext* ctx) {
     if (!node || !buffer) return Error::Fault;
     if (size == 0) return Result<usize>::ok(0);
 
@@ -49,7 +49,7 @@ static Result<usize> fat32_read(const VfsNode* node, usize offset, usize size, v
     return fnode->fs->read_file(fnode, buffer, size, offset, update_atime);
 }
 
-static Result<usize> fat32_write(VfsNode* node, usize offset, usize size, const void* buffer) {
+static Result<usize> fat32_write(VfsNode* node, usize offset, usize size, const void* buffer, VfsHandleContext* ctx) {
     if (!node || !buffer) return Error::Fault;
     if (size == 0) return Result<usize>::ok(0);
 
@@ -229,6 +229,8 @@ static VfsNodeOps fat32_ops = {
     .read = fat32_read,
     .write = fat32_write,
     .find = fat32_find,
+    .close_session = nullptr,
+    .open_session = nullptr,
     .close = fat32_close,
     .opendir = fat32_opendir,
     .readdir = fat32_readdir,
@@ -241,6 +243,8 @@ static VfsNodeOps fat32_ops = {
     .ioctl = nullptr,
     .stat = fat32_stat,
     .truncate = fat32_truncate,
+    .chown = nullptr,
+    .chmod = nullptr,
     .poll = nullptr
 };
 

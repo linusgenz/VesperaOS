@@ -183,6 +183,11 @@ Result<bool> VFS::readdir(const VfsDir* dir, dirent_t* out) {
     return dir->node->ops->readdir(dir->handle, out);
 }
 
+void VFS::close_session(VfsNode* node, VfsHandleContext* ctx) {
+    if (!node || !node->ops || !node->ops->close_session) return;
+    node->ops->close_session(node, ctx);
+}
+
 void VFS::close(VfsNode* node) {
     if (!node || !node->ops || !node->ops->close || node->permanent) return;
 
@@ -191,13 +196,20 @@ void VFS::close(VfsNode* node) {
     }
 }
 
+VoidResult VFS::open_session(VfsNode* node, VfsHandleContext* ctx) {
+    if (!node) return Error::Inval;
+    if (!node->ops || !node->ops->open_session) return VoidResult::ok(); // no per-session hook, nothing to do
+    return node->ops->open_session(node, ctx);
+}
+
 void VFS::closedir(VfsDir* dir) {
     if (!dir) return;
     if (dir->node && dir->node->ops && dir->node->ops->closedir && dir->handle) dir->node->ops->closedir(dir->handle);
     delete dir;
 }
 
-Result<usize> VFS::read(const VfsNode* node, const usize offset, const usize size, void* buffer, u32 flags) {
+Result<usize> VFS::read(const VfsNode* node, const usize offset, const usize size, void* buffer,
+                         VfsHandleContext* ctx, u32 flags) {
     if (!node) return Error::Inval;
 
     if (node->type == VfsNodeType::Fifo) {
@@ -215,10 +227,11 @@ Result<usize> VFS::read(const VfsNode* node, const usize offset, const usize siz
 
     if (!node->ops || !node->ops->read) return Error::NoSys;
 
-    return node->ops->read(node, offset, size, buffer);
+    return node->ops->read(node, offset, size, buffer, ctx);
 }
 
-Result<usize> VFS::write(VfsNode* node, const usize offset, const usize size, const void* buffer, u32 flags) {
+Result<usize> VFS::write(VfsNode* node, const usize offset, const usize size, const void* buffer,
+                          VfsHandleContext* ctx, u32 flags) {
     if (!node) return Error::Inval;
 
     if (node->type == VfsNodeType::Fifo) {
@@ -236,7 +249,7 @@ Result<usize> VFS::write(VfsNode* node, const usize offset, const usize size, co
     if (!node->ops || !node->ops->write) return Error::NoSys;
     if (is_read_only(node)) return Error::RoFs;
 
-    return node->ops->write(node, offset, size, buffer);
+    return node->ops->write(node, offset, size, buffer, ctx);
 }
 
 VoidResult VFS::create(const char* path, const mode_t mode) {

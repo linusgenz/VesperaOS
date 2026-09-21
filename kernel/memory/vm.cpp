@@ -111,7 +111,7 @@ namespace kernel::vm {
                 const auto* vfs_handle = static_cast<VfsHandle*>(he->resource);
                 if (!vfs_handle || !vfs_handle->node) return -EBADH;
 
-                CharFile* cf = DevFs::get_char_file(vfs_handle->node);
+                CharFile* cf = DevFs::get_char_file(vfs_handle->context);
                 const auto* entry = static_cast<DevfsEntry*>(vfs_handle->node->internal_data);
                 if (!cf || !entry || !entry->device || !entry->device->chardev) {
                     return -EBADH;

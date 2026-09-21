@@ -339,7 +339,7 @@ ElfLoader::FileData ElfLoader::load_file_from_vfs(const char* path, Realm* realm
     kernel::security::apply_exec_credentials(realm->cred, file);
 
     CHRONOS_CP_PHASE("elf", "read_start");
-    VFS::read(file, 0, size, data);
+    VFS::read(file, 0, size, data, nullptr);
     CHRONOS_CP_PHASE("elf", "read_end");
     VFS::close(file);
 

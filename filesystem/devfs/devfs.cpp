@@ -35,6 +35,7 @@
 #include <vespera_errno.h>
 
 #include "../drivers/ahci/ahci.h"
+#include "filesystem/vfs_handle.h"
 #include "uapi/vespera/dev/ioctl_usb_device.h"
 #include "vespera/log.h"
 #include "vespera/devices/usb_device_info.h"
@@ -77,11 +78,12 @@ VfsNodeType map_device_type(const DeviceType type) {
 
 void DevFs::init() {
     VirtualFilesystem::init("/dev", "dev");
-    outb(0x3F8, 'F');
     ops_.read = read;
     ops_.write = write;
     ops_.find = find;
-    ops_.close = close;
+    ops_.close_session = close_session;
+    ops_.open_session = open;
+    ops_.close = nullptr;
     ops_.opendir = open_dir;
     ops_.readdir = read_dir;
     ops_.closedir = close_dir;
@@ -148,7 +150,6 @@ int DevFs::register_device(KernelDevice* kd) {
     entry->device = kd;
     entry->node = node;
     entry->is_directory = false;
-    entry->cf = nullptr;
     entry->parent = current_dir;
 
     switch (node->type) {
@@ -215,10 +216,20 @@ int DevFs::unregister_device(KernelDevice* kd) {
     dir_data->files.erase(target_idx);
 
     if (auto* entry = static_cast<DevfsEntry*>(target_node->internal_data)) {
-        if (entry->cf && kd->chardev) {
-            kd->chardev->release(entry->cf);
-            entry->cf = nullptr;
-        }
+        // NOTE: no more entry->cf to release here -- CharFile* now lives
+        // per-session on each open()'s VfsHandleContext, not on this
+        // entry, so there's no single handle here to close.
+        // TODO(lucifer): this means unregister_device() no longer forces
+        // any still-open session's CharFile* closed on hot-unplug. Every
+        // open VfsHandle for this node keeps its own CharFile* alive
+        // until that handle's own close() runs; unregister_device() today
+        // only removes the node from the directory listing and frees this
+        // entry, so a session opened before unregister_device() can still
+        // call through kd->chardev afterward. Needs a real "device gone"
+        // signal (e.g. kd itself outliving this until refcounted to zero,
+        // or every open ioctl/read/write failing once kd is torn down)
+        // before real hot-unplug is safe -- out of scope for the
+        // multi-process-GPU-context fix this is part of.
         kernel::memory::free(entry);
     }
 
@@ -228,23 +239,24 @@ int DevFs::unregister_device(KernelDevice* kd) {
     return SUCCESS_CODE;
 }
 
-int DevFs::open(const VfsNode* node) {
-    if (!node) return -EINVAL;
+VoidResult DevFs::open(VfsNode* node, VfsHandleContext* ctx) {
+    if (!node || !ctx) return Error::Inval;
 
     auto* entry = static_cast<DevfsEntry*>(node->internal_data);
-    if (!entry || !entry->device) return -EINVAL;
+    if (!entry || !entry->device) return Error::Inval;
 
-    if (const KernelDevice* kd = entry->device; kd->chardev && !entry->cf) {
-        CharFile* cf = nullptr;
-        if (const int ret = kd->chardev->open(&cf); ret != 0) return ret;
+    if (const KernelDevice* kd = entry->device; kd->chardev) {
+        auto* cf = new CharFile();
+        if (const int ret = kd->chardev->open(&cf); ret != 0) return static_cast<Error>(-ret);
 
-        entry->cf = cf;
+        ctx->type_specific_data = cf;
     }
 
-    return SUCCESS_CODE;
+    return VoidResult::ok();
 }
 
-Result<usize> DevFs::read(const VfsNode* node, const usize offset, const usize size, void* buffer) {
+Result<usize> DevFs::read(const VfsNode* node, const usize offset, const usize size, void* buffer,
+                           VfsHandleContext* ctx) {
     if (!node) return Error::Inval;
 
     const auto* entry = static_cast<DevfsEntry*>(node->internal_data);
@@ -254,8 +266,9 @@ Result<usize> DevFs::read(const VfsNode* node, const usize offset, const usize s
 
     const KernelDevice* kd = entry->device;
     if (kd->chardev) {
-        if (!entry->cf) open(node);
-        const isize r = kd->chardev->read(entry->cf, buffer, size, offset);
+        if (!ctx || !ctx->type_specific_data) return Error::Inval;
+        auto* cf = static_cast<CharFile*>(ctx->type_specific_data);
+        const isize r = kd->chardev->read(cf, buffer, size, offset);
         if (r < 0) return Error::Io;
         return Result<usize>::ok(static_cast<usize>(r));
     }
@@ -271,7 +284,8 @@ Result<usize> DevFs::read(const VfsNode* node, const usize offset, const usize s
     return Error::Inval;
 }
 
-Result<usize> DevFs::write(VfsNode* node, const usize offset, const usize size, const void* buffer) {
+Result<usize> DevFs::write(VfsNode* node, const usize offset, const usize size, const void* buffer,
+                            VfsHandleContext* ctx) {
     if (!node) return Error::Inval;
 
     const auto* entry = static_cast<DevfsEntry*>(node->internal_data);
@@ -283,10 +297,9 @@ Result<usize> DevFs::write(VfsNode* node, const usize offset, const usize size, 
 
     // CharDevice
     if (kd->chardev) {
-        if (!entry->cf) {
-            if (const int res = open(node); res < 0) return Error::Inval; // TODO adapt chardevs
-        }
-        const isize r = kd->chardev->write(entry->cf, buffer, size);
+        if (!ctx || !ctx->type_specific_data) return Error::Inval;
+        auto* cf = static_cast<CharFile*>(ctx->type_specific_data);
+        const isize r = kd->chardev->write(cf, buffer, size);
         if (r < 0) return Error::Io;
         return Result<usize>::ok(static_cast<usize>(r));
     }
@@ -305,7 +318,7 @@ Result<usize> DevFs::write(VfsNode* node, const usize offset, const usize size, 
     return Error::Inval;
 }
 
-isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
+isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg, VfsHandleContext* ctx) {
     if (!node) return -EINVAL;
 
     const auto* entry = static_cast<DevfsEntry*>(node->internal_data);
@@ -391,13 +404,10 @@ isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
     }
 
     if (kd->chardev) {
-        if (!entry->cf) {
-            if (const int res = open(node); res < 0) {
-                return res;
-            }
-        }
+        if (!ctx || !ctx->type_specific_data) return -EINVAL;
+        auto* cf = static_cast<CharFile*>(ctx->type_specific_data);
 
-        return kd->chardev->ioctl(entry->cf, cmd, arg);
+        return kd->chardev->ioctl(cf, cmd, arg);
     }
 
     if (kd->block) {
@@ -445,17 +455,21 @@ isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
     return -EINVAL;
 }
 
-void DevFs::close(VfsNode* node) {
-    if (!node) return;
+void DevFs::close_session(VfsNode* node, VfsHandleContext* ctx) {
+    if (!node || !ctx) return;
 
     auto* entry = static_cast<DevfsEntry*>(node->internal_data);
-    if (!entry || !entry->device || !entry->cf) return;
+    if (!entry || !entry->device || !ctx->type_specific_data) return;
 
     SpinlockGuard guard(lock_);
 
-    if (const KernelDevice* kd = entry->device; kd->chardev) kd->chardev->release(entry->cf);
+    auto* cf = static_cast<CharFile*>(ctx->type_specific_data);
+    if (const KernelDevice* kd = entry->device; kd->chardev) kd->chardev->release(cf);
 
-    entry->cf = nullptr;
+    // Releases *this* session's CharFile* -- other sessions on the same
+    // device path have their own in their own ctx
+    delete cf;
+    ctx->type_specific_data = nullptr;
 }
 
 namespace {
@@ -502,7 +516,7 @@ VoidResult DevFs::stat(const VfsNode* node, struct stat* out) {
     return VoidResult::ok();
 }
 
-int DevFs::poll(const VfsNode* node) {
+int DevFs::poll(const VfsNode* node, VfsHandleContext* ctx) {
     if (!node) return -EINVAL;
 
     const auto* entry = static_cast<DevfsEntry*>(node->internal_data);
@@ -511,10 +525,9 @@ int DevFs::poll(const VfsNode* node) {
     const KernelDevice* kd = entry->device;
 
     if (kd->chardev) {
-        if (!entry->cf) {
-            if (const int res = open(node); res < 0) return res;
-        }
-        return kd->chardev->poll(entry->cf);
+        if (!ctx || !ctx->type_specific_data) return -EINVAL;
+        auto* cf = static_cast<CharFile*>(ctx->type_specific_data);
+        return kd->chardev->poll(cf);
     }
 
     if (kd->block) return POLLIN | POLLOUT;
@@ -522,13 +535,7 @@ int DevFs::poll(const VfsNode* node) {
     return POLLERR;
 }
 
-CharFile* DevFs::get_char_file(const VfsNode* node) {
-    if (!node || node->type != VfsNodeType::CharDevice) return nullptr;
-
-    auto* entry = static_cast<DevfsEntry*>(node->internal_data);
-    if (!entry || !entry->device || !entry->device->chardev) return nullptr;
-
-    SpinlockGuard guard(lock_);
-
-    return entry->cf;
+CharFile* DevFs::get_char_file(VfsHandleContext* ctx) {
+    if (!ctx) return nullptr;
+    return static_cast<CharFile*>(ctx->type_specific_data);
 }

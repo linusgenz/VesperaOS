@@ -188,7 +188,7 @@ static void initialize_user_space_interfaces() {
         const usize font_size = font_node->size;
         if (auto* font_data = static_cast<u8*>(kernel::memory::malloc(font_size))) {
             Log::debug("font data: %p", font_data);
-            Result<usize> i = VFS::read(font_node, 0, font_size, font_data);
+            Result<usize> i = VFS::read(font_node, 0, font_size, font_data, nullptr);
             Log::debug("read: %lu", i);
             VFS::close(font_node);
 

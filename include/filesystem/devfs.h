@@ -32,9 +32,10 @@
 
 struct CharFile;
 class CharDevice;
+struct VfsNode;
+struct VfsHandleContext;
 
 struct DevfsEntry : VirtualFsEntry<KernelDevice> {
-    CharFile* cf;
     u32 rdev_minor = 0;  // assigned once at register_device() time, reused by stat()
 };
 
@@ -48,15 +49,16 @@ class DevFs : public VirtualFilesystem<KernelDevice, DevfsEntry> {
     static int register_device(KernelDevice* kd);
     static int unregister_device(KernelDevice* kd);
 
-    static int open(const VfsNode* node);
+    static VoidResult open(VfsNode* node, VfsHandleContext* ctx);
     // VFS operations
-    static Result<usize> read(const VfsNode* node, usize offset, usize size, void* buffer);
-    static Result<usize> write(VfsNode* node, usize offset, usize size, const void* buffer);
-    static isize ioctl(const VfsNode* node, u32 cmd, void* arg);
-    static void close(VfsNode* node);
-    static int poll(const VfsNode* node);
+    static Result<usize> read(const VfsNode* node, usize offset, usize size, void* buffer, VfsHandleContext* ctx);
+    static Result<usize> write(VfsNode* node, usize offset, usize size, const void* buffer, VfsHandleContext* ctx);
+    static isize ioctl(const VfsNode* node, u32 cmd, void* arg, VfsHandleContext* ctx);
 
-    static CharFile* get_char_file(const VfsNode* node);
+    static void close_session(VfsNode* node, VfsHandleContext* ctx);
+    static int poll(const VfsNode* node, VfsHandleContext* ctx);
+
+    static CharFile* get_char_file(VfsHandleContext* ctx);
 
     static VoidResult stat(const VfsNode* node, struct stat* out);
 

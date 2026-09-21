@@ -67,6 +67,7 @@ inline constexpr int ENOTEMPTY    = 39;
 inline constexpr int ELOOP        = 40;
 
 inline constexpr int ENOMSG    = 42;
+inline constexpr int ETIME     = 62;
 inline constexpr int EOVERFLOW = 75;
 inline constexpr int EILSEQ    = 84;
 

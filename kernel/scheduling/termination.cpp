@@ -38,7 +38,6 @@
 #include "drivers/serial/serial.h"
 
 static void finish_terminate_unit(Unit* unit, i32 exit_code) {
-    serial::write("enqing1\n", 8);
     unit->exit_code = exit_code;
     unit->state = UnitState::Terminated;
 
@@ -46,22 +45,16 @@ static void finish_terminate_unit(Unit* unit, i32 exit_code) {
         unit->cpu_time_ns += kernel::time::get_uptime_ns() - unit->run_start_ns;
         unit->run_start_ns = 0;
     }
-    serial::write("enqing2\n", 8);
     const u8 cpu_id = unit->cpu_id;
     auto* cpu = kernel::scheduling::cpu_scheduler::get_cpu_data(cpu_id);
 
     {
-        serial::write("enqing3\n", 8);
         SpinlockGuard guard(cpu->lock);
-        serial::write("enqing4\n", 8);
         cpu->ready_queue.remove(unit);
-        serial::write("enqing5\n", 8);
         cpu->blocked_queue.remove(unit);
     }
 
-    serial::write("enqing\n", 7);
     cpu->reaper.enqueue(unit);
-    serial::write("enq in reaper\n", 14);
 }
 
 static void do_terminate_unit(Unit* unit, Signal fault_sig) {
@@ -108,7 +101,6 @@ namespace kernel::scheduling {
         }
 
         realm->wait_queue.wake_all();
-        realm->unit_count = 0;
 
         yield();
         __builtin_unreachable();
@@ -159,10 +151,8 @@ namespace kernel::scheduling {
             do_terminate_unit(u, status);
             u = next;
         }
-        realm->unit_list = nullptr;
 
         realm->wait_queue.wake_all();
-        realm->unit_count = 0;
 
         yield();
         __builtin_unreachable();
@@ -191,7 +181,6 @@ namespace kernel::scheduling {
         finalize_realm_exit(realm, static_cast<i32>(sig) & 0x7f);
 
         realm->wait_queue.wake_all();
-        realm->unit_count = 0;
 
         return SUCCESS_CODE;
     }

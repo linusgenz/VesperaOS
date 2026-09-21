@@ -40,7 +40,7 @@ namespace syscalls::internal {
             case HANDLE_TYPE_DEVICE: {
                 const auto* vh = rh.resource_as<VfsHandle>();
                 if (!vh || !vh->node || !vh->node->ops || !vh->node->ops->ioctl) return -ENOTTY;
-                return vh->node->ops->ioctl(vh->node, req, arg);
+                return vh->node->ops->ioctl(vh->node, req, arg, vh->context);
             }
             case HANDLE_TYPE_FILE:
                 return -ENOTTY;

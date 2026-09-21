@@ -37,6 +37,8 @@ void RealmFs::init() {
     ops_.read = read;
     ops_.write = write;
     ops_.find = find;
+    ops_.open_session = nullptr,
+    ops_.close_session = nullptr,
     ops_.close = close;
     ops_.opendir = open_dir;
     ops_.readdir = read_dir;
@@ -139,7 +141,7 @@ VoidResult RealmFs::unregister_unit(const u64 unit_id) {
     return Error::NoEnt;
 }
 
-Result<usize> RealmFs::read(const VfsNode* node, usize offset, usize size, void* buffer) {
+Result<usize> RealmFs::read(const VfsNode* node, usize offset, usize size, void* buffer, VfsHandleContext* ctx) {
     if (!node) return Error::Inval;
 
     const auto* entry = static_cast<RealmFsEntry*>(node->internal_data);
@@ -152,7 +154,7 @@ Result<usize> RealmFs::read(const VfsNode* node, usize offset, usize size, void*
     return Error::NFile;
 }
 
-Result<usize> RealmFs::write(VfsNode* node, usize offset, usize size, const void* buffer) {
+Result<usize> RealmFs::write(VfsNode* node, usize offset, usize size, const void* buffer, VfsHandleContext* ctx) {
     if (!node) return Error::Inval;
 
     const auto* entry = static_cast<RealmFsEntry*>(node->internal_data);
@@ -165,7 +167,7 @@ Result<usize> RealmFs::write(VfsNode* node, usize offset, usize size, const void
     return Error::Unsupported;
 }
 
-isize RealmFs::ioctl(const VfsNode* node, u32 cmd, void* arg) {
+isize RealmFs::ioctl(const VfsNode* node, u32 cmd, void* arg, VfsHandleContext* ctx) {
     if (!node) return -EINVAL;
 
     const auto* entry = static_cast<RealmFsEntry*>(node->internal_data);
