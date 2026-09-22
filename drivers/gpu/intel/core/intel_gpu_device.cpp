@@ -320,7 +320,7 @@ namespace gpu::intel::core {
                 if (decoded.bits.rcs.master_error) {
                     Log::warning("intel-gpu: GT0 IIR RCS master_error pending");
                     self->rcs_->debug_dump_error_regs("master error");
-                    self->rcs_->dump_error_state("master error");
+                    //self->rcs_->dump_error_state("master error");
                     self->rcs_->mark_banned();
                 }
                 if (decoded.bits.rcs.page_fault) {
@@ -430,7 +430,7 @@ namespace gpu::intel::core {
         }
 
         auto* cf = new CharFile{};
-        cf->driver_private = new LucFile(*this);
+        cf->driver_private = new LucFile(*this, next_luc_file_id_++);
 
         *out_cf = cf;
         return 0;

@@ -124,11 +124,6 @@ namespace gpu::intel::rcs {
             return false;
         }
 
-        if (!lrc_alloc_and_init(core::LRC_SIZE_RCS, RCS_SW_CONTEXT_ID)) {
-            Log::info("intel-rcs: LRC allocation/init failed");
-            return false;
-        }
-
        set_submission_mode(core::SubmissionMode::Execlist);
 
        Log::info("intel-rcs: ring + HWSP + LRC initialized (Execlist mode)");

@@ -30,6 +30,7 @@
 #include "intel_engine.h"
 #include "intel_gem_backing.h"
 #include "intel_gpu_device.h"
+#include "../regs/lrc_layout.h"
 
 namespace gpu::intel::core {
     bool GemObject::dec_ref() {
@@ -68,6 +69,15 @@ namespace gpu::intel::core {
             if (obj != nullptr) {
                 obj->dec_ref();
                 obj = nullptr;
+            }
+        }
+
+        for (usize i = 0; i < LUCIFER_NUM_ENGINE_CLASSES; i++) {
+            const auto& ctx = engine_contexts_[i];
+            if (ctx.sw_context_id == 0) continue;
+
+            if (const IntelEngine* engine = device_.engine_for_class(i)) {
+                engine->lrc_free(ctx);
             }
         }
 
@@ -182,7 +192,7 @@ namespace gpu::intel::core {
         return true;
     }
 
-    bool LucFile::gem_madvise(const lucifer_gem_madvise& args, bool* out_retained) {
+    bool LucFile::gem_madvise(const lucifer_gem_madvise& args, bool* out_retained) const {
         GemObject* obj = lookup_gem(args.handle);
         if (!obj || obj->is_userptr) {
             Log::log_dbc("intel-gpu: GEM_MADVISE failed (bad handle)");
@@ -290,6 +300,40 @@ namespace gpu::intel::core {
         return vm->insert_range(make_gfx(args.addr), phys_start, args.range, caching, writable);
     }
 
+    EngineContext* LucFile::context_for_engine(IntelEngine* engine, const u32 engine_class) {
+        if (!engine || engine_class >= LUCIFER_NUM_ENGINE_CLASSES) {
+            return nullptr;
+        }
+
+        EngineContext& ctx = engine_contexts_[engine_class];
+        if (engine_contexts_initialized_[engine_class]) {
+            return &ctx;
+        }
+
+        const u32 sw_context_id = (file_id_ << 4) | engine_class;
+
+        // TODO(lucifer): LRC_SIZE_RCS vs LRC_SIZE_SMALL_ENGINE should come
+        // from the engine itself (e.g. a virtual lrc_size_bytes() on
+        // IntelEngine) once BCS/VCS/VECS are all wired through here --
+        // hardcoding RCS's size for every class is a bring-up shortcut,
+        // not something safe to leave once engine_class != RENDER is real.
+        constexpr usize lrc_size_bytes = LRC_SIZE_RCS;
+
+        if (!engine->ensure_execlist_mode_enabled()) {
+            Log::log_dbc("intel-gpu: context_for_engine failed (ensure_execlist_mode_enabled, engine_class=%u)",
+                         engine_class);
+            return nullptr;
+        }
+
+        if (!engine->lrc_alloc_and_init(ctx, lrc_size_bytes, sw_context_id)) {
+            Log::log_dbc("intel-gpu: context_for_engine failed (lrc_alloc_and_init, engine_class=%u)", engine_class);
+            return nullptr;
+        }
+
+        engine_contexts_initialized_[engine_class] = true;
+        return &ctx;
+    }
+
     bool LucFile::exec_submit(lucifer_exec& args) {
         IntelPpgtt* vm = lookup_vm(args.vm_id);
         if (!vm) {
@@ -300,6 +344,20 @@ namespace gpu::intel::core {
         IntelEngine* engine = device_.engine_for_class(args.engine);
         if (!engine) {
             Log::log_dbc("intel-gpu: EXEC failed (bad or unregistered engine=%u)", args.engine);
+            return false;
+        }
+
+        // TODO(lucifer): this is where the locking mentioned in
+        // intel_luc_file.h's class comment actually has to land once two
+        // processes can both reach this point concurrently for the same
+        // `engine` -- context_for_engine()'s lazy-init check-then-act and
+        // dispatch_batch()'s ring/LRC submission below both assume nothing
+        // else touches this engine between here and submit_ring() returning.
+        // A per-engine lock in IntelGpuDevice (not per-LucFile -- the
+        // exclusion needed is across files sharing one engine) closes this.
+        EngineContext* ctx = context_for_engine(engine, args.engine);
+        if (!ctx) {
+            Log::log_dbc("intel-gpu: EXEC failed (context_for_engine)");
             return false;
         }
 
@@ -348,10 +406,10 @@ namespace gpu::intel::core {
 
         Log::log_dbc("exec: userspace batch_addr=0x%llx (from ioctl)", args.batch_addr);
 
-        vm->dump_batch_buffer(make_gfx(args.batch_addr), args.batch_len);
+        //vm->dump_batch_buffer(make_gfx(args.batch_addr), args.batch_len);
 
         u32 seqno = 0;
-        if (!engine->dispatch_batch(make_gfx(args.batch_addr), args.batch_len, &seqno, vm)) {
+        if (!engine->dispatch_batch(make_gfx(args.batch_addr), args.batch_len, &seqno, vm, *ctx)) {
             Log::log_dbc("intel-gpu: EXEC failed (dispatch_batch)");
             return false;
         }
@@ -411,11 +469,13 @@ namespace gpu::intel::core {
     /// touch hardware: either force-signaled (SYNCOBJ_SIGNAL / just-created
     /// with DRM_SYNCOBJ_CREATE_SIGNALED), or its bound fence's seqno has
     /// already retired on its engine.
-    bool LucFile::syncobj_is_signaled_now(const LucFile::LucSyncObj& obj, IntelEngine* engine) {
+    bool LucFile::syncobj_is_signaled_now(const LucSyncObj& obj, IntelEngine* engine) {
         if (!obj.has_fence) {
             return obj.pre_signaled;
         }
-        return engine && *engine->seqno_ptr_for_read() >= static_cast<u32>(obj.target_seqno);
+
+        EngineContext* ctx = engine ? context_for_engine(engine, obj.engine) : nullptr;
+        return ctx && *engine->seqno_ptr_for_read(*ctx) >= static_cast<u32>(obj.target_seqno);
     }
 
     int LucFile::syncobj_wait(
@@ -748,18 +808,8 @@ namespace gpu::intel::core {
             // this struct today.
             const auto* handles = reinterpret_cast<const u32*>(wait->handles);
 
-
-            auto res = syncobj_wait(handles, wait->count_handles, wait->flags,
-                                10000000, &wait->first_signaled);
-
-            if (res == -ETIME) {
-                IntelEngine* engine = device_.engine_for_class(0);
-                if (engine) {
-                    engine->dump_error_state("sync timeout");
-                }
-            }
-
-            return res;
+            return syncobj_wait(handles, wait->count_handles, wait->flags,
+                                wait->deadline_nsec, &wait->first_signaled);
         }
 
         if (request == DRM_IOCTL_SYNCOBJ_RESET) {
@@ -911,4 +961,3 @@ namespace gpu::intel::core {
         return 0;
     }
 } // namespace gpu::intel::core
-

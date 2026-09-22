@@ -35,8 +35,8 @@
 #include "mi_commands.h"
 
 namespace gpu::intel::core {
-    IntelEngine::IntelEngine(EngineType type, IntelGpuDevice& device, u32 engine_mmio_offset, ForceWakeDomain fw_domain)
-        : type_(type), device_(device), engine_mmio_offset_(engine_mmio_offset), fw_domain_(fw_domain), ppgtt_(ggtt()) {
+    IntelEngine::IntelEngine(EngineType type, IntelGpuDevice& device, u32 engine_mmio_offset, const ForceWakeDomain& fw_domain)
+        : type_(type), device_(device), engine_mmio_offset_(engine_mmio_offset), fw_domain_(fw_domain) {
     }
 
     bool IntelEngine::engine_reset(u32 timeout_us) const {
@@ -154,7 +154,7 @@ namespace gpu::intel::core {
         engine_reg_write(ENGINE_RING_TAIL_OFF, tail);
     }
 
-    void IntelEngine::submit_ring() {
+    void IntelEngine::submit_ring(EngineContext& ctx) {
         // TAIL must be 8-byte aligned (bits [2:0] = MBZ) in both modes
         while (ring_tail_ & 0x7) {
             ring_write(MI_NOOP);
@@ -171,25 +171,25 @@ namespace gpu::intel::core {
             }
 
             case SubmissionMode::Execlist: {
-                if (virt_null(lrc_cpu_addr_)) {
+                if (virt_null(ctx.lrc.cpu_addr)) {
                     Log::error(
-                        "intel-%s: submit_ring() called in Execlist mode with no LRC allocated",
+                        "intel-%s: submit_ring() called in Execlist mode with no LRC allocated for this context",
                         engine_type_to_string(type_)
                     );
                     return;
                 }
 
-                lrc_update_tail(ring_tail_);
-                lrc_submit();
+                lrc_update_tail(ctx, ring_tail_);
+                lrc_submit(ctx);
                 break;
             }
         }
     }
 
-    void IntelEngine::lrc_update_tail(u32 tail_bytes) const {
+    void IntelEngine::lrc_update_tail(const EngineContext& ctx, u32 tail_bytes) const {
         RING_BUFFER_TAIL tail{};
         tail.set_tail_offset_bytes(tail_bytes);
-        lrc_write_ring_field(LRC_DW_RING_TAIL, ENGINE_RING_TAIL_OFF, tail.raw);
+        lrc_write_ring_field(ctx, LRC_DW_RING_TAIL, ENGINE_RING_TAIL_OFF, tail.raw);
     }
 
     bool IntelEngine::ring_wait_space(u32 required_bytes, u32 timeout_us) const {
@@ -233,17 +233,17 @@ namespace gpu::intel::core {
         return sequence_number_;
     }
 
-    const u32* IntelEngine::seqno_ptr_for_read() const {
+    const u32* IntelEngine::seqno_ptr_for_read(const EngineContext& ctx) const {
         if (submission_mode_ == core::SubmissionMode::Execlist) {
-            auto* pphwsp = virt_as<u32>(lrc_cpu_addr_);
+            auto* pphwsp = virt_as<u32>(ctx.lrc.cpu_addr);
             return &pphwsp[PPHWSP_SEQNO_DWORD_INDEX];
         }
         auto* hwsp = virt_as<u32>(hwsp_cpu_addr_);
         return &hwsp[HWSP_SEQNO_OFFSET_DWORDS];
     }
 
-    bool IntelEngine::seqno_wait(u32 target_seqno, u32 timeout_us, AtomicFlag& completion_flag) {
-        const u32* seqno_ptr = seqno_ptr_for_read();
+    bool IntelEngine::seqno_wait(u32 target_seqno, u32 timeout_us, AtomicFlag& completion_flag, const EngineContext& ctx) {
+        const u32* seqno_ptr = seqno_ptr_for_read(ctx);
         asm volatile("lfence" ::: "memory");
         if (static_cast<i32>(*seqno_ptr - target_seqno) >= 0) return true;
 
@@ -270,8 +270,9 @@ namespace gpu::intel::core {
         }
     }
 
-    bool IntelEngine::seqno_wait_blocking(const u32 target_seqno, const i64 timeout_ns, WaitQueue& waiters) const {
-        const u32* seqno_ptr = seqno_ptr_for_read();
+    bool IntelEngine::seqno_wait_blocking(const u32 target_seqno, const i64 timeout_ns, WaitQueue& waiters,
+                                           const EngineContext& ctx) const {
+        const u32* seqno_ptr = seqno_ptr_for_read(ctx);
         asm volatile("lfence" ::: "memory");
         if (static_cast<i32>(*seqno_ptr - target_seqno) >= 0) return true;
 
@@ -495,14 +496,15 @@ namespace gpu::intel::core {
         return ok;
     }
 
-    bool IntelEngine::dispatch_batch(const gfx_addr_t batch_addr, const u64 batch_len, u32* out_seqno, const IntelPpgtt* vm) {
+    bool IntelEngine::dispatch_batch(const gfx_addr_t batch_addr, const u64 batch_len, u32* out_seqno,
+                                      const IntelPpgtt* vm, EngineContext& ctx) {
         (void)batch_len;
 
         if (!out_seqno) {
             return false;
         }
 
-        auto* lrc_base = virt_as<u32>(lrc_cpu_addr_);
+        auto* lrc_base = virt_as<u32>(ctx.lrc.cpu_addr);
         u32* lrc_ring = lrc_base + (LRC_RING_CONTEXT_START / sizeof(u32));
         lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_PDP0_LDW_OFF, static_cast<u32>(vm->pml4_phys_addr_bytes()));
         lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_PDP0_UDW_OFF, static_cast<u32>(vm->pml4_phys_addr_bytes() >> 32));
@@ -514,48 +516,66 @@ namespace gpu::intel::core {
 
          emit_flush(*out_seqno);
 
-         submit_ring();
+         submit_ring(ctx);
 
-        Log::log_dbc("dispatch_batch: submitted seqno=%u mode=%s",
-                     *out_seqno, submission_mode_ == SubmissionMode::Execlist ? "execlist" : "legacy");
+        Log::log_dbc("dispatch_batch: submitted seqno=%u mode=%s ctx=%u",
+                     *out_seqno, submission_mode_ == SubmissionMode::Execlist ? "execlist" : "legacy",
+                     ctx.sw_context_id);
 
         return true;
     }
 
-    void IntelEngine::lrc_write_ring_field(usize dword_offset, u32 engine_relative_mmio_off, u32 value) const {
-        auto* lrc = virt_as<u32>(lrc_cpu_addr_);
+    void IntelEngine::lrc_write_ring_field(const EngineContext& ctx, usize dword_offset,
+                                            u32 engine_relative_mmio_off, u32 value) const {
+        auto* lrc = virt_as<u32>(ctx.lrc.cpu_addr);
         const usize base = LRC_RING_CONTEXT_START / sizeof(u32);
 
         lrc[base + dword_offset] = engine_mmio_offset_ + engine_relative_mmio_off;
         lrc[base + dword_offset + 1] = value;
     }
 
-    bool IntelEngine::lrc_alloc_and_init(const usize lrc_size_bytes, const u32 sw_context_id) {
-        lrc_sw_context_id_ = sw_context_id;
-
-        if (!ppgtt_.init()) {
-            Log::error("intel-%s: PPGTT init failed", engine_type_to_string(type_));
-            return false;
+    bool IntelEngine::ensure_execlist_mode_enabled() {
+        if (execlist_mode_enabled_) {
+            return true;
         }
 
-        const u32 lrc_pages = static_cast<u32>(lrc_size_bytes / LRC_PAGE_SIZE);
-        const auto alloc = ggtt().alloc_persistent(lrc_pages);
-        lrc_cpu_addr_ = alloc.cpu_addr;
-        lrc_gfx_addr_ = alloc.gfx_addr;
+        if (!engine_whitelist_apply()) {
+            return false;
+        }
+        if (!engine_whitelist_verify()) {
+            Log::error("intel-%s: FORCE_TO_NONPRIV readback mismatch - whitelist may not be active",
+                       engine_type_to_string(type_));
+        }
 
-        if (virt_null(lrc_cpu_addr_)) {
+        GFX_MODE mode{};
+        mode.set_execlist_enable(true);
+        engine_reg_write(ENGINE_GFX_MODE_OFF, mode);
+
+        execlist_mode_enabled_ = true;
+        return true;
+    }
+
+    bool IntelEngine::lrc_alloc_and_init(EngineContext& ctx, const usize lrc_size_bytes, const u32 sw_context_id) const {
+        ctx.sw_context_id = sw_context_id;
+
+        const u32 lrc_pages = static_cast<u32>(lrc_size_bytes / LRC_PAGE_SIZE);
+        const auto alloc = ggtt().alloc_transient(lrc_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        ctx.lrc.cpu_addr = alloc.cpu_addr;
+        ctx.lrc.gfx_addr = alloc.gfx_addr;
+
+        if (virt_null(ctx.lrc.cpu_addr)) {
             Log::error("intel-%s: LRC allocation failed (%u pages)", engine_type_to_string(type_), lrc_pages);
             return false;
         }
 
-        memset(virt_ptr(lrc_cpu_addr_), 0, lrc_size_bytes);
+        memset(virt_ptr(ctx.lrc.cpu_addr), 0, lrc_size_bytes);
 
         Log::log_dbc(
-            "intel-%s: LRC CPU=%p GFX=0x%llx size=%u pages", engine_type_to_string(type_),
-            virt_ptr(lrc_cpu_addr_), gfx_raw(lrc_gfx_addr_), lrc_pages
+            "intel-%s: LRC CPU=%p GFX=0x%llx size=%u pages ctx=%u", engine_type_to_string(type_),
+            virt_ptr(ctx.lrc.cpu_addr), gfx_raw(ctx.lrc.gfx_addr), lrc_pages, sw_context_id
         );
 
-        auto* lrc_base = virt_as<u32>(lrc_cpu_addr_);
+        auto* lrc_base = virt_as<u32>(ctx.lrc.cpu_addr);
         u32* lrc_ring = lrc_base + (LRC_RING_CONTEXT_START / sizeof(u32));
 
         // Only RCS has a context layout table defined so far (BCS/VCS/VECS
@@ -588,29 +608,19 @@ namespace gpu::intel::core {
         lrc_set_reg(lrc_ring, engine_mmio_offset_ + 0x003C, ctl.raw);
         lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_RING_CTL_OFF, ctl.raw); // RING_CTL
 
-        const u64 pml4_addr = ppgtt_.pml4_phys_addr_bytes();
-        Log::debug("PML 4 ADDR: %llx", pml4_addr);
-
-        lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_PDP0_LDW_OFF, static_cast<u32>(pml4_addr));
-        lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_PDP0_UDW_OFF, static_cast<u32>(pml4_addr >> 32));
+        // NOTE: PDP0 used to be seeded here from the engine-owned ppgtt_.
+        // It's left at 0 now -- dispatch_batch() overwrites PDP0/PDP0_UDW
+        // on every submission with the real per-process PPGTT passed in by
+        // the caller, so seeding it here with anything would just be a
+        // value that gets clobbered before the first real batch runs.
 
         asm volatile("mfence" ::: "memory");
 
-        if (!engine_whitelist_apply()) {
-            return false;
-        }
-        if (!engine_whitelist_verify()) {
-            Log::error("intel-%s: FORCE_TO_NONPRIV readback mismatch - whitelist may not be active",
-                       engine_type_to_string(type_));
-        }
-
-        GFX_MODE mode{};
-        mode.set_execlist_enable(true);
-        engine_reg_write(ENGINE_GFX_MODE_OFF, mode);
-
-        kernel::time::sleep_ms(10);
-
         return true;
+    }
+
+    void IntelEngine::lrc_free(const EngineContext& ctx) const {
+        ggtt().free_transient(ctx.lrc, ctx.lrc_pages);
     }
 
     void IntelEngine::print_execlist_status() const {
@@ -654,15 +664,15 @@ namespace gpu::intel::core {
         }
     }
 
-    void IntelEngine::lrc_submit() const {
+    void IntelEngine::lrc_submit(const EngineContext& ctx) const {
         CONTEXT_DESCRIPTOR element0{};
         element0.valid = 1;
         element0.force_restore = 1;
         element0.addressing_mode = CONTEXT_DESCRIPTOR::LEGACY_64BIT_PPGTT;
         element0.privilege_access = 1;
         element0.fault_handling = CONTEXT_DESCRIPTOR::FAULT_AND_HANG;
-        element0.set_lrca_address_bytes(gfx_raw(lrc_gfx_addr_));
-        element0.sw_context_id = lrc_sw_context_id_;
+        element0.set_lrca_address_bytes(gfx_raw(ctx.lrc.gfx_addr));
+        element0.sw_context_id = ctx.sw_context_id;
 
         CONTEXT_DESCRIPTOR element1{}; // left invalid - single-context submission
 
@@ -690,7 +700,7 @@ namespace gpu::intel::core {
         }
 
 
-        log_lrc_context_image();
+        log_lrc_context_image(ctx);
 
         engine_reg_write_raw(ENGINE_EXECLIST_SUBMITPORT_OFF, static_cast<u32>(element1.raw >> 32));
         engine_reg_write_raw(ENGINE_EXECLIST_SUBMITPORT_OFF, static_cast<u32>(element1.raw));
@@ -721,11 +731,11 @@ namespace gpu::intel::core {
         }
     }
 
-    void IntelEngine::log_lrc_context_image() const {
-        const u8* lrc_bytes = static_cast<const u8*>(lrc_cpu_addr_.ptr) + 4096;
+    void IntelEngine::log_lrc_context_image(const EngineContext& ctx) const {
+        const u8* lrc_bytes = static_cast<const u8*>(ctx.lrc.cpu_addr.ptr) + 4096;
         const u32* lrc_dwords = reinterpret_cast<const u32*>(lrc_bytes);
 
-        Log::log_dbc("--- LRC CONTEXT IMAGE HEX DUMP (Offset 0x1000 / +4096) ---");
+        Log::log_dbc("--- LRC CONTEXT IMAGE HEX DUMP (Offset 0x1000 / +4096) ctx=%u ---", ctx.sw_context_id);
 
         for (size_t i = 0; i < 300; i += 4) {
             const u32 byte_off = i * 4;
@@ -738,13 +748,13 @@ namespace gpu::intel::core {
         }
         Log::log_dbc("-------------------------------------------------------");
 
-        log_pphwsp();
+        log_pphwsp(ctx);
     }
 
-    void IntelEngine::log_pphwsp() const {
-        Log::log_dbc("--- PPHWSP HEX DUMP ---");
+    void IntelEngine::log_pphwsp(const EngineContext& ctx) const {
+        Log::log_dbc("--- PPHWSP HEX DUMP ctx=%u ---", ctx.sw_context_id);
 
-        const u8* hwsp_bytes = static_cast<const u8*>(lrc_cpu_addr_.ptr);
+        const u8* hwsp_bytes = static_cast<const u8*>(ctx.lrc.cpu_addr.ptr);
         const u32* hwsp_dwords = reinterpret_cast<const u32*>(hwsp_bytes);
 
         for (size_t i = 0; i < 60; i += 4) {
@@ -759,7 +769,7 @@ namespace gpu::intel::core {
         Log::log_dbc("-------------------------------------------------------");
     }
 
-    void IntelEngine::dump_error_state(const char* label) const {
+    void IntelEngine::dump_error_state(const char* label, const EngineContext& ctx) const {
         Log::log_dbc("=== Engine Error State Dump [%s] ===", label);
 
         // --- Where is the command streamer actually executing? ---
@@ -843,16 +853,16 @@ namespace gpu::intel::core {
 
         // --- HWSTAM / HWS_PGA, to double check hwsp_gfx_addr_ actually
         //     matches what the CS itself has programmed. If these don't
-        //     match hwsp_gfx_addr_/lrc_gfx_addr_, we've found an address
+        //     match hwsp_gfx_addr_/lrc_gfx_addr, we've found an address
         //     mismatch bug directly. ---
         const u32 hws_pga = engine_reg_read_raw(ENGINE_HWS_PGA_OFF);
         Log::log_dbc("  RING_HWS_PGA: 0x%08x  (expected lrc/hwsp gfx addr: 0x%08x)",
                      hws_pga,
                      submission_mode_ == SubmissionMode::Execlist
-                         ? static_cast<u32>(gfx_raw(lrc_gfx_addr_))
+                         ? static_cast<u32>(gfx_raw(ctx.lrc.gfx_addr))
                          : static_cast<u32>(gfx_raw(hwsp_gfx_addr_)));
         if (hws_pga != (submission_mode_ == SubmissionMode::Execlist
-                            ? static_cast<u32>(gfx_raw(lrc_gfx_addr_))
+                            ? static_cast<u32>(gfx_raw(ctx.lrc.gfx_addr))
                             : static_cast<u32>(gfx_raw(hwsp_gfx_addr_)))) {
         }
 
@@ -863,15 +873,15 @@ namespace gpu::intel::core {
         // --- EXECLIST_STATUS, reusing the existing decoder. ---
         print_execlist_status();
 
-        log_pphwsp();
+        log_pphwsp(ctx);
 
         // --- Dump BOTH CSB slots, not just the one Current/Write Pointer
         //     happens to point at right now -- we've been burned once
         //     already by only looking at slot 0 when the entry we wanted
         //     was actually slot 1 (idle->active switch was slot 0, our
         //     context's own completion was slot 1). ---
-        if (submission_mode_ == SubmissionMode::Execlist && lrc_cpu_addr_.ptr) {
-            auto* pphwsp = virt_as<u32>(lrc_cpu_addr_);
+        if (submission_mode_ == SubmissionMode::Execlist && ctx.lrc.cpu_addr.ptr) {
+            auto* pphwsp = virt_as<u32>(ctx.lrc.cpu_addr);
             Log::log_dbc("  --- CSB dump (all %u entries) ---", CSB_NUM_ENTRIES);
             for (u32 i = 0; i < CSB_NUM_ENTRIES; ++i) {
                 const u32 ctx_id = pphwsp[i * CSB_ENTRY_DWORDS + 0];
@@ -884,7 +894,7 @@ namespace gpu::intel::core {
 
         // --- Seqno as this driver currently sees it. ---
         Log::log_dbc("  seqno_ptr_for_read() = %u  (sequence_number_ tracked = %u)",
-                     *seqno_ptr_for_read(), sequence_number_);
+                     *seqno_ptr_for_read(ctx), sequence_number_);
 
         Log::log_dbc("=== End Engine Error State Dump [%s] ===", label);
     }

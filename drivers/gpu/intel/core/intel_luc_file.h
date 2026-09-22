@@ -27,6 +27,7 @@
 #include <vespera/mm/vm_backing.h>
 #include <vespera/types.h>
 
+#include "intel_engine.h"
 #include "intel_ppgtt.h"
 #include "slot_table.h"
 #include "uapi/vespera/dev/drm.h"
@@ -88,7 +89,10 @@ namespace gpu::intel::core {
     };
     class LucFile {
     public:
-        explicit LucFile(IntelGpuDevice& device) : device_(device) {
+        /// `file_id` must be unique among every LucFile currently open on
+        /// `device` -- see context_for_engine() for why (it derives each
+        /// per-engine LRC's sw_context_id from it).
+        explicit LucFile(IntelGpuDevice& device, u32 file_id) : device_(device), file_id_(file_id) {
         }
 
         ~LucFile();
@@ -128,7 +132,7 @@ namespace gpu::intel::core {
         bool gem_close(u32 handle);
         [[nodiscard]] GemObject* lookup_gem(u32 handle) const;
 
-        [[nodiscard]] bool gem_madvise(const lucifer_gem_madvise& args, bool* out_retained);
+        [[nodiscard]] bool gem_madvise(const lucifer_gem_madvise& args, bool* out_retained) const;
 
         [[nodiscard]] bool gem_mmap_offset(const lucifer_gem_mmap_offset& args, u64* out_offset);
         [[nodiscard]] u32 gem_handle_from_mmap_offset(u64 offset) const;
@@ -142,6 +146,14 @@ namespace gpu::intel::core {
         bool vm_bind(const lucifer_vm_bind& args);
 
         [[nodiscard]] bool exec_submit(lucifer_exec& args);
+
+        static constexpr usize LUCIFER_NUM_ENGINE_CLASSES = 2; // RENDER, COPY -- mirrors IntelGpuDevice's
+        EngineContext engine_contexts_[LUCIFER_NUM_ENGINE_CLASSES];
+        bool engine_contexts_initialized_[LUCIFER_NUM_ENGINE_CLASSES] = {};
+
+        /// Returns this file's EngineContext for `engine`, allocating and
+        /// initializing its LRC on first call
+        [[nodiscard]] EngineContext* context_for_engine(IntelEngine* engine, u32 engine_class);
 
         struct LucSyncObj {
             bool in_use = false;
@@ -164,6 +176,8 @@ namespace gpu::intel::core {
         bool syncobj_signal(const u32* handles, u32 count_handles);
 
         IntelGpuDevice& device_;
+
+        u32 file_id_{0u};
     };
 } // namespace gpu::intel::core
 

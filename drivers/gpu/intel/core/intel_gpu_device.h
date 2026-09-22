@@ -53,7 +53,7 @@ namespace gpu::intel::rcs {
 
 namespace gpu::intel::core {
     class IntelEngine;
-    struct LucFile;
+    class LucFile;
 
     constexpr u64 GTTMMADR_ADDR_MASK = ~0xFULL;
     constexpr usize BAR0_SIZE = 16ull * 1024 * 1024;
@@ -235,7 +235,7 @@ namespace gpu::intel::core {
         /// query_fuse_topology() and engine_for_class() below -- both are
         /// still device-level (shared hardware state), just no longer
         /// public API surface for anyone else.
-        friend struct LucFile;
+        friend class LucFile;
 
         /// The single MSI/MSI-X handler installed for this device's GT0 +
         /// DE Pipe A interrupts. Reads MASTER_INT_CTL once to see which
@@ -287,6 +287,8 @@ namespace gpu::intel::core {
         rcs::IntelRcs* rcs_ = nullptr;
 
         KernelDevice* kd_ = nullptr;
+
+        u32 next_luc_file_id_{1u};
     };
 } // namespace blt
 

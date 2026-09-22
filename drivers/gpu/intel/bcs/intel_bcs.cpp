@@ -663,8 +663,8 @@ namespace gpu::intel::bcs {
         const u32 target_seqno = seqno_next();
         emit_flush(target_seqno);
         ring_flush();
-
-        return seqno_wait(target_seqno, 500'000, completion_flag_);
+        panic("todo");
+       // return seqno_wait(target_seqno, 500'000, completion_flag_);
     }
 
     bool IntelBcs::execute_blit_region(const GpuBltRequest* req) {
@@ -703,8 +703,8 @@ namespace gpu::intel::bcs {
         const u32 target_seqno = seqno_next();
         emit_flush(target_seqno);
         ring_flush();
-
-        return seqno_wait(target_seqno, 500'000, completion_flag_);
+        panic("todo");
+        //return seqno_wait(target_seqno, 500'000, completion_flag_);
     }
 
     bool IntelBcs::execute_fill_rect(const GpuBltRequest* req) {
@@ -721,8 +721,8 @@ namespace gpu::intel::bcs {
         const u32 target_seqno = seqno_next();
         emit_flush(target_seqno);
         ring_flush();
-
-        return seqno_wait(target_seqno, 5'000'000, completion_flag_);
+        panic("todo");
+        //return seqno_wait(target_seqno, 5'000'000, completion_flag_);
     }
 
     void IntelBcs::execute_present() {
@@ -759,7 +759,8 @@ namespace gpu::intel::bcs {
         const u32 seqno = seqno_next();
         emit_flush(seqno);
         ring_flush();
-        seqno_wait(seqno, 500'000, completion_flag_);
+        panic("todo");
+       // seqno_wait(seqno, 500'000, completion_flag_);
     }
 
     // =========================================================================

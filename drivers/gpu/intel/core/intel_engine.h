@@ -85,6 +85,12 @@ namespace gpu::intel::core {
         Execlist,
     };
 
+    struct EngineContext {
+        GgttAllocation lrc;
+        u32 lrc_pages{0u};
+        u32 sw_context_id{0u};
+    };
+
     /**
      * @brief Common ring-buffer/HWSP/seqno machinery shared by every Intel
      *        command-streamer engine.
@@ -94,7 +100,9 @@ namespace gpu::intel::core {
      */
     class IntelEngine {
     public:
-        IntelEngine(EngineType type, IntelGpuDevice& device, u32 engine_mmio_offset, ForceWakeDomain fw_domain);
+        friend class LucFile;
+
+        IntelEngine(EngineType type, IntelGpuDevice& device, u32 engine_mmio_offset, const ForceWakeDomain& fw_domain);
         virtual ~IntelEngine() = default;
 
         IntelEngine(const IntelEngine&) = delete;
@@ -120,19 +128,23 @@ namespace gpu::intel::core {
             return 0;
         }
 
-        bool engine_whitelist_verify() const;
-        [[nodiscard]] bool dispatch_batch(gfx_addr_t batch_addr, u64 batch_len, u32* out_seqno, const IntelPpgtt* vm);
+        [[nodiscard]] bool engine_whitelist_verify() const;
 
-        [[nodiscard]] bool seqno_wait_blocking(u32 target_seqno, i64 timeout_ns, WaitQueue& waiters) const;
-        bool engine_whitelist_apply() const;
+        [[nodiscard]] bool dispatch_batch(
+            gfx_addr_t batch_addr, u64 batch_len, u32* out_seqno, const IntelPpgtt* vm, EngineContext& ctx
+        );
 
-        const u32* seqno_ptr_for_read() const;
+        [[nodiscard]] bool seqno_wait_blocking(u32 target_seqno, i64 timeout_ns, WaitQueue& waiters,
+                                                const EngineContext& ctx) const;
+        [[nodiscard]] bool engine_whitelist_apply() const;
+
+        [[nodiscard]] const u32* seqno_ptr_for_read(const EngineContext& ctx) const;
 
         void mark_banned() { banned_.set(); }
         [[nodiscard]] bool is_banned() const { return banned_.load(); }
 
         void print_execlist_status() const;
-        void dump_error_state(const char* label) const;
+        void dump_error_state(const char* label, const EngineContext& ctx) const;
         void dump_ring(u32 dwords_before_head, u32 dwords_after_head) const;
 
     protected:
@@ -217,8 +229,9 @@ namespace gpu::intel::core {
         virtual void emit_flush(u32 seqno) = 0;
 
         /// Selects how submit_ring() hands work to hardware from here on. Switching to Execlist
-        /// requires lrc_alloc_and_init() to have already been called (asserts otherwise in
-        /// debug builds via the lrc_cpu_addr_ null check inside submit_ring()).
+        /// requires ensure_execlist_mode_enabled() and lrc_alloc_and_init() to have already been
+        /// called for `ctx` (asserts otherwise in debug builds via the lrc_cpu_addr_ null check
+        /// inside submit_ring()).
         void set_submission_mode(SubmissionMode mode) {
             submission_mode_ = mode;
         }
@@ -230,39 +243,71 @@ namespace gpu::intel::core {
         /// The one call every command-emitting helper should use instead of calling
         /// ring_flush() directly. Dispatches on submission_mode_:
         ///   - LegacyRing: identical to today's ring_flush() (pads to 8B, writes RING_BUFFER_TAIL).
+        ///                 `ctx` is unused in this mode.
         ///   - Execlist:   pads to 8B like ring_flush(), but instead of touching RING_BUFFER_TAIL
-        ///                 it rewrites LRC_DW_RING_TAIL inside the LRC and re-submits the
-        ///                 execlist via lrc_submit(). The ring buffer itself, ring_write(),
+        ///                 it rewrites LRC_DW_RING_TAIL inside `ctx`'s LRC and re-submits the
+        ///                 execlist via lrc_submit(ctx). The ring buffer itself, ring_write(),
         ///                 ring_write_cmd() and ring_tail_ tracking are all shared unchanged
-        ///                 between both modes — only *how the tail becomes visible to HW* differs.
-        void submit_ring();
+        ///                 between both modes — only *how the tail becomes visible to HW* differs,
+        ///                 and now *which context's LRC* it becomes visible through.
+        ///
+        /// @note Only one context's execlist can be in flight on this engine's single physical
+        /// ring at a time -- the caller (LucFile::exec_submit()) is responsible for serializing
+        /// submissions across contexts on the same engine (see the locking TODO in
+        /// intel_luc_file.h). This is what makes "multiple processes share one ring but each gets
+        /// its own LRC" safe rather than a race.
+        void submit_ring(EngineContext& ctx);
 
         void hwsp_alloc();
         u32 seqno_next();
-        bool seqno_wait(u32 target_seqno, u32 timeout_us, AtomicFlag& completion_flag);
+        bool seqno_wait(u32 target_seqno, u32 timeout_us, AtomicFlag& completion_flag, const EngineContext& ctx);
 
-        /// Allocates the LRC (Logical Ring Context) in GGTT.
-        /// @note Enables Execlist mode in GFX_MODE as a side effect, since submission is undefined without it.
+        /// One-time, per-ENGINE (not per-context) hardware bring-up: applies the FORCE_TO_NONPRIV
+        /// whitelist and flips GFX_MODE.execlist_enable, then waits for it to land. Idempotent --
+        /// safe to call again on a second/third context's first submission; it just re-verifies
+        /// and re-writes the same engine-global registers. Split out of the old lrc_alloc_and_init()
+        /// because none of this is context state: it was only ever called once total (on the first
+        /// and only context that engine ever had), so bundling it into "initialize a context" read
+        /// as context setup when it's actually engine setup that happens to be triggered by the
+        /// first context's arrival.
         ///
+        /// @note Callers should call this before lrc_alloc_and_init() for a context's first use of
+        /// this engine (LucFile::context_for_engine() does both together) -- lrc_alloc_and_init()
+        /// itself no longer touches the whitelist or GFX_MODE at all.
+        [[nodiscard]] bool ensure_execlist_mode_enabled();
+
+        /// Allocates GGTT space for `ctx`'s LRC and writes its initial Logical Ring Context image
+        /// (RCS register layout, RING_HEAD/TAIL/START/CTL, CONTEXT_CONTROL) -- pure per-context
+        /// setup, no engine-global register writes. Called once per (LucFile, engine) pair, on
+        /// that pair's first submission -- NOT once per engine. Deliberately close to a free
+        /// function: only reads engine_mmio_offset_/ring_gfx_addr_/ring_size_/type_ and ggtt() from
+        /// `this`, nothing engine-global is written. Requires ensure_execlist_mode_enabled() to
+        /// have already succeeded once on this engine (LucFile::context_for_engine() enforces the
+        /// order); this function does not check that itself.
+        ///
+        /// @param ctx Out-parameter: the context object being initialized. Must be default-constructed
+        ///            (lrc_cpu_addr_ null) on entry; this is the one-time bring-up call for it.
         /// @param lrc_size_bytes LRC_SIZE_SMALL_ENGINE for BCS/VCS/VECS, LRC_SIZE_RCS for RCS.
-        /// @param sw_context_id Software-assigned context ID (CONTEXT_DESCRIPTOR::sw_context_id).
+        /// @param sw_context_id Software-assigned context ID (CONTEXT_DESCRIPTOR::sw_context_id),
+        ///        unique per context sharing this engine -- see LucFile's context/handle allocation.
         ///
         /// @see CONTEXT_DESCRIPTOR::lrca
-        [[nodiscard]] bool lrc_alloc_and_init(usize lrc_size_bytes, u32 sw_context_id);
+        [[nodiscard]] bool lrc_alloc_and_init(EngineContext& ctx, usize lrc_size_bytes, u32 sw_context_id) const;
+        void lrc_free(const EngineContext& ctx) const;
 
-        /// Rewrites just the Ring Tail DWord inside the already-initialized LRC, then submits an
-        /// execlist with this context as Element 0 (Element 1 left invalid). Element 1 valid=0 is
+        /// Rewrites just the Ring Tail DWord inside `ctx`'s already-initialized LRC, then submits
+        /// an execlist with `ctx` as Element 0 (Element 1 left invalid). Element 1 valid=0 is
         /// written first per PRM-mandated submission order.
-        void lrc_submit() const;
+        void lrc_submit(const EngineContext& ctx) const;
         u32 read_seqno() const;
         void dump_ppgtt_page_faults() const;
-        void log_lrc_context_image() const;
-        void log_pphwsp() const;
+        void log_lrc_context_image(const EngineContext& ctx) const;
+        void log_pphwsp(const EngineContext& ctx) const;
 
-        /// Rewrites just LRC_DW_RING_TAIL inside the already-initialized LRC to the given byte
+        /// Rewrites just LRC_DW_RING_TAIL inside `ctx`'s already-initialized LRC to the given byte
         /// offset. Called by submit_ring() in Execlist mode instead of the RING_BUFFER_TAIL MMIO
         /// write that ring_flush() does in Legacy mode.
-        void lrc_update_tail(u32 tail_bytes) const;
+        void lrc_update_tail(const EngineContext& ctx, u32 tail_bytes) const;
 
 
 
@@ -277,25 +322,23 @@ namespace gpu::intel::core {
         phys_addr_t hwsp_phys_addr_{};
         u32 sequence_number_ = 0;
 
-        gfx_addr_t lrc_gfx_addr_{};
-        virt_addr_t lrc_cpu_addr_{};
-        u32 lrc_sw_context_id_ = 0;
-
         u64 error_count_ = 0;
         AtomicFlag banned_{};
 
         SubmissionMode submission_mode_ = SubmissionMode::LegacyRing;
 
+        bool execlist_mode_enabled_ = false;
+
         static constexpr u32 SEQNO_BIT5_MASK = 1u << 5;
 
     private:
-        /// Writes one (MMIO-offset, value) pair into the Ring Context at the given LRC DWord offset
-        void lrc_write_ring_field(usize dword_offset, u32 engine_relative_mmio_off, u32 value) const;
+        /// Writes one (MMIO-offset, value) pair into `ctx`'s Ring Context at the given LRC DWord offset
+        void lrc_write_ring_field(const EngineContext& ctx, usize dword_offset, u32 engine_relative_mmio_off,
+                                   u32 value) const;
 
         IntelGpuDevice& device_;
         u32 engine_mmio_offset_;
         ForceWakeDomain fw_domain_;
-        IntelPpgtt ppgtt_;
     };
 } // namespace blt
 
