@@ -23,11 +23,14 @@
 #include <vespera/mm/addr.h>
 #include <vespera/sync/atomic.h>
 #include <vespera/sync/wait_queue.h>
+#include <vespera/sync/spinlock.h>
+#include <vespera/sync/semaphore.h>
 #include <vespera/types.h>
 
 #include "intel_engine_types.h"
 #include "intel_gpu_device.h"
 #include "intel_ppgtt.h"
+#include "klib/intrusive_queue.h"
 #include "../regs/lrc_layout.h"
 #include "../regs/execlist_regs.h"
 
@@ -85,10 +88,52 @@ namespace gpu::intel::core {
         Execlist,
     };
 
+    /// One physical ring buffer
+    struct Ring {
+        gfx_addr_t gfx_addr{};
+        virt_addr_t cpu_addr{};
+        phys_addr_t phys_addr{};
+        u32 size = 0;
+        u32 tail = 0;
+    };
+
     struct EngineContext {
         GgttAllocation lrc;
         u32 lrc_pages{0u};
         u32 sw_context_id{0u};
+
+        /// context's own physical ring buffer
+        Ring ring;
+    };
+
+    /// One queued-but-not-yet-dispatched batch, waiting for a free execlist
+    /// slot on the engine it targets. Produced by IntelEngine::submit_or_wait()
+    /// when both slots are occupied, consumed by IntelEngine::on_gt_user_interrupt()
+    /// once a context-switch interrupt frees a slot.
+    ///
+    /// Lifetime: allocated on the calling thread's stack inside
+    /// submit_or_wait() and only ever read/unlinked while that thread is
+    /// still blocked on `done`. The thread that pushed it is always the one
+    /// that eventually pops/destroys it (either by dequeuing it itself
+    /// before ever being queued, or by waking up after the IRQ path
+    /// dispatched it) -- never freed or accessed by any other thread.
+    struct PendingSubmission {
+        PendingSubmission* next = nullptr; // required by IntrusiveQueue<Node>
+
+        EngineContext* ctx = nullptr;
+        gfx_addr_t batch_addr{};
+        u64 batch_len = 0;
+        const IntelPpgtt* vm = nullptr;
+
+        u32 out_seqno = 0;
+        bool dispatch_ok = false;
+
+        /// Signaled once this submission has been dispatched (successfully
+        /// or not) so the waiting ioctl thread can resume and read
+        /// out_seqno/dispatch_ok. Must have init(1, 0) called on it before
+        /// use (Semaphore has no self-initializing constructor) --
+        /// submit_or_wait() does this before the object is ever queued.
+        Semaphore done;
     };
 
     /**
@@ -101,6 +146,15 @@ namespace gpu::intel::core {
     class IntelEngine {
     public:
         friend class LucFile;
+
+        /// IntelGpuDevice::device_irq_handler() calls on_gt_context_switch()
+        /// directly when GT0_IIR's ctx_switch bit fires for this engine's
+        /// class -- that bit is decoded device-side (see the ctx_switch
+        /// handling in device_irq_handler(), which mirrors how
+        /// master_error/timeout already call straight into rcs_/bcs_ rather
+        /// than going through the on_gt_user_interrupt() vtable dispatch
+        /// that only covers each engine's own gt_user_irq_bit()).
+        friend class IntelGpuDevice;
 
         IntelEngine(EngineType type, IntelGpuDevice& device, u32 engine_mmio_offset, const ForceWakeDomain& fw_domain);
         virtual ~IntelEngine() = default;
@@ -119,8 +173,18 @@ namespace gpu::intel::core {
         /// register group (GT0_ISR/IMR/IIR/IER, MMIO 0x44300).
         [[nodiscard]] virtual u32 gt_user_irq_bit() const = 0;
 
+        [[nodiscard]] virtual u32 gt_unmask_bits() const = 0;
+
         /// Called by IntelGpuDevice's shared IRQ dispatcher when this
-        /// engine's bit is set in GT0_IIR.
+        /// engine's gt_user_irq_bit() is set in GT0_IIR (e.g. RCS's
+        /// PIPE_CONTROL_NOTIFY). NOTE: this is a *different* GT0_IIR bit
+        /// than ctx_switch -- the execlist slot scheduler's
+        /// on_gt_context_switch() is invoked directly by
+        /// IntelGpuDevice::device_irq_handler() when ctx_switch fires (see
+        /// that function's ctx_switch branch), not from here and not by
+        /// this default implementation. A derived engine overriding this
+        /// for its own completion/fence handling does not need to call the
+        /// base version -- there is nothing in it to call.
         virtual void on_gt_user_interrupt() {
         }
 
@@ -130,12 +194,32 @@ namespace gpu::intel::core {
 
         [[nodiscard]] bool engine_whitelist_verify() const;
 
+        /// `sibling` (default nullptr) is the other HW slot's currently-active context, if any --
+        /// forwarded to submit_ring() so a two-slot submission carries both live elements. Callers
+        /// outside IntelEngine should go through submit_or_wait() instead, which manages slot
+        /// assignment and sibling tracking automatically.
         [[nodiscard]] bool dispatch_batch(
+            gfx_addr_t batch_addr, u64 batch_len, u32* out_seqno, const IntelPpgtt* vm, EngineContext& ctx,
+            const EngineContext* sibling = nullptr
+        );
+
+        /// Entry point for LucFile::exec_submit(): submits `ctx`'s batch onto
+        /// this engine's physical execlist port, using whichever of the two
+        /// HW execlist slots is free. If both slots are currently occupied
+        /// (by any process's context, not just this caller's), the calling
+        /// thread blocks -- via Semaphore, not spinning -- until
+        /// on_gt_user_interrupt() frees a slot and dispatches this submission
+        /// for it.
+        ///
+        /// Safe to call concurrently from multiple threads/processes: all
+        /// slot-table and queue bookkeeping is serialized internally via
+        /// submit_lock_. Returns false if dispatch itself failed (mirrors
+        /// dispatch_batch()'s failure contract); out_seqno is only valid on
+        /// true.
+        [[nodiscard]] bool submit_or_wait(
             gfx_addr_t batch_addr, u64 batch_len, u32* out_seqno, const IntelPpgtt* vm, EngineContext& ctx
         );
 
-        [[nodiscard]] bool seqno_wait_blocking(u32 target_seqno, i64 timeout_ns, WaitQueue& waiters,
-                                                const EngineContext& ctx) const;
         [[nodiscard]] bool engine_whitelist_apply() const;
 
         [[nodiscard]] const u32* seqno_ptr_for_read(const EngineContext& ctx) const;
@@ -145,7 +229,6 @@ namespace gpu::intel::core {
 
         void print_execlist_status() const;
         void dump_error_state(const char* label, const EngineContext& ctx) const;
-        void dump_ring(u32 dwords_before_head, u32 dwords_after_head) const;
 
     protected:
         EngineType type_;
@@ -206,25 +289,63 @@ namespace gpu::intel::core {
             *reinterpret_cast<volatile u32*>(device_.mmio_base() + reg) = val.raw;
         }
 
-        /// Allocates the ring in GGTT, zero-fills it with MI_NOOP, and
-        /// programs RING_BUFFER_START/CTL/HEAD/TAIL + masks HWSTAM.
+        /// Allocates engine_ring_ in GGTT, zero-fills it with MI_NOOP, and
+        /// programs RING_BUFFER_START/CTL/HEAD/TAIL + masks HWSTAM. Legacy-mode
+        /// only -- Execlist-mode contexts get their own ring via
+        /// lrc_alloc_and_init()'s call to ring_alloc_for(ctx.ring, ...) instead.
         void ring_alloc_and_init(u32 ring_size_bytes);
 
-        void ring_write(u32 dword);
+        /// Allocates and zero-fills `ring` (any Ring, engine- or
+        /// context-owned) without touching RING_BUFFER_START/CTL/HEAD/TAIL --
+        /// those are MMIO registers in Legacy mode but live inside the LRC
+        /// image in Execlist mode, so programming them is the caller's job
+        /// (ring_alloc_and_init() does it for engine_ring_; lrc_alloc_and_init()
+        /// does it, via lrc_set_reg(), for a context's ring). Returns false
+        /// if the GGTT allocation itself failed (ring left zeroed/null).
+        [[nodiscard]] bool ring_alloc_for(Ring& ring, u32 ring_size_bytes) const;
+
+        void ring_write(Ring& ring, u32 dword);
+
+        /// Convenience overload for existing RCS/BCS call sites (emit_flush()
+        /// overrides, etc.) that predate the per-context ring split: targets
+        /// whichever ring dispatch_batch() is currently emitting into --
+        /// engine_ring_ in Legacy mode, or the EngineContext's own ring while
+        /// a dispatch_batch() call for that context is in progress. Never
+        /// call this outside a dispatch_batch()/emit_flush() call chain;
+        /// active_dispatch_ring_ is only valid while one is on the stack.
+        void ring_write(u32 dword) { ring_write(*active_dispatch_ring_, dword); }
 
         template <typename T>
-        void ring_write_cmd(const T& cmd) {
+        void ring_write_cmd(Ring& ring, const T& cmd) {
             static_assert(sizeof(T) % sizeof(u32) == 0, "Command size must be DWORD-aligned");
 
             const auto* dwords = reinterpret_cast<const u32*>(&cmd);
             const usize count = sizeof(T) / sizeof(u32);
             for (usize i = 0; i < count; i++) {
-                ring_write(dwords[i]);
+                ring_write(ring, dwords[i]);
             }
         }
 
+        /// Convenience overload for existing RCS/BCS call sites: see the
+        /// ring_write(u32) overload's comment above -- same active-ring
+        /// redirection, same validity constraint.
+        template <typename T>
+        void ring_write_cmd(const T& cmd) {
+            ring_write_cmd(*active_dispatch_ring_, cmd);
+        }
+
+        /// Pads `ring` to 8-byte alignment and, in Legacy mode only, writes
+        /// RING_BUFFER_TAIL. Execlist-mode callers should use submit_ring()
+        /// instead, which pads the context's own ring and drives the
+        /// execlist port rather than RING_BUFFER_TAIL.
         void ring_flush();
-        [[nodiscard]] bool ring_wait_space(u32 required_bytes, u32 timeout_us) const;
+        [[nodiscard]] bool ring_wait_space(const Ring& ring, u32 required_bytes, u32 timeout_us) const;
+
+        /// Convenience overload for existing RCS/BCS call sites: same
+        /// active-ring redirection as ring_write(u32)/ring_write_cmd(T).
+        [[nodiscard]] bool ring_wait_space(u32 required_bytes, u32 timeout_us) const {
+            return ring_wait_space(*active_dispatch_ring_, required_bytes, timeout_us);
+        }
 
         virtual void emit_flush(u32 seqno) = 0;
 
@@ -242,25 +363,25 @@ namespace gpu::intel::core {
 
         /// The one call every command-emitting helper should use instead of calling
         /// ring_flush() directly. Dispatches on submission_mode_:
-        ///   - LegacyRing: identical to today's ring_flush() (pads to 8B, writes RING_BUFFER_TAIL).
-        ///                 `ctx` is unused in this mode.
-        ///   - Execlist:   pads to 8B like ring_flush(), but instead of touching RING_BUFFER_TAIL
-        ///                 it rewrites LRC_DW_RING_TAIL inside `ctx`'s LRC and re-submits the
-        ///                 execlist via lrc_submit(ctx). The ring buffer itself, ring_write(),
-        ///                 ring_write_cmd() and ring_tail_ tracking are all shared unchanged
-        ///                 between both modes — only *how the tail becomes visible to HW* differs,
-        ///                 and now *which context's LRC* it becomes visible through.
+        ///   - LegacyRing: identical to today's ring_flush() (pads engine_ring_ to 8B, writes
+        ///                 RING_BUFFER_TAIL). `ctx` is unused in this mode.
+        ///   - Execlist:   pads ctx.ring to 8B, then rewrites LRC_DW_RING_TAIL inside `ctx`'s LRC
+        ///                 and re-submits the execlist via lrc_submit(ctx). Each context's ring,
+        ///                 ring_write()/ring_write_cmd() target and tail tracking are now entirely
+        ///                 separate per EngineContext -- only *how the tail becomes visible to HW*
+        ///                 differs between modes, and *which context's ring/LRC* it's visible
+        ///                 through.
         ///
-        /// @note Only one context's execlist can be in flight on this engine's single physical
-        /// ring at a time -- the caller (LucFile::exec_submit()) is responsible for serializing
-        /// submissions across contexts on the same engine (see the locking TODO in
-        /// intel_luc_file.h). This is what makes "multiple processes share one ring but each gets
-        /// its own LRC" safe rather than a race.
-        void submit_ring(EngineContext& ctx);
+        /// @note Up to two contexts can now be in flight simultaneously on this engine's single
+        /// physical execlist port (see active_slot_[2] and submit_or_wait() below) -- callers no
+        /// longer serialize submissions themselves; IntelEngine's own submit_lock_ + slot
+        /// scheduler does. `sibling` is the *other* currently-active slot's context (or nullptr if
+        /// the other slot is idle), so the resulting hardware submission carries both live
+        /// elements rather than only the one just (re)dispatched.
+        void submit_ring(EngineContext& ctx, const EngineContext* sibling = nullptr);
 
         void hwsp_alloc();
         u32 seqno_next();
-        bool seqno_wait(u32 target_seqno, u32 timeout_us, AtomicFlag& completion_flag, const EngineContext& ctx);
 
         /// One-time, per-ENGINE (not per-context) hardware bring-up: applies the FORCE_TO_NONPRIV
         /// whitelist and flips GFX_MODE.execlist_enable, then waits for it to land. Idempotent --
@@ -276,17 +397,18 @@ namespace gpu::intel::core {
         /// itself no longer touches the whitelist or GFX_MODE at all.
         [[nodiscard]] bool ensure_execlist_mode_enabled();
 
-        /// Allocates GGTT space for `ctx`'s LRC and writes its initial Logical Ring Context image
-        /// (RCS register layout, RING_HEAD/TAIL/START/CTL, CONTEXT_CONTROL) -- pure per-context
-        /// setup, no engine-global register writes. Called once per (LucFile, engine) pair, on
-        /// that pair's first submission -- NOT once per engine. Deliberately close to a free
-        /// function: only reads engine_mmio_offset_/ring_gfx_addr_/ring_size_/type_ and ggtt() from
-        /// `this`, nothing engine-global is written. Requires ensure_execlist_mode_enabled() to
-        /// have already succeeded once on this engine (LucFile::context_for_engine() enforces the
+        /// Allocates GGTT space for `ctx`'s LRC (and, alongside it, `ctx`'s own Ring -- see
+        /// EngineContext::ring) and writes its initial Logical Ring Context image (RCS register
+        /// layout, RING_HEAD/TAIL/START/CTL, CONTEXT_CONTROL) -- pure per-context setup, no
+        /// engine-global register writes. Called once per (LucFile, engine) pair, on that pair's
+        /// first submission -- NOT once per engine. Deliberately close to a free function: only
+        /// reads engine_mmio_offset_/type_ and ggtt() from `this` beyond allocating ctx.ring itself;
+        /// nothing engine-global is written. Requires ensure_execlist_mode_enabled() to have
+        /// already succeeded once on this engine (LucFile::context_for_engine() enforces the
         /// order); this function does not check that itself.
         ///
         /// @param ctx Out-parameter: the context object being initialized. Must be default-constructed
-        ///            (lrc_cpu_addr_ null) on entry; this is the one-time bring-up call for it.
+        ///            (ctx.lrc/ctx.ring both null) on entry; this is the one-time bring-up call for it.
         /// @param lrc_size_bytes LRC_SIZE_SMALL_ENGINE for BCS/VCS/VECS, LRC_SIZE_RCS for RCS.
         /// @param sw_context_id Software-assigned context ID (CONTEXT_DESCRIPTOR::sw_context_id),
         ///        unique per context sharing this engine -- see LucFile's context/handle allocation.
@@ -296,10 +418,10 @@ namespace gpu::intel::core {
         void lrc_free(const EngineContext& ctx) const;
 
         /// Rewrites just the Ring Tail DWord inside `ctx`'s already-initialized LRC, then submits
-        /// an execlist with `ctx` as Element 0 (Element 1 left invalid). Element 1 valid=0 is
-        /// written first per PRM-mandated submission order.
-        void lrc_submit(const EngineContext& ctx) const;
-        u32 read_seqno() const;
+        /// an execlist with `ctx` as Element 0 and `ctx1` (if non-null) as Element 1. Element 1 is
+        /// written first per PRM-mandated submission order; passing ctx1 == nullptr leaves it
+        /// invalid exactly as the previous single-context version did.
+        void lrc_submit(const EngineContext& ctx, const EngineContext* ctx1 = nullptr) const;
         void dump_ppgtt_page_faults() const;
         void log_lrc_context_image(const EngineContext& ctx) const;
         void log_pphwsp(const EngineContext& ctx) const;
@@ -311,11 +433,16 @@ namespace gpu::intel::core {
 
 
 
-        gfx_addr_t ring_gfx_addr_{};
-        virt_addr_t ring_cpu_addr_{};
-        phys_addr_t ring_phys_addr_{};
-        u32 ring_size_ = 0;
-        u32 ring_tail_ = 0;
+        /// Legacy-mode ring.
+        Ring engine_ring_;
+
+        /// Points at whichever Ring the parameterless ring_write()/
+        /// ring_write_cmd()/ring_wait_space() overloads should target right
+        /// now. Defaults to &engine_ring_ (correct for every call site
+        /// outside dispatch_batch(), and for the whole of Legacy mode).
+        /// dispatch_batch() repoints this at `ctx.ring` for the duration of
+        /// its own body
+        Ring* active_dispatch_ring_ = &engine_ring_;
 
         gfx_addr_t hwsp_gfx_addr_{};
         virt_addr_t hwsp_cpu_addr_{};
@@ -332,6 +459,14 @@ namespace gpu::intel::core {
         static constexpr u32 SEQNO_BIT5_MASK = 1u << 5;
 
     private:
+
+        void on_gt_context_switch();
+
+        /// Actually writes ctx into a specific HW slot (0 or 1) and performs
+        /// the lrc_submit()/dispatch bookkeeping. Must be called with
+        /// submit_lock_ already held. Does not block.
+        [[nodiscard]] bool do_dispatch_locked(PendingSubmission& sub, u32 slot);
+
         /// Writes one (MMIO-offset, value) pair into `ctx`'s Ring Context at the given LRC DWord offset
         void lrc_write_ring_field(const EngineContext& ctx, usize dword_offset, u32 engine_relative_mmio_off,
                                    u32 value) const;
@@ -339,6 +474,15 @@ namespace gpu::intel::core {
         IntelGpuDevice& device_;
         u32 engine_mmio_offset_;
         ForceWakeDomain fw_domain_;
+
+        Spinlock submit_lock_{"intel_engine_submit"};
+
+        /// Context currently occupying HW execlist slot 0 / slot 1
+        /// (Element0 / Element1), or nullptr if that slot is idle.
+        EngineContext* active_slot_[2] = {nullptr, nullptr};
+
+        /// Batches waiting for a free slot, FIFO.
+        IntrusiveQueue<PendingSubmission> pending_queue_;
     };
 } // namespace blt
 

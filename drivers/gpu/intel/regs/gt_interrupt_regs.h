@@ -60,10 +60,15 @@ constexpr u32 GT0_RCS_USER_IRQ_BIT = 0;
 /// bit index).
 constexpr u32 GT0_RCS_PIPE_CONTROL_NOTIFY_BIT = 4;
 
+constexpr u32 GT0_RCS_CTX_SWTICH_BIT = 8;
+
 /// BCS' MI_USER_INTERRUPT bit (BCS_ICR_BITS.user_irq, bit 16). This IS what
 /// this driver uses for BCS completion — BCS emits MI_USER_INTERRUPT
 /// directly (see IntelBcs::emit_mi_flush).
 constexpr u32 GT0_BCS_USER_IRQ_BIT = 16;
+
+constexpr u32 GT0_BCS_CTX_SWTICH_BIT = 24;
+
 /**
  * @brief Combined 32-bit layout for GT0 Interrupt Registers containing both RCS and BCS.
  */

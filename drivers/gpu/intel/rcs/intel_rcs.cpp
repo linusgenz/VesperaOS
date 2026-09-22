@@ -262,6 +262,10 @@ namespace gpu::intel::rcs {
         return GT0_RCS_PIPE_CONTROL_NOTIFY_BIT;
     }
 
+    u32 IntelRcs::gt_unmask_bits() const {
+        return (1u << GT0_RCS_PIPE_CONTROL_NOTIFY_BIT) | (1u << GT0_RCS_CTX_SWTICH_BIT);
+    }
+
     u32 IntelRcs::gt_debug_irq_bitmask() const {
         constexpr u32 RCS_PAGE_FAULT_BIT = 7;
         constexpr u32 RCS_MASTER_ERROR_BIT = 3;
@@ -269,7 +273,6 @@ namespace gpu::intel::rcs {
     }
 
     void IntelRcs::on_gt_user_interrupt() {
-        Log::debug("on_gt_user_interrupt");
         completion_flag_.set();
     }
 

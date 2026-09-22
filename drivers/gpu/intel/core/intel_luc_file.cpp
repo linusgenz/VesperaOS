@@ -91,6 +91,8 @@ namespace gpu::intel::core {
     }
 
     u32 LucFile::create_vm() {
+        SpinlockGuard guard(handle_lock_);
+
         if (vm_slots_.capacity() >= MAX_LUCIFER_VMS && !vm_slots_.has_free_slot()) {
             Log::log_dbc("intel-gpu: VM_CREATE failed (no free VM slots)");
             return 0;
@@ -107,6 +109,8 @@ namespace gpu::intel::core {
     }
 
     bool LucFile::destroy_vm(const u32 vm_id) {
+        SpinlockGuard guard(handle_lock_);
+
         IntelPpgtt** slot = vm_slots_.get(vm_id);
         if (slot == nullptr || *slot == nullptr) {
             return false;
@@ -119,6 +123,8 @@ namespace gpu::intel::core {
     }
 
     IntelPpgtt* LucFile::lookup_vm(const u32 vm_id) const {
+        SpinlockGuard guard(handle_lock_);
+
         // SlotTable<IntelPpgtt*>::get() const returns IntelPpgtt* const*
         // (pointer-to-const-pointer-to-non-const-IntelPpgtt): the slot
         // itself can't be reassigned through this handle, but the
@@ -129,6 +135,8 @@ namespace gpu::intel::core {
     }
 
     u32 LucFile::gem_create(const lucifer_gem_create& args) {
+        SpinlockGuard guard(handle_lock_);
+
         if (gem_slots_.capacity() >= MAX_LUCIFER_GEM_OBJECTS && !gem_slots_.has_free_slot()) {
             Log::log_dbc("intel-gpu: GEM_CREATE failed (no free GEM slots)");
             return 0;
@@ -159,6 +167,8 @@ namespace gpu::intel::core {
     }
 
     u32 LucFile::gem_create_userptr(const lucifer_gem_userptr& args) {
+        SpinlockGuard guard(handle_lock_);
+
         if (gem_slots_.capacity() >= MAX_LUCIFER_GEM_OBJECTS && !gem_slots_.has_free_slot()) {
             Log::log_dbc("intel-gpu: GEM_USERPTR failed (no free GEM slots)");
             return 0;
@@ -178,6 +188,8 @@ namespace gpu::intel::core {
     }
 
     bool LucFile::gem_close(const u32 handle) {
+        SpinlockGuard guard(handle_lock_);
+
         GemObject** slot = gem_slots_.get(handle);
         if (slot == nullptr || *slot == nullptr) {
             return false;
@@ -193,11 +205,14 @@ namespace gpu::intel::core {
     }
 
     bool LucFile::gem_madvise(const lucifer_gem_madvise& args, bool* out_retained) const {
-        GemObject* obj = lookup_gem(args.handle);
+        GemObject* obj = gem_get_ref(args.handle);
         if (!obj || obj->is_userptr) {
+            if (obj) obj->dec_ref();
             Log::log_dbc("intel-gpu: GEM_MADVISE failed (bad handle)");
             return false;
         }
+
+        bool result_ok = true;
 
         if (args.state == LUCIFER_MADVICE_DONT_NEED) {
             if (!obj->purged) {
@@ -212,23 +227,23 @@ namespace gpu::intel::core {
             }
 
             *out_retained = false; // DONTNEED never reports resident
-            return true;
-        }
-
-        // LUCIFER_MADVICE_WILL_NEED
-        if (obj->purged) {
-            // Backing store is gone and this bring-up path never
-            // reallocates it -- caller (lucifer_bo_madvise()) is expected
-            // to see retained == false and recreate the BO.
+        } else if (obj->purged) {
+            // LUCIFER_MADVICE_WILL_NEED, but backing store is gone and this
+            // bring-up path never reallocates it -- caller
+            // (lucifer_bo_madvise()) is expected to see retained == false
+            // and recreate the BO.
             *out_retained = false;
-            return true;
+        } else {
+            *out_retained = true; // was never purged, still live
         }
 
-        *out_retained = true; // was never purged, still live
-        return true;
+        obj->dec_ref();
+        return result_ok;
     }
 
     GemObject* LucFile::lookup_gem(const u32 handle) const {
+        SpinlockGuard guard(handle_lock_);
+
         // SlotTable<GemObject*>::get() const returns GemObject* const*
         // (see lookup_vm()'s comment for why the const-level is correct
         // here): bounds-checks against the table's actual current size,
@@ -240,15 +255,17 @@ namespace gpu::intel::core {
     }
 
     GemObject* LucFile::gem_get_ref(const u32 handle) const {
-        GemObject* obj = lookup_gem(handle);
-        if (!obj) {
+        SpinlockGuard guard(handle_lock_);
+
+        GemObject* const* slot = gem_slots_.get(handle);
+        if (!slot || !*slot) {
             return nullptr;
         }
-        obj->inc_ref();
-        return obj;
+        (*slot)->inc_ref();
+        return *slot;
     }
 
-    bool LucFile::vm_bind(const lucifer_vm_bind& args) {
+    bool LucFile::vm_bind(const lucifer_vm_bind& args) const {
         IntelPpgtt* vm = lookup_vm(args.vm_id);
         if (!vm) {
             Log::log_dbc("intel-gpu: VM_BIND failed (bad vm_id)");
@@ -274,8 +291,9 @@ namespace gpu::intel::core {
             return false;
         }
 
-        GemObject* obj = lookup_gem(args.handle);
+        GemObject* obj = gem_get_ref(args.handle);
         if (!obj || obj->is_userptr || obj->purged) {
+            if (obj) obj->dec_ref();
             Log::log_dbc("intel-gpu: VM_BIND failed (bad handle)");
             return false;
         }
@@ -297,10 +315,17 @@ namespace gpu::intel::core {
         // flag threaded through lucifer_vm_bind first.
         constexpr bool writable = true;
 
-        return vm->insert_range(make_gfx(args.addr), phys_start, args.range, caching, writable);
+        const bool ok = vm->insert_range(make_gfx(args.addr), phys_start, args.range, caching, writable);
+        obj->dec_ref();
+        return ok;
     }
 
     EngineContext* LucFile::context_for_engine(IntelEngine* engine, const u32 engine_class) {
+        SpinlockGuard guard(handle_lock_);
+        return context_for_engine_locked(engine, engine_class);
+    }
+
+    EngineContext* LucFile::context_for_engine_locked(IntelEngine* engine, const u32 engine_class) {
         if (!engine || engine_class >= LUCIFER_NUM_ENGINE_CLASSES) {
             return nullptr;
         }
@@ -347,14 +372,6 @@ namespace gpu::intel::core {
             return false;
         }
 
-        // TODO(lucifer): this is where the locking mentioned in
-        // intel_luc_file.h's class comment actually has to land once two
-        // processes can both reach this point concurrently for the same
-        // `engine` -- context_for_engine()'s lazy-init check-then-act and
-        // dispatch_batch()'s ring/LRC submission below both assume nothing
-        // else touches this engine between here and submit_ring() returning.
-        // A per-engine lock in IntelGpuDevice (not per-LucFile -- the
-        // exclusion needed is across files sharing one engine) closes this.
         EngineContext* ctx = context_for_engine(engine, args.engine);
         if (!ctx) {
             Log::log_dbc("intel-gpu: EXEC failed (context_for_engine)");
@@ -372,19 +389,22 @@ namespace gpu::intel::core {
         // handles must exist, and SIGNAL handles must currently be
         // fence-less, or we must fail without having submitted anything.
         // Mirrors the old single out_syncobj check, just over an array.
-        for (u32 i = 0; i < args.num_syncs; ++i) {
-            const u32 handle = syncs[i].handle;
+        {
+            SpinlockGuard guard(handle_lock_);
+            for (u32 i = 0; i < args.num_syncs; ++i) {
+                const u32 handle = syncs[i].handle;
 
-            const LucSyncObj* obj = syncobj_slots_.get(handle);
-            if (!obj || !obj->in_use) {
-                Log::log_dbc("intel-gpu: EXEC failed (bad sync handle=%u at index %u)", handle, i);
-                return false;
-            }
+                const LucSyncObj* obj = syncobj_slots_.get(handle);
+                if (!obj || !obj->in_use) {
+                    Log::log_dbc("intel-gpu: EXEC failed (bad sync handle=%u at index %u)", handle, i);
+                    return false;
+                }
 
-            if ((syncs[i].flags & LUCIFER_SYNC_FLAG_SIGNAL) && obj->has_fence) {
-                Log::log_dbc("intel-gpu: EXEC failed (signal handle=%u already has a fence, reset it first)",
-                             handle);
-                return false;
+                if ((syncs[i].flags & LUCIFER_SYNC_FLAG_SIGNAL) && obj->has_fence) {
+                    Log::log_dbc("intel-gpu: EXEC failed (signal handle=%u already has a fence, reset it first)",
+                                 handle);
+                    return false;
+                }
             }
         }
 
@@ -409,16 +429,13 @@ namespace gpu::intel::core {
         //vm->dump_batch_buffer(make_gfx(args.batch_addr), args.batch_len);
 
         u32 seqno = 0;
-        if (!engine->dispatch_batch(make_gfx(args.batch_addr), args.batch_len, &seqno, vm, *ctx)) {
-            Log::log_dbc("intel-gpu: EXEC failed (dispatch_batch)");
+        if (!engine->submit_or_wait(make_gfx(args.batch_addr), args.batch_len, &seqno, vm, *ctx)) {
+            Log::log_dbc("intel-gpu: EXEC failed (submit_or_wait)");
             return false;
         }
 
         args.out_seqno = seqno;
 
-        // Can't fail from here on -- every SIGNAL handle was already
-        // validated above, and no one else can have touched them between
-        // the check and here (single-threaded ioctl dispatch).
         for (u32 i = 0; i < args.num_syncs; ++i) {
             if (syncs[i].flags & LUCIFER_SYNC_FLAG_SIGNAL) {
                 syncobj_bind_fence(syncs[i].handle, args.engine, seqno);
@@ -430,6 +447,8 @@ namespace gpu::intel::core {
     }
 
     u32 LucFile::syncobj_create(const drm_syncobj_create& args) {
+        SpinlockGuard guard(handle_lock_);
+
         if (syncobj_slots_.capacity() >= MAX_LUCIFER_SYNCOBJS && !syncobj_slots_.has_free_slot()) {
             Log::log_dbc("intel-gpu: SYNCOBJ_CREATE failed (no free syncobj slots)");
             return 0;
@@ -443,6 +462,8 @@ namespace gpu::intel::core {
     }
 
     bool LucFile::syncobj_destroy(const u32 handle) {
+        SpinlockGuard guard(handle_lock_);
+
         LucSyncObj* obj = syncobj_slots_.get(handle);
         if (!obj || !obj->in_use) {
             return false;
@@ -453,6 +474,8 @@ namespace gpu::intel::core {
     }
 
     bool LucFile::syncobj_bind_fence(const u32 handle, const u32 engine, const u64 target_seqno) {
+        SpinlockGuard guard(handle_lock_);
+
         LucSyncObj* obj = syncobj_slots_.get(handle);
         if (!obj || !obj->in_use || obj->has_fence) {
             return false;
@@ -474,7 +497,7 @@ namespace gpu::intel::core {
             return obj.pre_signaled;
         }
 
-        EngineContext* ctx = engine ? context_for_engine(engine, obj.engine) : nullptr;
+        EngineContext* ctx = engine ? context_for_engine_locked(engine, obj.engine) : nullptr;
         return ctx && *engine->seqno_ptr_for_read(*ctx) >= static_cast<u32>(obj.target_seqno);
     }
 
@@ -486,11 +509,14 @@ namespace gpu::intel::core {
             return -1;
         }
 
-        for (u32 i = 0; i < count_handles; ++i) {
-            const LucSyncObj* obj = syncobj_slots_.get(handles[i]);
-            if (!obj || !obj->in_use) {
-                Log::log_dbc("intel-gpu: SYNCOBJ_WAIT failed (bad handle=%u)", handles[i]);
-                return -1;
+        {
+            SpinlockGuard guard(handle_lock_);
+            for (u32 i = 0; i < count_handles; ++i) {
+                const LucSyncObj* obj = syncobj_slots_.get(handles[i]);
+                if (!obj || !obj->in_use) {
+                    Log::log_dbc("intel-gpu: SYNCOBJ_WAIT failed (bad handle=%u)", handles[i]);
+                    return -1;
+                }
             }
         }
 
@@ -508,29 +534,32 @@ namespace gpu::intel::core {
         while (true) {
             u32 signaled_count = 0;
 
-            for (u32 i = 0; i < count_handles; ++i) {
-                const LucSyncObj& obj = *syncobj_slots_.get(handles[i]);
-                IntelEngine* engine = obj.has_fence ? device_.engine_for_class(obj.engine) : nullptr;
+            {
+                SpinlockGuard guard(handle_lock_);
+                for (u32 i = 0; i < count_handles; ++i) {
+                    const LucSyncObj& obj = *syncobj_slots_.get(handles[i]);
+                    IntelEngine* engine = obj.has_fence ? device_.engine_for_class(obj.engine) : nullptr;
 
-                if (obj.has_fence && engine && engine->is_banned()) {
-                    Log::log_dbc("intel-gpu: SYNCOBJ_WAIT failed (handle=%u bound to banned engine=%u)",
-                                 handles[i], obj.engine);
-                    return -EIO;
+                    if (obj.has_fence && engine && engine->is_banned()) {
+                        Log::log_dbc("intel-gpu: SYNCOBJ_WAIT failed (handle=%u bound to banned engine=%u)",
+                                     handles[i], obj.engine);
+                        return -EIO;
+                    }
+
+                    if (syncobj_is_signaled_now(obj, engine)) {
+                        signaled_count++;
+                        if (!wait_all && out_first_signaled) {
+                            *out_first_signaled = i;
+                        }
+                        if (!wait_all) {
+                            return 0;
+                        }
+                    }
                 }
 
-                if (syncobj_is_signaled_now(obj, engine)) {
-                    signaled_count++;
-                    if (!wait_all && out_first_signaled) {
-                        *out_first_signaled = i;
-                    }
-                    if (!wait_all) {
-                        return 0;
-                    }
+                if (wait_all && signaled_count == count_handles) {
+                    return 0;
                 }
-            }
-
-            if (wait_all && signaled_count == count_handles) {
-                return 0;
             }
 
             if (timeout_ns >= 0 && waited_ns >= timeout_ns) {
@@ -546,6 +575,8 @@ namespace gpu::intel::core {
         if (!handles) {
             return false;
         }
+
+        SpinlockGuard guard(handle_lock_);
 
         for (u32 i = 0; i < count_handles; ++i) {
             const LucSyncObj* obj = syncobj_slots_.get(handles[i]);
@@ -569,6 +600,8 @@ namespace gpu::intel::core {
             return false;
         }
 
+        SpinlockGuard guard(handle_lock_);
+
         for (u32 i = 0; i < count_handles; ++i) {
             const LucSyncObj* obj = syncobj_slots_.get(handles[i]);
             if (!obj || !obj->in_use) {
@@ -589,14 +622,19 @@ namespace gpu::intel::core {
             return false;
         }
 
-        const GemObject* obj = lookup_gem(handle);
+        // gem_get_ref() (not lookup_gem()) so a concurrent gem_close() on
+        // this handle can't free the object between the lookup and the
+        // phys_addr/size reads below.
+        GemObject* obj = gem_get_ref(handle);
         if (!obj || obj->is_userptr) {
             // Userptr objects have no kernel-owned phys backing (see
             // vm_bind()'s MAP_USERPTR path) — nothing for mmap() to map yet.
+            if (obj) obj->dec_ref();
             return false;
         }
 
         *out = GemObjectInfo{.phys_addr = obj->phys_addr, .size = obj->size};
+        obj->dec_ref();
         return true;
     }
 
@@ -605,11 +643,13 @@ namespace gpu::intel::core {
             return false;
         }
 
-        const GemObject* obj = lookup_gem(args.handle);
+        GemObject* obj = gem_get_ref(args.handle);
         if (!obj || obj->is_userptr) {
+            if (obj) obj->dec_ref();
             Log::log_dbc("intel-gpu: GEM_MMAP_OFFSET failed (bad handle)");
             return false;
         }
+        obj->dec_ref();
 
         *out_offset = static_cast<u64>(args.handle) * PAGE_SIZE;
         return true;

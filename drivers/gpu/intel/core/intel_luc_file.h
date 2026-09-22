@@ -25,6 +25,7 @@
 
 #include <vespera/mm/addr.h>
 #include <vespera/mm/vm_backing.h>
+#include <vespera/sync/spinlock.h>
 #include <vespera/types.h>
 
 #include "intel_engine.h"
@@ -100,13 +101,6 @@ namespace gpu::intel::core {
         LucFile(const LucFile&) = delete;
         LucFile& operator=(const LucFile&) = delete;
 
-        // TODO(lucifer): no lock yet -- every method below still assumes
-        // the single-threaded ioctl dispatch the old code relied on (see
-        // exec_submit()'s comment). Multiple processes/threads calling
-        // into the same LucFile concurrently is unsafe until this gets a
-        // real lock (see the debug-hygiene/locking step in the driver
-        // analysis notes) guarding the slot tables below.
-
         int ioctl(u32 request, void* arg);
 
         [[nodiscard]] kernel::vm::VmBackingObject* get_backing_object(u64 offset) const;
@@ -143,7 +137,7 @@ namespace gpu::intel::core {
         };
         [[nodiscard]] bool query_gem_object(u32 handle, GemObjectInfo* out) const;
 
-        bool vm_bind(const lucifer_vm_bind& args);
+        bool vm_bind(const lucifer_vm_bind& args) const;
 
         [[nodiscard]] bool exec_submit(lucifer_exec& args);
 
@@ -154,6 +148,7 @@ namespace gpu::intel::core {
         /// Returns this file's EngineContext for `engine`, allocating and
         /// initializing its LRC on first call
         [[nodiscard]] EngineContext* context_for_engine(IntelEngine* engine, u32 engine_class);
+        [[nodiscard]] EngineContext* context_for_engine_locked(IntelEngine* engine, u32 engine_class);
 
         struct LucSyncObj {
             bool in_use = false;
@@ -178,6 +173,8 @@ namespace gpu::intel::core {
         IntelGpuDevice& device_;
 
         u32 file_id_{0u};
+
+        mutable Spinlock handle_lock_{"luc_file_handles"};
     };
 } // namespace gpu::intel::core
 

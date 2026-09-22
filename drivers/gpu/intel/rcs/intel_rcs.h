@@ -81,6 +81,7 @@ namespace gpu::intel::rcs {
         bool setup_constant_buffer_allocations();
         bool setup_constant_buffer(const Mat4& mvp);
         u32 gt_user_irq_bit() const override;
+        u32 gt_unmask_bits() const override;
         u32 gt_debug_irq_bitmask() const override;
         void on_gt_user_interrupt() override;
         void rcs_interrupts_enable() const;

@@ -194,7 +194,7 @@ namespace gpu::intel::core {
         // bits [31:16]); a naive full-register write would clobber
         // whichever other engine already registered.
         auto* gt0 = reinterpret_cast<volatile GT_INTR_REGS*>(mmio_base_ + GEN8_GT0_INTR_BASE);
-        const u32 bit = (1u << engine->gt_user_irq_bit()) | engine->gt_debug_irq_bitmask();
+        const u32 bit = engine->gt_unmask_bits() | engine->gt_debug_irq_bitmask();
 
         u32 imr = gt0->imr.raw;
         imr &= ~bit; // 0 = unmasked
@@ -334,7 +334,7 @@ namespace gpu::intel::core {
                     Log::warning("intel-gpu: GT0 IIR RCS invalid_tile pending");
                 }
                 if (decoded.bits.rcs.ctx_switch) {
-                    Log::debug("intel-gpu: GT0 IIR RCS ctx_switch pending");
+                    self->rcs_->on_gt_context_switch();
                 }
                 if (decoded.bits.bcs.master_error) {
                     Log::warning("intel-gpu: GT0 IIR BCS master_error pending");

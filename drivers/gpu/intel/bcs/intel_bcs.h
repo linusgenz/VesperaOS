@@ -150,6 +150,11 @@ namespace gpu::intel::bcs {
         [[nodiscard]] u32 gt_user_irq_bit() const override {
             return GT0_BCS_USER_IRQ_BIT;
         }
+
+        [[nodiscard]] u32 gt_unmask_bits() const override {
+            return GT0_BCS_CTX_SWTICH_BIT;
+        }
+
         void on_gt_user_interrupt() override {
             completion_flag_.set();
         }
@@ -166,6 +171,11 @@ namespace gpu::intel::bcs {
         static constexpr u32 hi32(u64 v) {
             return static_cast<u32>(v >> 32);
         }
+
+        // TODO TEMP
+        u32 ring_tail_ = 0;
+        u32 ring_size_ = 0;
+        virt_addr_t ring_cpu_addr_{nullptr};
 
         // BCS_RING_BASE (0x22000) is passed as this engine's MMIO offset to
         // IntelEngine's constructor; bcs_regs_ is engine_regs() reinterpreted
