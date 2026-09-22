@@ -25,11 +25,13 @@
 #include <klib/string.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
+#include <vespera/scheduling.h>
 #include <vespera/time.h>
 
 #include "intel_engine.h"
 #include "intel_gem_backing.h"
 #include "intel_gpu_device.h"
+#include "../kernel/units/unit.h"
 #include "../regs/lrc_layout.h"
 
 namespace gpu::intel::core {
@@ -215,15 +217,12 @@ namespace gpu::intel::core {
         bool result_ok = true;
 
         if (args.state == LUCIFER_MADVICE_DONT_NEED) {
+            // WE HAVE TO VERIFY THAT THIS IS ALREADY UNMAPPED
             if (!obj->purged) {
-                // Bring-up assumption: caller has already VM_BIND UNMAP'd
-                // this object on every VM it was bound to -- see the
-                // `purged` field comment on GemObject. Not verified here
-                // (no back-reference from GEM object to bindings).
-                const usize page_count = (obj->size + PAGE_SIZE - 1) / PAGE_SIZE;
+                /*const usize page_count = (obj->size + PAGE_SIZE - 1) / PAGE_SIZE;
                 kernel::memory::free_pages_phys(obj->phys_addr, page_count);
                 obj->phys_addr = phys_addr_t{};
-                obj->purged = true;
+                obj->purged = true;*/
             }
 
             *out_retained = false; // DONTNEED never reports resident
@@ -501,6 +500,62 @@ namespace gpu::intel::core {
         return ctx && *engine->seqno_ptr_for_read(*ctx) >= static_cast<u32>(obj.target_seqno);
     }
 
+    int LucFile::syncobj_wait_poll_once(
+        const u32* handles, const u32 count_handles, const bool wait_all,
+        u32* out_first_signaled, u32* out_signaled_count
+    ) {
+        SpinlockGuard guard(handle_lock_);
+
+        u32 signaled_count = 0;
+        for (u32 i = 0; i < count_handles; ++i) {
+            const LucSyncObj& obj = *syncobj_slots_.get(handles[i]);
+            IntelEngine* engine = obj.has_fence ? device_.engine_for_class(obj.engine) : nullptr;
+
+            if (obj.has_fence && engine && engine->is_banned()) {
+                Log::log_dbc("intel-gpu: SYNCOBJ_WAIT failed (handle=%u bound to banned engine=%u)",
+                             handles[i], obj.engine);
+                return -EIO;
+            }
+
+            if (syncobj_is_signaled_now(obj, engine)) {
+                signaled_count++;
+                if (!wait_all) {
+                    if (out_first_signaled) *out_first_signaled = i;
+                    *out_signaled_count = signaled_count;
+                    return 0;
+                }
+            }
+        }
+
+        *out_signaled_count = signaled_count;
+        return 0;
+    }
+
+
+    int LucFile::syncobj_wait_poll(
+        const u32* handles, const u32 count_handles, const bool wait_all,
+        const i64 timeout_ns, u32* out_first_signaled
+    ) {
+        const bool infinite = timeout_ns < 0;
+        const u64 deadline_ns = infinite ? 0 : kernel::time::get_uptime_ns() + static_cast<u64>(timeout_ns);
+        const i64 poll_interval_us = 500;
+
+        while (true) {
+            u32 signaled_count = 0;
+            const int rc = syncobj_wait_poll_once(handles, count_handles, wait_all, out_first_signaled,
+                                                   &signaled_count);
+            if (rc != 0) return rc;
+            if (!wait_all && signaled_count > 0) return 0;
+            if (wait_all && signaled_count == count_handles) return 0;
+
+            if (!infinite && kernel::time::get_uptime_ns() >= deadline_ns) {
+                return -ETIME;
+            }
+
+            kernel::time::sleep_us(poll_interval_us);
+        }
+    }
+
     int LucFile::syncobj_wait(
         const u32* handles, const u32 count_handles, const u32 flags,
         const i64 timeout_ns, u32* out_first_signaled
@@ -521,53 +576,88 @@ namespace gpu::intel::core {
         }
 
         const bool wait_all = (flags & DRM_SYNCOBJ_WAIT_FLAGS_WAIT_ALL) != 0;
+        IntelEngine* wait_engines[LUCIFER_NUM_ENGINE_CLASSES] = {};
+        u32 num_wait_engines = 0;
 
-        // Bring-up note: no interrupt-driven multi-wait queue across
-        // engines yet, so this polls at a fixed interval instead of
-        // parking on engine_waiters_ the way single-handle
-        // seqno_wait_blocking() does. Fine for bring-up; TODO(lucifer):
-        // fold this into IntelEngine::seqno_wait_blocking()-style blocking
-        // waits once cross-engine wait infra exists.
-        const i64 poll_interval_us = 500;
-        i64 waited_ns = 0;
+        {
+            SpinlockGuard guard(handle_lock_);
+            for (u32 i = 0; i < count_handles; ++i) {
+                const LucSyncObj& obj = *syncobj_slots_.get(handles[i]);
+                if (!obj.has_fence) continue;
+
+                IntelEngine* engine = device_.engine_for_class(obj.engine);
+                if (!engine) continue;
+
+                bool already_have = false;
+                for (u32 j = 0; j < num_wait_engines; ++j) {
+                    if (wait_engines[j] == engine) {
+                        already_have = true;
+                        break;
+                    }
+                }
+                if (already_have) continue;
+
+                if (num_wait_engines >= LUCIFER_NUM_ENGINE_CLASSES) {
+                    // Shouldn't happen (see comment above), but if the
+                    // engine count ever grows past our fixed array,
+                    // degrade to polling rather than drop an engine from
+                    // the wait set and risk missing its wakeup.
+                    return syncobj_wait_poll(handles, count_handles, wait_all, timeout_ns, out_first_signaled);
+                }
+                wait_engines[num_wait_engines++] = engine;
+            }
+        }
+
+        Unit* cur = kernel::scheduling::get_current_unit();
+        if (!cur || cur->is_idle) {
+            return syncobj_wait_poll(handles, count_handles, wait_all, timeout_ns, out_first_signaled);
+        }
+
+        const bool infinite = timeout_ns < 0;
+        const u64 deadline_ns = infinite ? 0 : kernel::time::get_uptime_ns() + static_cast<u64>(timeout_ns);
+        const u8 cpu_id = cur->cpu_id;
 
         while (true) {
             u32 signaled_count = 0;
+            int rc = syncobj_wait_poll_once(handles, count_handles, wait_all, out_first_signaled, &signaled_count);
+            if (rc != 0) return rc;
+            if (!wait_all && signaled_count > 0) return 0;
+            if (wait_all && signaled_count == count_handles) return 0;
 
-            {
-                SpinlockGuard guard(handle_lock_);
-                for (u32 i = 0; i < count_handles; ++i) {
-                    const LucSyncObj& obj = *syncobj_slots_.get(handles[i]);
-                    IntelEngine* engine = obj.has_fence ? device_.engine_for_class(obj.engine) : nullptr;
+            if (num_wait_engines == 0) {
+                return syncobj_wait_poll(handles, count_handles, wait_all, timeout_ns, out_first_signaled);
+            }
 
-                    if (obj.has_fence && engine && engine->is_banned()) {
-                        Log::log_dbc("intel-gpu: SYNCOBJ_WAIT failed (handle=%u bound to banned engine=%u)",
-                                     handles[i], obj.engine);
-                        return -EIO;
-                    }
+            for (u32 j = 0; j < num_wait_engines; ++j) {
+                wait_engines[j]->waiters.add_wait(cur);
+            }
 
-                    if (syncobj_is_signaled_now(obj, engine)) {
-                        signaled_count++;
-                        if (!wait_all && out_first_signaled) {
-                            *out_first_signaled = i;
-                        }
-                        if (!wait_all) {
-                            return 0;
-                        }
+            if (!infinite) {
+                cur->sleep_context.wakeup_ns = deadline_ns;
+                kernel::scheduling::add_blocked_unit(cur, cpu_id);
+            }
+
+            kernel::scheduling::yield();
+
+            rc = syncobj_wait_poll_once(handles, count_handles, wait_all, out_first_signaled, &signaled_count);
+            if (rc != 0) return rc;
+            if (!wait_all && signaled_count > 0) return 0;
+            if (wait_all && signaled_count == count_handles) return 0;
+
+            if (!infinite && kernel::time::get_uptime_ns() >= deadline_ns) {
+                bool any_lost_race = false;
+                for (u32 j = 0; j < num_wait_engines; ++j) {
+                    if (!wait_engines[j]->waiters.remove(cur)) {
+                        any_lost_race = true;
                     }
                 }
-
-                if (wait_all && signaled_count == count_handles) {
-                    return 0;
+                if (!any_lost_race) {
+                    return -ETIME;
                 }
             }
 
-            if (timeout_ns >= 0 && waited_ns >= timeout_ns) {
-                return -ETIME;
-            }
-
-            kernel::time::sleep_us(poll_interval_us);
-            waited_ns += poll_interval_us * 1000;
+            // Not yet signaled, not timed out (or lost a removal race) --
+            // loop back and park again.
         }
     }
 

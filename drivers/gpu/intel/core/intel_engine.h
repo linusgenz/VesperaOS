@@ -456,6 +456,8 @@ namespace gpu::intel::core {
 
         bool execlist_mode_enabled_ = false;
 
+        WaitQueue waiters;
+
         static constexpr u32 SEQNO_BIT5_MASK = 1u << 5;
 
     private:

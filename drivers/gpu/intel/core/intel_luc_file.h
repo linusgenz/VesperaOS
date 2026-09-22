@@ -165,6 +165,12 @@ namespace gpu::intel::core {
         bool syncobj_destroy(u32 handle);
         [[nodiscard]] bool syncobj_bind_fence(u32 handle, u32 engine, u64 target_seqno);
         bool syncobj_is_signaled_now(const LucSyncObj& obj, IntelEngine* engine);
+        int syncobj_wait_poll_once(
+            const u32* handles, u32 count_handles, bool wait_all, u32* out_first_signaled, u32* out_signaled_count
+        );
+        int syncobj_wait_poll(
+            const u32* handles, u32 count_handles, bool wait_all, i64 timeout_ns, u32* out_first_signaled
+        );
         [[nodiscard]] int syncobj_wait(const u32* handles, u32 count_handles, u32 flags,
                                        i64 timeout_ns, u32* out_first_signaled);
         bool syncobj_reset(const u32* handles, u32 count_handles);
