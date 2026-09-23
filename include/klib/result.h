@@ -71,6 +71,12 @@ namespace klib {
         NoMsg = ENOMSG,              // ENOMSG
         Overflow = EOVERFLOW,        // EOVERFLOW
         IlSeq = EILSEQ,              // EILSEQ
+        AddrInUse = EADDRINUSE,      // EADDRINUSE
+        ConnRefused = ECONNREFUSED,  // ECONNREFUSED
+        WouldBlock = EWOULDBLOCK,    // EWOULDBLOCK
+        ConnAborted = ECONNABORTED,  // ECONNABORTED
+        NotConn = ENOTCONN,          // ENOTCONN
+        AfNoSupport = EAFNOSUPPORT,  // EAFNOSUPPORT
 
         Unknown = EUNKNOWN,          // EUNKNOWN
         Unsupported = EUNSUPPORTED,  // EUNSUPPORTED

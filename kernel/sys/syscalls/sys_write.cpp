@@ -70,6 +70,15 @@ namespace syscalls::internal {
                 }
                 return r;
             }
+            case HANDLE_TYPE_SOCKET: {
+                const auto* sh = rh.resource_as<SocketHandle>();
+                if (!sh) return -EBADH;
+                if (sh->state != SocketState::CONNECTED || !sh->endpoint) return -ENOTCONN;
+
+                const bool nonblock = false; // TODO: handle flags integrated with fcntl
+                const isize r = sh->endpoint->send(buf, count, !nonblock);
+                return r;
+            }
             default:
                 return -EBADH;
         }

@@ -28,8 +28,8 @@
 #include <vespera/types.h>
 
 #include "filesystem/vfs_handle.h"
-#include "../handle_resolution.h"
-#include "vespera/log.h"
+#include "sys/handle_resolution.h"
+#include "vespera/ipc/socket_handle.h"
 
 namespace syscalls::internal {
     i64 sys_read(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
@@ -66,6 +66,15 @@ namespace syscalls::internal {
                 while ((r = ch->recv(buf, count)) == -EAGAIN) {
                     kernel::scheduling::yield();
                 }
+                return r;
+            }
+            case HANDLE_TYPE_SOCKET: {
+                const auto* sh = rh.resource_as<SocketHandle>();
+                if (!sh) return -EBADH;
+                if (sh->state != SocketState::CONNECTED || !sh->endpoint) return -ENOTCONN;
+
+                const bool nonblock = false; // TODO: handle flags integrated with fcntl
+                const isize r = sh->endpoint->recv(buf, count, !nonblock);
                 return r;
             }
             default:

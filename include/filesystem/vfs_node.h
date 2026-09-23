@@ -45,6 +45,7 @@ enum class VfsNodeType : u8 {
 struct VfsNode;
 struct VfsHandleContext;
 class Channel;
+class SocketListener;
 
 struct VfsNodeOps {
     Result<usize> (*read)(const VfsNode *node, usize offset, usize size, void *buffer, VfsHandleContext *ctx);
@@ -104,6 +105,7 @@ struct VfsNode {
     // Only valid when type == VfsNodeType::Fifo. Lazily created by the first
     // open() (reader or writer) on this node and torn down by Channel itself
     Channel *fifo_channel = nullptr;
+    SocketListener *socket_listener = nullptr;
 };
 
 VfsNode* ref_node(VfsNode* node);

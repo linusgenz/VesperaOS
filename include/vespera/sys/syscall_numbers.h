@@ -46,6 +46,13 @@
 #define SYSCALL_DUP2       33
 #define SYSCALL_NANOSLEEP 35
 #define SYSCALL_GETRID    39
+#define SYSCALL_SOCKET    41
+#define SYSCALL_CONNECT   42
+#define SYSCALL_ACCEPT    43
+#define SYSCALL_SENDMSG   46
+#define SYSCALL_RECVMSG   47
+#define SYSCALL_BIND      49
+#define SYSCALL_LISTEN    50
 #define SYSCALL_UNIT_SPAWN 59
 #define SYSCALL_EXIT      60
 #define SYSCALL_WAIT      61

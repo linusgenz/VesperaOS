@@ -70,9 +70,15 @@ inline constexpr int ENOMSG    = 42;
 inline constexpr int ETIME     = 62;
 inline constexpr int EOVERFLOW = 75;
 inline constexpr int EILSEQ    = 84;
-
+inline constexpr int EPROTOTYPE = 91; /* Protocol wrong type for socket */
+inline constexpr int EPROTONOSUPPORT = 93; /* Protocol not supported */
+inline constexpr int EAFNOSUPPORT = 97; /* Address family not supported by protocol */
+inline constexpr int EADDRINUSE = 98;
 inline constexpr int ETIMEDOUT = 116; /* Connection timed out */
-
+inline constexpr int ECONNREFUSED = 111; /* Connection refused */
+inline constexpr int ECONNABORTED = 103; /* Software caused connection abort */
+inline constexpr int EISCONN = 106; /* Transport endpoint is already connected */
+inline constexpr int ENOTCONN = 107; /* Transport endpoint is not connected */
 inline constexpr int EUNKNOWN     = 1000;
 inline constexpr int EUNSUPPORTED = 1001;
 inline constexpr int EDEADLOCK    = 1002;

@@ -201,6 +201,20 @@ namespace syscalls::internal {
     i64 sys_mknodat(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64, u64);
 
     i64 sys_mknod(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
+
+    i64 sys_socket(u64, u64, u64, u64, u64, u64);
+
+    i64 sys_bind(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
+
+    i64 sys_listen(u64 arg0, u64 arg1, u64, u64, u64, u64);
+
+    i64 sys_connect(u64 arg0, u64 arg1, u64, u64, u64, u64);
+
+    i64 sys_accept(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64, u64);
+
+    i64 sys_sendmsg(u64, u64, u64, u64, u64, u64);
+
+    i64 sys_recvmsg(u64, u64, u64, u64, u64, u64);
 } // namespace syscalls::internal
 
 void install_syscalls();
