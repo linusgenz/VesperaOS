@@ -1,9 +1,9 @@
-// iris_bufmgr.h
+// intel_device_query.c
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 07.09.26.
+// Created by Linus Genz on 06.09.26.
 //
 // This file is part of VesperaOS.
 //
@@ -20,18 +20,34 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
+#include "lucifer/intel_device_query.h"
 
-#include <stdint.h>
-#include <stdbool.h>
+#include <stdlib.h>
 
-struct iris_bufmgr;
-struct iris_bo;
-struct isl_surf;
-enum iris_heap;
+#include "common/intel_gem.h"
+#include "vespera/dev/lucifer_drm.h"
 
-bool iris_lucifer_init_global_vm(struct iris_bufmgr *bufmgr, uint32_t *vm_id);
-bool iris_lucifer_destroy_global_vm(struct iris_bufmgr *bufmgr);
 
-int iris_lucifer_bo_get_tiling(struct iris_bo *bo, uint32_t *tiling);
-int iris_lucifer_bo_set_tiling(struct iris_bo *bo, const struct isl_surf *surf);
+void*
+lucifer_device_query_alloc_fetch(int fd, uint32_t query_id, uint32_t* len) {
+    struct lucifer_query query = {
+        .query = query_id,
+    };
+
+    if (intel_ioctl(fd, LUCIFER_IOCTL_QUERY, &query))
+        return NULL;
+
+    void* data = calloc(1, query.size);
+    if (!data)
+        return NULL;
+
+    query.data = (uintptr_t)data;
+    if (intel_ioctl(fd, LUCIFER_IOCTL_QUERY, &query)) {
+        free(data);
+        return NULL;
+    }
+
+    if (len)
+        *len = query.size;
+    return data;
+}

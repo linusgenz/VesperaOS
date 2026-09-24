@@ -20,8 +20,6 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-// TODO implement intel device info
-
 #include "lucifer/intel_device_info.h"
 
 #include "common/intel_gem.h"
@@ -101,15 +99,6 @@ intel_device_info_lucifer_query_regions(struct intel_device_info *devinfo,
    return true;
 }
 
-/*
- * Uebersetzt die vom Kernel gelieferten Fuse-Masken (1 Slice, N Subslices,
- * gleiche EU-Maske je Subslice bei Gen9.5) in die generischen
- * intel_device_info Topologie-Felder. Bewusst generisch ueber
- * max_subslices_per_slice/max_eus_per_subslice statt Gen9.5-Werte
- * hartzukodieren, damit spaetere SKUs mit abweichendem Fusing (GT1 vs GT2
- * vs GT3) ohne Codeaenderung funktionieren -- die tatsaechlichen Grenzen
- * kommen aus der Anzahl gesetzter Bits in den Masken, nicht aus Konstanten.
- */
 bool
 intel_device_info_lucifer_update_from_masks(struct intel_device_info *devinfo,
                                              uint32_t slice_mask,
@@ -210,6 +199,8 @@ intel_device_info_lucifer_get_info_from_fd(int fd,
    devinfo->has_mmap_offset       = true;
    devinfo->has_partial_mmap_offset = true;
    devinfo->has_llc               = true; /* Gen9.5 hat LLC (Last Level Cache) */
+   devinfo->has_tiling_uapi = true;
+   devinfo->has_bit6_swizzle = false;
 
    return true;
 }

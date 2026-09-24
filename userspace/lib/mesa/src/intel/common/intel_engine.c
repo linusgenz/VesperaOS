@@ -28,6 +28,7 @@
 #include "intel_engine.h"
 #include "i915/intel_engine.h"
 #include "xe/intel_engine.h"
+#include "lucifer/intel_engine.h"
 
 struct intel_query_engine_info *
 intel_engine_get_info(int fd, enum intel_kmd_type type)
@@ -37,6 +38,8 @@ intel_engine_get_info(int fd, enum intel_kmd_type type)
       return i915_engine_get_info(fd);
    case INTEL_KMD_TYPE_XE:
       return xe_engine_get_info(fd);
+   case INTEL_KMD_TYPE_LUCIFER:
+      return lucifer_engine_get_info(fd);
    default:
       UNREACHABLE("Missing");
       return NULL;
@@ -84,6 +87,8 @@ is_guc_semaphore_functional(int fd, const struct intel_device_info *info)
       return i915_engines_is_guc_semaphore_functional(fd, info);
    case INTEL_KMD_TYPE_XE:
       return xe_engines_is_guc_semaphore_functional(fd, info);
+   case INTEL_KMD_TYPE_LUCIFER:
+      return lucifer_engines_is_guc_semaphore_functional(fd, info);
    default:
       UNREACHABLE("Missing");
       return false;

@@ -258,6 +258,6 @@ target_link_libraries(mesa_util
         mesa_util_c11
 )
 
-add_dependencies(mesa_util sysroot_headers)
+add_dependencies(mesa_util sysroot_headers drm::drm)
 
 install(TARGETS mesa_util LIBRARY DESTINATION ${VESPERA_SYSROOT}/usr/lib COMPONENT runtime)

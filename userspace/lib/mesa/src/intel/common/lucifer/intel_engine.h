@@ -1,9 +1,9 @@
-// iris_bufmgr.h
+// intel_engine.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 07.09.26.
+// Created by Linus Genz on 06.09.26.
 //
 // This file is part of VesperaOS.
 //
@@ -22,16 +22,24 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
-struct iris_bufmgr;
-struct iris_bo;
-struct isl_surf;
-enum iris_heap;
+#include "common/intel_engine.h"
 
-bool iris_lucifer_init_global_vm(struct iris_bufmgr *bufmgr, uint32_t *vm_id);
-bool iris_lucifer_destroy_global_vm(struct iris_bufmgr *bufmgr);
+#ifdef __cplusplus
+extern "C" {
 
-int iris_lucifer_bo_get_tiling(struct iris_bo *bo, uint32_t *tiling);
-int iris_lucifer_bo_set_tiling(struct iris_bo *bo, const struct isl_surf *surf);
+#endif
+
+struct intel_query_engine_info*
+lucifer_engine_get_info(int fd);
+
+uint16_t intel_engine_class_to_lucifer(enum intel_engine_class intel);
+
+bool
+lucifer_engines_is_guc_semaphore_functional(int fd, const struct intel_device_info* info);
+
+#ifdef __cplusplus
+}
+#endif

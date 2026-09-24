@@ -782,6 +782,10 @@ oa_metrics_available(struct intel_perf_config *perf, int fd,
    case INTEL_KMD_TYPE_XE:
       oa_metrics_available = xe_oa_metrics_available(perf, fd, use_register_snapshots);
       break;
+   case INTEL_KMD_TYPE_LUCIFER:
+      // TODO LUCIFER: add this when the system is working
+      oa_metrics_available = false;
+      break;
    default:
       UNREACHABLE("missing");
       break;

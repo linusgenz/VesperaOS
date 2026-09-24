@@ -688,7 +688,6 @@ iris_screen_create(int fd, const struct pipe_screen_config *config)
    process_intel_debug_variable();
 
    screen->bufmgr = iris_bufmgr_get_for_fd(fd, bo_reuse);
-   printf("iris_screen_create bufmgr: %p\n", screen->bufmgr);
    if (!screen->bufmgr)
       return NULL;
 
@@ -712,10 +711,8 @@ iris_screen_create(int fd, const struct pipe_screen_config *config)
 
    screen->fd = iris_bufmgr_get_fd(screen->bufmgr);
    screen->winsys_fd = os_dupfd_cloexec(fd);
-   printf("os_dupfd_cloexec\n %d", screen->winsys_fd);
 
    screen->id = iris_bufmgr_create_screen_id(screen->bufmgr);
-   printf("iris_bufmgr_create_screen_id\n %d", screen->id);
    screen->workaround_bo =
       iris_bo_alloc(screen->bufmgr, "workaround", 4096, 4096,
                     IRIS_MEMZONE_OTHER, BO_ALLOC_NO_SUBALLOC | BO_ALLOC_CAPTURE);
@@ -729,7 +726,6 @@ iris_screen_create(int fd, const struct pipe_screen_config *config)
 
    if (!iris_init_identifier_bo(screen))
       return NULL;
-   printf("iris_init_identifier_bo donw\n");
 
    screen->driconf.dual_color_blend_by_location =
       driQueryOptionb(config->options, "dual_color_blend_by_location");
@@ -763,7 +759,6 @@ iris_screen_create(int fd, const struct pipe_screen_config *config)
       driQueryOptionb(config->options, "intel_disable_threaded_context");
 
    screen->precompile = debug_get_bool_option("shader_precompile", true);
-   printf("options donw\n");
 
    isl_device_init(&screen->isl_dev, screen->devinfo);
    screen->isl_dev.dummy_aux_address = iris_bufmgr_get_dummy_aux_address(screen->bufmgr);
@@ -779,7 +774,6 @@ iris_screen_create(int fd, const struct pipe_screen_config *config)
    screen->l3_config_cs = iris_get_default_l3_config(screen->devinfo, true);
 
    iris_disk_cache_init(screen);
-   printf("iris_disk_cache_init donw\n");
 
    slab_create_parent(&screen->transfer_pool,
                       sizeof(struct iris_transfer), 64);

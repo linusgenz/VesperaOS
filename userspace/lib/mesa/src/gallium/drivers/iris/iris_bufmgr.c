@@ -592,6 +592,9 @@ iris_bo_busy(struct iris_bo *bo)
    case INTEL_KMD_TYPE_XE:
       busy = iris_bo_busy_syncobj(bo);
       break;
+   case INTEL_KMD_TYPE_LUCIFER:
+      busy = iris_bo_busy_syncobj(bo);
+      break;
    default:
       UNREACHABLE("missing");
       busy = true;
@@ -1759,7 +1762,6 @@ void *
 iris_bo_map(struct util_debug_callback *dbg,
             struct iris_bo *bo, unsigned flags)
 {
-   printf("iris_bo_map: %p\n", bo);
    struct iris_bufmgr *bufmgr = bo->bufmgr;
    void *map = NULL;
 
@@ -1841,6 +1843,9 @@ iris_bo_wait(struct iris_bo *bo, int64_t timeout_ns)
          ret = iris_bo_wait_syncobj(bo, timeout_ns);
       break;
    case INTEL_KMD_TYPE_XE:
+      ret = iris_bo_wait_syncobj(bo, timeout_ns);
+      break;
+   case INTEL_KMD_TYPE_LUCIFER:
       ret = iris_bo_wait_syncobj(bo, timeout_ns);
       break;
    default:
@@ -1956,8 +1961,14 @@ iris_gem_get_tiling(struct iris_bo *bo, uint32_t *tiling)
       return 0;
    }
 
-   assert(iris_bufmgr_get_device_info(bo->bufmgr)->kmd_type == INTEL_KMD_TYPE_I915);
-   return iris_i915_bo_get_tiling(bo, tiling);
+   switch (iris_bufmgr_get_device_info(bo->bufmgr)->kmd_type) {
+      case INTEL_KMD_TYPE_I915:
+         return iris_i915_bo_get_tiling(bo, tiling);
+      case INTEL_KMD_TYPE_LUCIFER:
+         return iris_lucifer_bo_get_tiling(bo, tiling);
+      default:
+         UNREACHABLE("unsupported kmd_type for tiling uapi");
+   }
 }
 
 int
@@ -1971,8 +1982,14 @@ iris_gem_set_tiling(struct iris_bo *bo, const struct isl_surf *surf)
    if (!bufmgr->devinfo.has_tiling_uapi)
       return 0;
 
-   assert(iris_bufmgr_get_device_info(bo->bufmgr)->kmd_type == INTEL_KMD_TYPE_I915);
-   return iris_i915_bo_set_tiling(bo, surf);
+   switch (iris_bufmgr_get_device_info(bo->bufmgr)->kmd_type) {
+      case INTEL_KMD_TYPE_I915:
+         return iris_i915_bo_set_tiling(bo, surf);
+      case INTEL_KMD_TYPE_LUCIFER:
+         return iris_lucifer_bo_set_tiling(bo, surf);
+      default:
+         UNREACHABLE("unsupported kmd_type for tiling uapi");
+   }
 }
 
 struct iris_bo *
@@ -2680,7 +2697,7 @@ iris_bufmgr_get_for_fd(int fd, bool bo_reuse)
 #endif
 
    bufmgr = iris_bufmgr_create(&devinfo, fd, bo_reuse);
-   printf("iris_bufmgr_create: %p\n", bufmgr);
+
    if (bufmgr)
       list_addtail(&bufmgr->link, &global_bufmgr_list);
 

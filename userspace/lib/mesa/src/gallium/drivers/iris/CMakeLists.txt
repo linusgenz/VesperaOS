@@ -111,6 +111,7 @@ set(IRIS_SOURCES
 
         lucifer/iris_kmd_backend.c
         lucifer/iris_bufmgr.c
+        lucifer/iris_batch.c
 
         i915/iris_batch.c
         i915/iris_bufmgr.c

@@ -1,9 +1,9 @@
-// iris_bufmgr.h
+// iris_batch.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 07.09.26.
+// Created by Linus Genz on 10.09.26.
 //
 // This file is part of VesperaOS.
 //
@@ -22,16 +22,11 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <stdbool.h>
 
-struct iris_bufmgr;
-struct iris_bo;
-struct isl_surf;
-enum iris_heap;
+struct iris_batch;
+struct iris_context;
 
-bool iris_lucifer_init_global_vm(struct iris_bufmgr *bufmgr, uint32_t *vm_id);
-bool iris_lucifer_destroy_global_vm(struct iris_bufmgr *bufmgr);
-
-int iris_lucifer_bo_get_tiling(struct iris_bo *bo, uint32_t *tiling);
-int iris_lucifer_bo_set_tiling(struct iris_bo *bo, const struct isl_surf *surf);
+void iris_lucifer_init_batches(struct iris_context *ice);
+bool iris_lucifer_replace_batch(struct iris_batch *batch);
+void iris_lucifer_destroy_batch(struct iris_batch *batch);

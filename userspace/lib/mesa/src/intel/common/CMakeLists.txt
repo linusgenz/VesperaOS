@@ -44,6 +44,9 @@ set(MESA_INTEL_COMMON_SOURCES
         xe/intel_engine.c
 
         i915/intel_engine.c
+
+        lucifer/intel_engine.c
+        lucifer/intel_device_query.c
 )
 
 add_library(mesa_intel_common STATIC ${MESA_INTEL_COMMON_SOURCES})

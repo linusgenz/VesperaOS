@@ -86,6 +86,9 @@ struct iris_batch {
       struct {
          uint32_t exec_queue_id;
       } xe;
+      struct {
+         uint8_t engine_class;
+      } lucifer;
    };
 
    /** A list of all BOs referenced by this batch */

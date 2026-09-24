@@ -26,6 +26,7 @@
 #include "iris_utrace.h"
 #include "i915/iris_batch.h"
 #include "xe/iris_batch.h"
+#include "lucifer/iris_batch.h"
 
 #include "common/intel_aux_map.h"
 #include "intel/common/intel_gem.h"
@@ -260,6 +261,9 @@ iris_init_batches(struct iris_context *ice)
       break;
    case INTEL_KMD_TYPE_XE:
       iris_xe_init_batches(ice);
+      break;
+   case INTEL_KMD_TYPE_LUCIFER:
+      iris_lucifer_init_batches(ice);
       break;
    default:
       UNREACHABLE("missing");
@@ -520,6 +524,9 @@ iris_batch_free(const struct iris_context *ice, struct iris_batch *batch)
    case INTEL_KMD_TYPE_XE:
       iris_xe_destroy_batch(batch);
       break;
+   case INTEL_KMD_TYPE_LUCIFER:
+      iris_lucifer_destroy_batch(batch);
+      break;
    default:
       UNREACHABLE("missing");
    }
@@ -697,6 +704,8 @@ replace_kernel_ctx(struct iris_batch *batch)
       return iris_i915_replace_batch(batch);
    case INTEL_KMD_TYPE_XE:
       return iris_xe_replace_batch(batch);
+   case INTEL_KMD_TYPE_LUCIFER:
+      return iris_lucifer_replace_batch(batch);
    default:
       UNREACHABLE("missing");
       return false;
