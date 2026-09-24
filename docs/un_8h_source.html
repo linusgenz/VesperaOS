@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>vesplib: include/uapi/vespera/handles.h Source File</title>
+<title>vesplib: include/uapi/vespera/un.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -69,7 +69,7 @@ $(document).ready(function() { init_codefold(0); });
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
-$(document).ready(function(){initNavTree('handles_8h_source.html',''); initResizable(); });
+$(document).ready(function(){initNavTree('un_8h_source.html',''); initResizable(); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -95,15 +95,15 @@ $(document).ready(function(){initNavTree('handles_8h_source.html',''); initResiz
 </div>
 
 <div class="header">
-  <div class="headertitle"><div class="title">handles.h</div></div>
+  <div class="headertitle"><div class="title">un.h</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="handles_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// handles.h</span></div>
+<a href="un_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// un.h</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment">// VesperaOS - operating system for the x86_64 architecture</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="comment">//</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="comment">// Copyright (c) 2026 Linus Genz &lt;linuslinuxgenz@gmail.com&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="comment">//</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="comment">// Created by Linus Genz on 07.03.26.</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="comment">// Created by Linus Genz on 23.09.26.</span></div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="comment">//</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="comment">// This file is part of VesperaOS.</span></div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="comment">//</span></div>
@@ -119,41 +119,30 @@ $(document).ready(function(){initNavTree('handles_8h_source.html',''); initResiz
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="comment">//</span></div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="comment">// You should have received a copy of the GNU General Public License</span></div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="comment">// along with VesperaOS. If not, see &lt;https://www.gnu.org/licenses/&gt;.</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#ifndef VESPERAOS_HANDLES_H</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#define VESPERAOS_HANDLES_H</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#ifndef VESPERAWORKSPACE_UN_H</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#define VESPERAWORKSPACE_UN_H</span></div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno"><a class="line" href="handles_8h.html#a6bedb180bae32d77457eca11086b6142">   25</a></span><span class="preprocessor">#define INVALID_HANDLE ((FILE_HANDLE) - 1ULL)</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &quot;<a class="code" href="socket_8h.html">socket.h</a>&quot;</span></div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="comment">// Handle typs (upper 16 bits)</span></div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="handles_8h.html#a5adb7fdca00e5c5f3f1808742a2b8f49">   28</a></span><span class="preprocessor">#define HANDLE_TYPE_MASK 0xFFFF000000000000ULL</span></div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="handles_8h.html#a452c27ff81cc8d963a8b945d0202a9ce">   29</a></span><span class="preprocessor">#define HANDLE_ID_MASK 0x0000FFFFFFFFFFFFULL</span></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="comment">/* Handle type definitions */</span></div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno"><a class="line" href="handles_8h.html#aef864574e77d6a0d5653dfae187c57e4">   32</a></span><span class="preprocessor">#define HANDLE_TYPE_FILE 0x2000000000000000ULL</span></div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="handles_8h.html#a86b6a1b11bca4c2c1bbcd18d7cdb0b83">   33</a></span><span class="preprocessor">#define HANDLE_TYPE_DIRECTORY 0x3000000000000000ULL</span></div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="handles_8h.html#a57fb96e74a11842469c4d71f9a38734a">   34</a></span><span class="preprocessor">#define HANDLE_TYPE_CHANNEL 0x4000000000000000ULL</span></div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="handles_8h.html#a9dec1a6d452fc4aa25863f4f48db44dd">   35</a></span><span class="preprocessor">#define HANDLE_TYPE_UNIT 0x5000000000000000ULL</span></div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno"><a class="line" href="handles_8h.html#a99fc691f8add17b3b3a7834779d7e641">   36</a></span><span class="preprocessor">#define HANDLE_TYPE_REALM 0x6000000000000000ULL</span></div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="handles_8h.html#a7320acad67c37ee34fa6f28cab733f7c">   37</a></span><span class="preprocessor">#define HANDLE_TYPE_DEVICE 0x7000000000000000ULL</span></div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="handles_8h.html#a65919b76b3a0374e90b230646cd91c64">   38</a></span><span class="preprocessor">#define HANDLE_TYPE_PIPE 0x8000000000000000ULL</span></div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="handles_8h.html#a12742041173a6f02365c3a459fb5bbf6">   39</a></span><span class="preprocessor">#define HANDLE_TYPE_SHM 0x9000000000000000ULL</span></div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="handles_8h.html#a7f4e53272105521456e06d5f7a3ca876">   40</a></span><span class="preprocessor">#define HANDLE_TYPE_FIFO 0x1100000000000000UL</span></div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno"><a class="line" href="handles_8h.html#a6ecccf862deec75a2023ea892c8e4c2c">   41</a></span><span class="preprocessor">#define HANDLE_TYPE_SOCKET 0x1200000000000000ULL</span></div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="comment">/* Standard stream handles */</span></div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno"><a class="line" href="handles_8h.html#aa8bdf33a8a477a7f84782d4075cac16e">   45</a></span><span class="preprocessor">#define HANDLE_STDIN   (HANDLE_TYPE_DEVICE | 0x0000000000000000ULL)</span></div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno"><a class="line" href="handles_8h.html#ab713aac387c884999067ab2eb12eb2a3">   46</a></span><span class="preprocessor">#define HANDLE_STDOUT  (HANDLE_TYPE_DEVICE | 0x0000000000000001ULL)</span></div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno"><a class="line" href="handles_8h.html#a20f587d71e5bfe98fd92929ab61bde41">   47</a></span><span class="preprocessor">#define HANDLE_STDERR  (HANDLE_TYPE_DEVICE | 0x0000000000000002ULL)</span></div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span> </div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno"><a class="line" href="handles_8h.html#a9a6ab293f8132e3752d29ecb13cb1605">   49</a></span><span class="preprocessor">#define HANDLE_VBUS    (HANDLE_TYPE_CHANNEL | 0x0000000000000003ULL)</span></div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span><span class="preprocessor">#endif  </span><span class="comment">// VESPERAOS_HANDLES_H</span></div>
+<div class="foldopen" id="foldopen00027" data-start="{" data-end="};">
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="structsockaddr__un.html">   27</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structsockaddr__un.html">sockaddr_un</a> {</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="structsockaddr__un.html#a129696980f9f8823979bb3e5e7e3c85a">   28</a></span>    <a class="code hl_typedef" href="alltypes_8h.html#a27a82860cef19f4a53f68516e7b2ee0e">sa_family_t</a> <a class="code hl_variable" href="structsockaddr__un.html#a129696980f9f8823979bb3e5e7e3c85a">sun_family</a>; <span class="comment">// AF_UNIX</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="structsockaddr__un.html#ae269a5dddaa0bb6c8887578735db9e9e">   29</a></span>    <span class="keywordtype">char</span>        <a class="code hl_variable" href="structsockaddr__un.html#ae269a5dddaa0bb6c8887578735db9e9e">sun_path</a>[108];</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>};</div>
+</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="preprocessor">#endif </span><span class="comment">//VESPERAWORKSPACE_UN_H</span></div>
+<div class="ttc" id="aalltypes_8h_html_a27a82860cef19f4a53f68516e7b2ee0e"><div class="ttname"><a href="alltypes_8h.html#a27a82860cef19f4a53f68516e7b2ee0e">sa_family_t</a></div><div class="ttdeci">unsigned short sa_family_t</div><div class="ttdef"><b>Definition</b> alltypes.h:95</div></div>
+<div class="ttc" id="asocket_8h_html"><div class="ttname"><a href="socket_8h.html">socket.h</a></div></div>
+<div class="ttc" id="astructsockaddr__un_html"><div class="ttname"><a href="structsockaddr__un.html">sockaddr_un</a></div><div class="ttdef"><b>Definition</b> un.h:27</div></div>
+<div class="ttc" id="astructsockaddr__un_html_a129696980f9f8823979bb3e5e7e3c85a"><div class="ttname"><a href="structsockaddr__un.html#a129696980f9f8823979bb3e5e7e3c85a">sockaddr_un::sun_family</a></div><div class="ttdeci">sa_family_t sun_family</div><div class="ttdef"><b>Definition</b> un.h:28</div></div>
+<div class="ttc" id="astructsockaddr__un_html_ae269a5dddaa0bb6c8887578735db9e9e"><div class="ttname"><a href="structsockaddr__un.html#ae269a5dddaa0bb6c8887578735db9e9e">sockaddr_un::sun_path</a></div><div class="ttdeci">char sun_path[108]</div><div class="ttdef"><b>Definition</b> un.h:29</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_fb42a3b80b368a2ced97e36eea6bf3da.html">uapi</a></li><li class="navelem"><a class="el" href="dir_e2b52b92f5077a849e2a3072fb331546.html">vespera</a></li><li class="navelem"><a class="el" href="handles_8h.html">handles.h</a></li>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_fb42a3b80b368a2ced97e36eea6bf3da.html">uapi</a></li><li class="navelem"><a class="el" href="dir_e2b52b92f5077a849e2a3072fb331546.html">vespera</a></li><li class="navelem"><a class="el" href="un_8h.html">un.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

@@ -116,6 +116,8 @@ var annotated_dup =
     [ "smart_common", "structsmart__common.html", "structsmart__common" ],
     [ "smart_nvme", "structsmart__nvme.html", "structsmart__nvme" ],
     [ "smart_raw", "structsmart__raw.html", "structsmart__raw" ],
+    [ "sockaddr", "structsockaddr.html", "structsockaddr" ],
+    [ "sockaddr_un", "structsockaddr__un.html", "structsockaddr__un" ],
     [ "spawn_config", "structspawn__config.html", "structspawn__config" ],
     [ "stat", "structstat.html", "structstat" ],
     [ "stella_color_t", "structstella__color__t.html", "structstella__color__t" ],

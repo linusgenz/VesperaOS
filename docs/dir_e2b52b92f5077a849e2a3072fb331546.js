@@ -12,11 +12,13 @@ var dir_e2b52b92f5077a849e2a3072fb331546 =
     [ "poll.h", "include_2uapi_2vespera_2poll_8h.html", "include_2uapi_2vespera_2poll_8h" ],
     [ "sched.h", "include_2uapi_2vespera_2sched_8h.html", "include_2uapi_2vespera_2sched_8h" ],
     [ "signal.h", "include_2uapi_2vespera_2signal_8h.html", "include_2uapi_2vespera_2signal_8h" ],
+    [ "socket.h", "socket_8h.html", "socket_8h" ],
     [ "spawn.h", "spawn_8h.html", "spawn_8h" ],
     [ "stat.h", "include_2uapi_2vespera_2stat_8h.html", "include_2uapi_2vespera_2stat_8h" ],
     [ "sysinfo.h", "include_2uapi_2vespera_2sysinfo_8h.html", "include_2uapi_2vespera_2sysinfo_8h" ],
     [ "time.h", "include_2uapi_2vespera_2time_8h.html", "include_2uapi_2vespera_2time_8h" ],
     [ "types.h", "include_2uapi_2vespera_2types_8h.html", "include_2uapi_2vespera_2types_8h" ],
+    [ "un.h", "un_8h.html", "un_8h" ],
     [ "vbus.h", "include_2uapi_2vespera_2vbus_8h.html", "include_2uapi_2vespera_2vbus_8h" ],
     [ "wait.h", "include_2uapi_2vespera_2wait_8h.html", "include_2uapi_2vespera_2wait_8h" ]
 ];

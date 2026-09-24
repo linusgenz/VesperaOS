@@ -7,9 +7,11 @@ var searchData=
   ['smart_5fcommon_4',['smart_common',['../structsmart__common.html',1,'']]],
   ['smart_5fnvme_5',['smart_nvme',['../structsmart__nvme.html',1,'']]],
   ['smart_5fraw_6',['smart_raw',['../structsmart__raw.html',1,'']]],
-  ['spawn_5fconfig_7',['spawn_config',['../structspawn__config.html',1,'']]],
-  ['stat_8',['stat',['../structstat.html',1,'']]],
-  ['stella_5fcolor_5ft_9',['stella_color_t',['../structstella__color__t.html',1,'']]],
-  ['stella_5fconfig_10',['stella_config',['../structstella__config.html',1,'']]],
-  ['sysinfo_11',['sysinfo',['../structsysinfo.html',1,'']]]
+  ['sockaddr_7',['sockaddr',['../structsockaddr.html',1,'']]],
+  ['sockaddr_5fun_8',['sockaddr_un',['../structsockaddr__un.html',1,'']]],
+  ['spawn_5fconfig_9',['spawn_config',['../structspawn__config.html',1,'']]],
+  ['stat_10',['stat',['../structstat.html',1,'']]],
+  ['stella_5fcolor_5ft_11',['stella_color_t',['../structstella__color__t.html',1,'']]],
+  ['stella_5fconfig_12',['stella_config',['../structstella__config.html',1,'']]],
+  ['sysinfo_13',['sysinfo',['../structsysinfo.html',1,'']]]
 ];

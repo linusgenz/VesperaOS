@@ -1,5 +1,6 @@
 var NAVTREEINDEX6 =
 {
+"ioctl__tty_8h.html#ace6b2fe789d6bd8db3fc84e36554f31a":[5,0,0,0,0,0,6,7],
 "ioctl__tty_8h_source.html":[5,0,0,0,0,0,6],
 "ioctl__usb__device_8h.html":[5,0,0,0,0,0,7],
 "ioctl__usb__device_8h.html#a0862ceeed2a8b2a8097d86acba5de7ce":[5,0,0,0,0,0,7,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX6 =
 "math_8h.html#a6476e7433075a6b5a7e9168895c9dfb5":[5,0,1,0,0,30,118],
 "math_8h.html#a660dd661ca1336737739215f835447f8":[5,0,1,0,0,30,153],
 "math_8h.html#a6951f8968163ec7fe3d2b866a2381783":[5,0,1,0,0,30,126],
-"math_8h.html#a6b7f1966c48a5bb76f0e1a1f681d6bf4":[5,0,1,0,0,30,106],
-"math_8h.html#a6c5315869cdd2c0812af4ffcb2dc3e48":[5,0,1,0,0,30,179]
+"math_8h.html#a6b7f1966c48a5bb76f0e1a1f681d6bf4":[5,0,1,0,0,30,106]
 };

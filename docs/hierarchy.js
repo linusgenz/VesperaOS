@@ -106,6 +106,8 @@ var hierarchy =
     [ "smart_common", "structsmart__common.html", null ],
     [ "smart_nvme", "structsmart__nvme.html", null ],
     [ "smart_raw", "structsmart__raw.html", null ],
+    [ "sockaddr", "structsockaddr.html", null ],
+    [ "sockaddr_un", "structsockaddr__un.html", null ],
     [ "spawn_config", "structspawn__config.html", null ],
     [ "stat", "structstat.html", null ],
     [ "stella_color_t", "structstella__color__t.html", null ],
