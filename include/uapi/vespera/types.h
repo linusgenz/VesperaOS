@@ -76,6 +76,11 @@ typedef uint32_t uid_t;
 typedef uint32_t gid_t;
 #endif
 
+#ifndef _SIGSET_T_DEFINED
+#define _SIGSET_T_DEFINED
+typedef uint64_t        sigset_t;
+#endif
+
 #ifndef _INTPTR_T_DEFINED
 #define _INTPTR_T_DEFINED
 #endif

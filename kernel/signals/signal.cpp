@@ -123,54 +123,70 @@ void signal_send(Unit* u, Signal sig) {
     }
 }
 
-void signal_setup_userframe(Unit* u, Signal sig, void (*handler)(int), TrapFrame* trap) {
+void signal_setup_userframe(Unit* u, Signal sig, const SignalAction& action,
+                             TrapFrame* trap, void* fault_addr) {
     const uptr stack_virt_base = virt_raw(u->context.user_stack_virt_base);
     const uptr stack_hhdm_base = virt_raw(u->context.user_stack);
+    const bool use_siginfo = action.flags & SA_SIGINFO;
 
     uptr usp = trap->rsp;
 
     usp -= sizeof(SignalFrame);
     usp &= ~0xFULL;
-
     if (usp < stack_virt_base) return;
-
-    const uptr frame_offset = usp - stack_virt_base;
-    auto* frame_dst = reinterpret_cast<SignalFrame*>(stack_hhdm_base + frame_offset);
+    const uptr frame_addr = usp;
 
     SignalFrame frame{};
-    frame.rax = trap->rax;
-    frame.rbx = trap->rbx;
-    frame.rcx = trap->rcx;
-    frame.rdx = trap->rdx;
-    frame.rbp = trap->rbp;
-    frame.rsi = trap->rsi;
+    frame.rax = trap->rax;   frame.rbx = trap->rbx;
+    frame.rcx = trap->rcx;   frame.rdx = trap->rdx;
+    frame.rbp = trap->rbp;   frame.rsi = trap->rsi;
     frame.rdi = trap->rdi;
-    frame.r8 = trap->r8;
-    frame.r9 = trap->r9;
-    frame.r10 = trap->r10;
-    frame.r11 = trap->r11;
-    frame.r12 = trap->r12;
-    frame.r13 = trap->r13;
-    frame.r14 = trap->r14;
-    frame.r15 = trap->r15;
+    frame.r8  = trap->r8;    frame.r9  = trap->r9;
+    frame.r10 = trap->r10;   frame.r11 = trap->r11;
+    frame.r12 = trap->r12;   frame.r13 = trap->r13;
+    frame.r14 = trap->r14;   frame.r15 = trap->r15;
     frame.rip = trap->rip;
-    frame.rsp = trap->rsp;  // original RSP
+    frame.rsp = trap->rsp;
     frame.rflags = trap->rflags;
     frame.signum = static_cast<i32>(sig);
-    memcpy(frame_dst, &frame, sizeof(SignalFrame));
+    frame.was_deferred = !(action.flags & SA_NODEFER) ? 1u : 0u;
+
+    memcpy(reinterpret_cast<void*>(stack_hhdm_base + (frame_addr - stack_virt_base)),
+           &frame, sizeof(SignalFrame));
+
+    uptr siginfo_addr = 0;
+    if (use_siginfo) {
+        usp -= sizeof(siginfo_t);
+        usp &= ~0xFULL;
+        if (usp < stack_virt_base) return;
+        siginfo_addr = usp;
+
+        siginfo_t info{};
+        info.si_signo = static_cast<int>(sig);
+        info.si_code  = 0;
+        info.si_errno = 0;
+        info.si_addr  = fault_addr;
+
+        memcpy(reinterpret_cast<void*>(stack_hhdm_base + (siginfo_addr - stack_virt_base)),
+               &info, sizeof(siginfo_t));
+    }
 
     usp -= sizeof(uptr);
-
     if (usp < stack_virt_base) return;
-
-    const uptr ret_offset = usp - stack_virt_base;
-    auto* ret_dst = reinterpret_cast<uptr*>(stack_hhdm_base + ret_offset);
-    *ret_dst = kernel::realm::SIGNAL_TRAMPOLINE_VADDR;
+    *reinterpret_cast<uptr*>(stack_hhdm_base + (usp - stack_virt_base)) =
+        kernel::realm::SIGNAL_TRAMPOLINE_VADDR;
 
     trap->rsp = usp;
-    trap->rip = reinterpret_cast<uptr>(handler);
+    trap->rip = use_siginfo ? reinterpret_cast<uptr>(action.sigaction)
+                             : reinterpret_cast<uptr>(action.handler);
     trap->rdi = static_cast<u64>(static_cast<i32>(sig));
+    if (use_siginfo) {
+        trap->rsi = siginfo_addr;
+        trap->rdx = 0;
+    }
     trap->rflags &= ~(1ULL << 8);
+
+    u->pending_signal_frame_addr = frame_addr;
 }
 
 void signal_dispatch(Unit* u, TrapFrame* trap) {
@@ -186,14 +202,17 @@ void signal_dispatch(Unit* u, TrapFrame* trap) {
         __sync_and_and_fetch(&u->signals_pending, ~(1ULL << signum));
         if (action.disposition == SignalAction::Disposition::Default) signal_default(u, sig);
         return;
-    }
+        }
 
-    if (!trap) {
-        return;
-    }
+    if (!trap) return;
 
     __sync_and_and_fetch(&u->signals_pending, ~(1ULL << signum));
-    signal_setup_userframe(u, sig, action.handler, trap);
+
+    if (!(action.flags & SA_NODEFER)) {
+        u->signals_masked |= (1ULL << signum);
+    }
+
+    signal_setup_userframe(u, sig, action, trap, /* fault_addr */ nullptr);
 }
 
 void signal_default(Unit* unit, Signal sig) {
@@ -212,14 +231,14 @@ void signal_default(Unit* unit, Signal sig) {
     }
 }
 
-i64 signal_set_action(Unit* u, const i32 signum, const sigaction_t* act) {
+i64 signal_set_action(Unit* u, const i32 signum, const sigaction* act) {
     if (!is_valid_signal(signum))               return -EINVAL;
     if (!act)                                   return -EINVAL;
     if (static_cast<Signal>(signum) == Signal::SIGKILL) return -EINVAL;
     if (!u)                                     return -EINVAL;
 
     SignalAction& action = u->signal_actions[signum];
-    const uptr handler_addr = reinterpret_cast<uptr>(act->handler);
+    const uptr handler_addr = reinterpret_cast<uptr>(act->sa_handler);
 
     if (handler_addr == 0) {
         action.disposition = SignalAction::Disposition::Default;
@@ -229,9 +248,10 @@ i64 signal_set_action(Unit* u, const i32 signum, const sigaction_t* act) {
         action.handler = nullptr;
     } else {
         action.disposition = SignalAction::Disposition::Handler;
-        action.handler = reinterpret_cast<void (*)(int)>(handler_addr);
+        action.sigaction = act->sa_sigaction;
     }
 
+    action.flags = act->sa_flags;
     u->signals_masked |= act->sa_mask;
     return 0;
 }
@@ -240,16 +260,16 @@ i64 signal_restore_frame(Unit* u) {
     if (!u) return -EINVAL;
 
     TrapFrame* trap = &u->context.current_trap_frame;
-    const uptr frame_usp      = trap->rsp;
+    const uptr frame_addr      = u->pending_signal_frame_addr;
     const uptr stack_virt_base = virt_raw(u->context.user_stack_virt_base);
     const uptr stack_hhdm_base = virt_raw(u->context.user_stack);
 
-    if (frame_usp < stack_virt_base ||
-        frame_usp + sizeof(SignalFrame) > stack_virt_base + u->context.user_stack_size) {
+    if (frame_addr < stack_virt_base ||
+        frame_addr + sizeof(SignalFrame) > stack_virt_base + u->context.user_stack_size) {
         return -EFAULT;
     }
 
-    const uptr offset = frame_usp - stack_virt_base;
+    const uptr offset = frame_addr - stack_virt_base;
     const auto* frame = reinterpret_cast<const SignalFrame*>(stack_hhdm_base + offset);
 
     trap->rax    = frame->rax;
@@ -270,6 +290,10 @@ i64 signal_restore_frame(Unit* u) {
     trap->rip    = frame->rip;
     trap->rsp    = frame->rsp;
     trap->rflags = frame->rflags;
+
+    if (frame->was_deferred) {
+        u->signals_masked &= ~(1ULL << static_cast<u32>(frame->signum));
+    }
 
     return -EINTR;
 }

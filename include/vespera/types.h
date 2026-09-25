@@ -128,5 +128,6 @@ typedef int64_t  blksize_t;  ///< Block size for I/O
 typedef int64_t  blkcnt_t;   ///< Number of allocated 512-byte blocks
 typedef int64_t  time_t;     ///< Seconds since the epoch
 typedef int  pid_t;      ///< Process ID
+typedef uint64_t        sigset_t;
 
 #endif  // VESPERAOS_TYPES_H

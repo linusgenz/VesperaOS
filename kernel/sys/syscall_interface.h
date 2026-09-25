@@ -221,6 +221,10 @@ namespace syscalls::internal {
     i64 sys_msync(u64, u64, u64, u64, u64, u64);
 
     i64 sys_eventfd2(u64 arg0, u64 arg1, u64, u64, u64, u64);
+
+    i64 sys_timerfd_create(u64 arg0, u64 arg1, u64, u64, u64, u64);
+
+    i64 sys_timerfd_settime(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64, u64);
 } // namespace syscalls::internal
 
 void install_syscalls();

@@ -126,6 +126,8 @@ class Unit {
 
     uptr futex_uaddr{0};
 
+    uptr pending_signal_frame_addr{0};
+
     Unit() {
         handle_set_.init();
     }

@@ -25,8 +25,9 @@
 #include <vespera/types.h>
 
 #include "interrupts.h"
+#include "uapi/vespera/signal.h"
 
-struct sigaction_t;
+struct sigaction;
 class Unit;
 enum class Signal : u32 {
     SIGINT = 2,
@@ -56,12 +57,17 @@ struct SignalFrame {
     u64 rsp;
     u64 rflags;
     i32 signum;
-    u32 _pad;
+    u32 was_deferred;
 };
 
 struct SignalAction {
     enum class Disposition : u8 { Default, Ignore, Handler } disposition;
-    void (*handler)(int);
+    union {
+        void (*handler)(int);
+        void (*sigaction)(int, siginfo_t*, void*);
+    };
+    u32 flags;
+    u64 saved_mask;
 };
 
 bool is_valid_signal(i32 signum);
@@ -79,7 +85,7 @@ i64 signal_update_mask(Unit* u, int how, const u64* new_set, u64* old_set);
  *
  * @return 0 on success, negative errno on failure.
  */
-[[nodiscard]] i64 signal_set_action(Unit* u, i32 signum, const sigaction_t* act);
+[[nodiscard]] i64 signal_set_action(Unit* u, i32 signum, const sigaction* act);
 
 /**
  * @brief Restores the pre-signal register state after a handler returns.

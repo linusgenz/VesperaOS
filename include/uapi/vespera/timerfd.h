@@ -1,9 +1,9 @@
-// sys_sigaction.cpp
+// timerfd.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 22.03.26.
+// Created by Linus Genz on 25.09.26.
 //
 // This file is part of VesperaOS.
 //
@@ -19,19 +19,32 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+#ifndef VESPERAOS_UAPI_TIMERFD_H
+#define VESPERAOS_UAPI_TIMERFD_H
 
-#include <vespera/scheduling.h>
-#include <vespera/signals.h>
+#include "time.h"
 
-namespace syscalls::internal {
+struct itimerspec
+{
+    struct timespec it_interval;
+    struct timespec it_value;
+};
 
-    i64 sys_sigaction(u64 arg0, u64 arg1, u64, u64, u64, u64) {
-        Unit* u = kernel::scheduling::get_current_unit();
-        return signal_set_action(
-            u,
-            static_cast<i32>(arg0),
-            reinterpret_cast<const sigaction*>(arg1)
-        );
-    }
+enum
+{
+    TFD_TIMER_ABSTIME = 1 << 0,
+#define TFD_TIMER_ABSTIME TFD_TIMER_ABSTIME
+    TFD_TIMER_CANCEL_ON_SET = 1 << 1
+#define TFD_TIMER_CANCEL_ON_SET TFD_TIMER_CANCEL_ON_SET
+  };
 
-} // namespace syscalls::internal
+enum
+{
+    TFD_CLOEXEC = 02000000,
+#define TFD_CLOEXEC TFD_CLOEXEC
+    TFD_NONBLOCK = 00004000
+#define TFD_NONBLOCK TFD_NONBLOCK
+  };
+
+
+#endif //VESPERAOS_UAPI_TIMERFD_H

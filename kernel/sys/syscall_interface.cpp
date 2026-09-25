@@ -135,6 +135,8 @@ void install_syscalls() {
     syscall_table[SYSCALL_SOCKETPAIR] = syscalls::internal::sys_socketpair;
     syscall_table[SYSCALL_MSYNC] = syscalls::internal::sys_msync;
     syscall_table[SYSCALL_EVENTFD2] = syscalls::internal::sys_eventfd2;
+    syscall_table[SYSCALL_TIMERFD_CREATE] = syscalls::internal::sys_timerfd_create;
+    syscall_table[SYSCALL_TIMERFD_SETTIME] = syscalls::internal::sys_timerfd_settime;
 }
 
 extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {

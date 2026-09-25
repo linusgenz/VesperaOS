@@ -1,9 +1,9 @@
-// sys_sigaction.cpp
+// handle_transfer.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 22.03.26.
+// Created by Linus Genz on 24.09.26.
 //
 // This file is part of VesperaOS.
 //
@@ -20,18 +20,18 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <vespera/scheduling.h>
-#include <vespera/signals.h>
+#ifndef VESPERAOS_REALM_HANDLE_TRANSFER_H
+#define VESPERAOS_REALM_HANDLE_TRANSFER_H
 
-namespace syscalls::internal {
+#include <klib/result.h>
 
-    i64 sys_sigaction(u64 arg0, u64 arg1, u64, u64, u64, u64) {
-        Unit* u = kernel::scheduling::get_current_unit();
-        return signal_set_action(
-            u,
-            static_cast<i32>(arg0),
-            reinterpret_cast<const sigaction*>(arg1)
-        );
-    }
+#include "uapi/vespera/capabilities.h"
 
-} // namespace syscalls::internal
+struct HandleEntry;
+class Realm;
+
+namespace kernel::realm {
+    Result<HandleId> transfer_handle_to_realm(const HandleEntry* src_entry, Realm* dst, capability_set caps_mask);
+}
+
+#endif //VESPERAOS_REALM_HANDLE_TRANSFER_H

@@ -36,8 +36,6 @@
 #include <vespera/sys/mman.h>
 #include <vespera_errno.h>
 
-#include "vespera/log.h"
-
 namespace kernel::vm {
     namespace {
         constexpr uptr MMAP_BASE = 0x0000'6000'0000'0000ULL;
