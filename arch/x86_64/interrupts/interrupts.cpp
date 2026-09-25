@@ -44,7 +44,7 @@ void page_fault_handler(TrapFrame* frame) {
     u64 fault_addr = 0;
     asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
 
-      if (frame->cs & 0x3) {
+      /*if (frame->cs & 0x3) {
           Unit* u = kernel::scheduling::get_current_unit();
           Realm* realm = RealmManager::get(u->rid);
 
@@ -71,7 +71,7 @@ void page_fault_handler(TrapFrame* frame) {
           signal_dispatch(u, frame);
           __builtin_unreachable();
       }
-
+*/
     // Kernel-seitiger Page Fault
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_page_fault_detail(fault_addr, ctx.error_code, frame);
@@ -101,9 +101,9 @@ void gp_fault_handler(TrapFrame* frame) {
 }
 
 extern "C" void invalid_opcode_handler(TrapFrame* frame) {
-    if (kernel::scheduling::on_user_fault(frame, Signal::SIGILL, "illegal instruction")) {
+   /* if (kernel::scheduling::on_user_fault(frame, Signal::SIGILL, "illegal instruction")) {
         __builtin_unreachable();
-    }
+    }*/
 
     const FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_invalid_opcode_bytes(frame->rip, frame);

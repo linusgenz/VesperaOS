@@ -8,9 +8,9 @@
 
 #include "../cpu/cpu_manager.h"
 #include "clock_manager.h"
+#include "vespera/time/callback_timer.h"
 
 namespace kernel::time {
-
     static u64 g_rtc_epoch_ns = 0;
 
     void init_clock() {
@@ -58,7 +58,7 @@ namespace kernel::time {
             if (!current || current->is_idle) return true;
 
             current->sleep_context.wakeup_ns = target_ns;
-            current->sleep_context.interrupted  = false;
+            current->sleep_context.interrupted = false;
 
             sleep_timer::notify_sleep(static_cast<u8>(cpu_id), target_ns);
 
@@ -81,7 +81,7 @@ namespace kernel::time {
         void busy_sleep_ns(const u64 ns) {
             busy_sleep_until_ns(get_uptime_ns() + ns);
         }
-    }  // namespace internal
+    } // namespace internal
 
     bool sleep_until_ns(const u64 target_ns) {
         if (scheduling::is_curent_cpu_enabled()) {
@@ -112,4 +112,11 @@ namespace kernel::time {
         return sleep_until_ns(get_uptime_ns() + ns);
     }
 
-}  // namespace kernel::time
+    callback_timer::CallbackHandle schedule_callback(u64 deadline_ns, callback_timer::CallbackFn fn, void* arg) {
+        return callback_timer::schedule(cpu_manager::get_current_cpu_id(), deadline_ns, fn, arg);
+    }
+
+    void cancel_callback(callback_timer::CallbackHandle h) {
+        callback_timer::cancel(h);
+    }
+} // namespace kernel::time

@@ -13,6 +13,7 @@
 #include <vespera/cpu/io.h>
 #include <vespera/kerrno.h>
 #include <vespera/scheduling.h>
+#include <vespera/time/callback_timer.h>
 #include <vespera/system/system_manager.h>
 
 #include "apic.h"
@@ -169,7 +170,9 @@ namespace arch::x86_64::interrupts::apic {
 
         // 3. Re-arm the APIC for the next event (quantum OR earliest sleep).
         //    This is the core of the one-shot tickless design.
-        kernel::time::sleep_timer::arm_next_event(static_cast<u8>(cpu));
+        const u8 cpu_id = static_cast<u8>(cpu);
+        kernel::time::callback_timer::run_due_callbacks(cpu_id);
+        kernel::time::sleep_timer::arm_next_event(cpu_id);
     }
 
     void sleep(u64 ms) {

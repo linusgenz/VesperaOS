@@ -6,6 +6,8 @@
 #define TIMER_H
 #include <vespera/types.h>
 
+#include "time/callback_timer.h"
+
 #define CMOS_ADDRESS 0x70
 #define CMOS_DATA 0x71
 
@@ -46,6 +48,10 @@ namespace kernel::time {
     void read_rtc(u8& second, u8& minute, u8& hour, u8& day, u8& month, u8& year);
 
     void epoch_init();
+
+    callback_timer::CallbackHandle schedule_callback(u64 deadline_ns, callback_timer::CallbackFn fn, void* arg);
+
+    void cancel_callback(callback_timer::CallbackHandle h);
 
     namespace sleep_timer {
 

@@ -22,11 +22,10 @@
 
 #include <acpi/madt.h>
 #include <vespera/time.h>
-
+#include "../../include/vespera/time/callback_timer.h"
 #include <arch/x86_64/apic.h>
 
 namespace kernel::time::sleep_timer {
-
     namespace {
         struct CpuTimerState {
             // Absolute uptime (ns) when the current scheduler quantum ends.
@@ -38,7 +37,7 @@ namespace kernel::time::sleep_timer {
         };
 
         CpuTimerState g_state[kernel::acpi::madt::MAX_CPU_CORES];
-    }  // namespace
+    } // namespace
 
     void start(const u8 cpu_id) {
         const u64 now = get_uptime_ns();
@@ -66,16 +65,20 @@ namespace kernel::time::sleep_timer {
         const u64 now = kernel::time::get_uptime_ns();
         const auto& st = g_state[cpu_id];
 
-        u64 next_ns = (st.quantum_deadline_ns > now) ? st.quantum_deadline_ns
-                                                     : now + arch::x86_64::interrupts::apic::QUANTUM_NS;
+        u64 next_ns = (st.quantum_deadline_ns > now)
+                          ? st.quantum_deadline_ns
+                          : now + arch::x86_64::interrupts::apic::QUANTUM_NS;
 
         if (st.next_sleep_wakeup_ns != 0 && st.next_sleep_wakeup_ns < next_ns) {
             next_ns = st.next_sleep_wakeup_ns;
         }
 
+        const u64 cb_deadline = callback_timer::earliest_deadline_ns(cpu_id);
+        if (cb_deadline != 0 && cb_deadline < next_ns)
+            next_ns = cb_deadline;
+
         const u64 delay_ns = (next_ns > now) ? (next_ns - now) : arch::x86_64::interrupts::apic::APIC_MIN_DELAY_NS;
 
         arch::x86_64::interrupts::apic::arm_oneshot_ns(delay_ns);
     }
-
-}  // namespace kernel::time::sleep_timer
+} // namespace kernel::time::sleep_timer

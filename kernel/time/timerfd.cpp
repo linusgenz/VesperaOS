@@ -29,7 +29,7 @@
 
 Timerfd::Timerfd(const int clockid, const bool nonblock)
     : expirations_(0), interval_ns_(0), next_deadline_ns_(0),
-      nonblock_(nonblock), refcount_(1), clockid_(clockid), timer_handle_(nullptr) {
+      nonblock_(nonblock), refcount_(1), clockid_(clockid) {
     lock_.init("timerfd_lock");
 }
 
@@ -47,9 +47,7 @@ void Timerfd::destroy(void* res) {
     auto* tfd = static_cast<Timerfd*>(res);
     if (__sync_sub_and_fetch(&tfd->refcount_, 1) != 0) return;
 
-    // Wichtig: laufenden Timer-Callback canceln, bevor delete,
-    // sonst greift der Callback auf freed memory zu.
-   // if (tfd->timer_handle_) kernel::time::cancel_callback(tfd->timer_handle_);
+    if (tfd->timer_handle_.valid()) kernel::time::cancel_callback(tfd->timer_handle_);
     delete tfd;
 }
 
@@ -87,7 +85,6 @@ isize Timerfd::read(void* out) {
     }
 }
 
-// Wird vom Timer-Subsystem aufgerufen, wenn die Deadline erreicht ist.
 void Timerfd::on_timer_fire(void* self_ptr) {
     auto* self = static_cast<Timerfd*>(self_ptr);
 
@@ -95,13 +92,12 @@ void Timerfd::on_timer_fire(void* self_ptr) {
     self->expirations_++;
 
     if (self->interval_ns_ > 0) {
-        // periodisch: nächste Deadline setzen und neu einplanen
         self->next_deadline_ns_ += self->interval_ns_;
-       // self->timer_handle_ = kernel::time::schedule_callback(
-       //     self->next_deadline_ns_, on_timer_fire, self);
+        self->timer_handle_ = kernel::time::schedule_callback(
+            self->next_deadline_ns_, on_timer_fire, self);
     } else {
         self->next_deadline_ns_ = 0;
-        self->timer_handle_ = nullptr;
+        self->timer_handle_ = {};
     }
 
     self->lock_.unlock();
@@ -109,9 +105,9 @@ void Timerfd::on_timer_fire(void* self_ptr) {
 }
 
 void Timerfd::arm_locked(const u64 value_ns, const u64 interval_ns, const bool abstime) {
-    if (timer_handle_) {
-      //  kernel::time::cancel_callback(timer_handle_);
-        timer_handle_ = nullptr;
+    if (timer_handle_.valid()) {
+        kernel::time::cancel_callback(timer_handle_);
+        timer_handle_ = {};
     }
 
     interval_ns_ = interval_ns;
@@ -123,7 +119,7 @@ void Timerfd::arm_locked(const u64 value_ns, const u64 interval_ns, const bool a
     }
 
     next_deadline_ns_ = abstime ? value_ns : kernel::time::get_uptime_ns() + value_ns;
-   // timer_handle_ = kernel::time::schedule_callback(next_deadline_ns_, on_timer_fire, this);
+    timer_handle_ = kernel::time::schedule_callback(next_deadline_ns_, on_timer_fire, this);
 }
 
 i64 Timerfd::settime(const int flags, const u64 value_ns, const u64 interval_ns, const bool abstime,

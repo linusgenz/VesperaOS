@@ -27,6 +27,8 @@
 #include <vespera/sync/wait_queue.h>
 #include <vespera/types.h>
 
+#include "callback_timer.h"
+
 class Unit;
 
 class Timerfd {
@@ -38,7 +40,7 @@ class Timerfd {
     int refcount_;
     int clockid_;
     WaitQueue wait_;
-    void* timer_handle_;
+    kernel::time::callback_timer::CallbackHandle timer_handle_;
 
     explicit Timerfd(int clockid, bool nonblock);
     ~Timerfd() = default;
