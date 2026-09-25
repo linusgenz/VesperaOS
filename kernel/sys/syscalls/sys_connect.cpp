@@ -26,24 +26,28 @@
 #include "filesystem/vfs_node.h"
 #include "sys/handle_resolution.h"
 #include "vespera/ipc/socket_handle.h"
+#include "vespera/ipc/socket_helper.h"
+#include "uapi/vespera/un.h"
 
 namespace syscalls::internal {
-    i64 sys_connect(const u64 arg0, const u64 arg1, u64, u64, u64, u64) {
+    i64 sys_connect(const u64 arg0, const u64 arg1, const u64 arg2, u64, u64, u64) {
         const HandleId hid = arg0;
-        const auto user_path = reinterpret_cast<const char*>(arg1);
-
-        if (!user_path || user_path[0] == '\0') return -EINVAL;
+        const auto user_addr = reinterpret_cast<const sockaddr*>(arg1);
+        const auto addrlen = static_cast<socklen_t>(arg2);
 
         const auto rh = SYSCALL_TRY(resolve_handle(hid, HANDLE_TYPE_SOCKET, CAP_WRITE));
         auto* handle = rh.resource_as<SocketHandle>();
         if (!handle) return -EBADH;
-        if (handle->state != SocketState::UNBOUND) return -EISCONN;
+        if (handle->state != SocketState::UNBOUND) return -EISCONN; // already bound or connected
+
+        char raw_path[sizeof(sockaddr_un::sun_path)];
+        SYSCALL_TRY_VOID(extract_unix_path(user_addr, addrlen, raw_path, sizeof(raw_path)));
 
         char norm[256];
-        SYSCALL_TRY_VOID(VFS::resolve_path(user_path, norm, sizeof(norm)));
+        SYSCALL_TRY_VOID(VFS::resolve_path(raw_path, norm, sizeof(norm)));
 
         auto node_res = VFS::open(norm);
-        if (node_res.is_err()) return -ECONNREFUSED;
+        if (node_res.is_err()) return -ECONNREFUSED; // no such socket
 
         VfsNode* node = node_res.unwrap();
 

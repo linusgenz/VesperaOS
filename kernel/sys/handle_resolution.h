@@ -71,6 +71,10 @@ namespace syscalls {
 
         void release() const;
 
+        [[nodiscard]] HandleEntry* entry() const {
+            return entry_;
+        }
+
        private:
         friend Result<ResolvedHandle> resolve_handle(HandleId, u64, capability_set);
         HandleEntry* entry_{nullptr};

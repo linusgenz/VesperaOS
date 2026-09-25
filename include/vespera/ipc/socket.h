@@ -23,6 +23,7 @@
 #ifndef VESPERAOS_IPC_SOCKET_H
 #define VESPERAOS_IPC_SOCKET_H
 #include "channel.h"
+#include "uapi/vespera/socket.h"
 
 struct SocketEndpoint;
 
@@ -42,6 +43,21 @@ struct SocketEndpoint {
 
     isize send(const void* data, usize len, bool blocking) const;
     isize recv(void* out, usize len, bool blocking) const;
+
+    static constexpr u32 SENDMSG_FRAME_MAGIC = 0x53434D31; // "SCM1"
+
+    struct FrameRight {
+        RealmId  src_realm;
+        HandleId src_hid;
+    };
+
+    // Framed send: gathers msg_iov into one payload, extracts SCM_RIGHTS
+    // handle ids from msg_control and writes one atomic frame to the channel.
+    isize sendmsg(const msghdr* msg, unsigned flags, RealmId sender_realm) const;
+
+    // Framed recv: reads one frame, transfers each carried handle into
+    // the CALLING realm
+    isize recvmsg(msghdr* msg, unsigned flags, RealmId receiver_realm) const;
 
     [[nodiscard]] int poll() const;
 

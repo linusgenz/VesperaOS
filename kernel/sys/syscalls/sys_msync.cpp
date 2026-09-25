@@ -1,9 +1,9 @@
-// sys_handle_transfer.cpp
+// sys_msync.cpp
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 21.04.26.
+// Created by Linus Genz on 25.09.26.
 //
 // This file is part of VesperaOS.
 //
@@ -20,27 +20,12 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <realm/handle_transfer.h>
-#include <vespera/realm/handles.h>
-#include <vespera/realm/realm_manager.h>
-#include <vespera_errno.h>
-
-#include "../handle_resolution.h"
+#include <vespera/mm/vm.h>
 
 namespace syscalls::internal {
-    i64 sys_handle_transfer(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
-        const HandleId hid = arg0;
-        const RealmId target_realm_id = arg1;
-        const capability_set caps_mask = arg2;
 
-        const auto rh = SYSCALL_TRY(resolve_handle(hid));
-
-        Realm* dst = RealmManager::get(target_realm_id);
-        if (!dst) return -ECHILD;
-
-        auto result = kernel::realm::transfer_handle_to_realm(rh.entry(), dst, caps_mask);
-        if (result.is_err()) return result.to_errno();
-
-        return static_cast<i64>(result.unwrap());
+    i64 sys_msync(u64, u64, u64, u64, u64, u64) {
+        return 0;
     }
+
 } // namespace syscalls::internal

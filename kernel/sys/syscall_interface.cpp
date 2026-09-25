@@ -129,9 +129,12 @@ void install_syscalls() {
     syscall_table[SYSCALL_BIND] = syscalls::internal::sys_bind;
     syscall_table[SYSCALL_LISTEN] = syscalls::internal::sys_listen;
     syscall_table[SYSCALL_CONNECT] = syscalls::internal::sys_connect;
-    syscall_table[SYSCALL_ACCEPT] = syscalls::internal::sys_accept;
+    syscall_table[SYSCALL_ACCEPT4] = syscalls::internal::sys_accept4;
     syscall_table[SYSCALL_SENDMSG] = syscalls::internal::sys_sendmsg;
     syscall_table[SYSCALL_RECVMSG] = syscalls::internal::sys_recvmsg;
+    syscall_table[SYSCALL_SOCKETPAIR] = syscalls::internal::sys_socketpair;
+    syscall_table[SYSCALL_MSYNC] = syscalls::internal::sys_msync;
+    syscall_table[SYSCALL_EVENTFD2] = syscalls::internal::sys_eventfd2;
 }
 
 extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {

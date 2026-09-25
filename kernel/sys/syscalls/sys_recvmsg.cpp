@@ -22,8 +22,27 @@
 
 #include <vespera/types.h>
 
-namespace syscalls::internal {
-    i64 sys_recvmsg(u64, u64, u64, u64, u64, u64) {
+#include "sys/handle_resolution.h"
+#include "uapi/vespera/handles.h"
+#include "vespera/ipc/socket_handle.h"
+#include "vespera/scheduling.h"
 
+namespace syscalls::internal {
+    i64 sys_recvmsg(const u64 arg0, const u64 arg1, const u64 arg2, u64, u64, u64) {
+        const HandleId hid = arg0;
+        const auto msg = reinterpret_cast<msghdr*>(arg1);
+        const auto flags = static_cast<unsigned>(arg2);
+
+        if (!msg) return -EINVAL;
+
+        const auto rh = SYSCALL_TRY(resolve_handle(hid, HANDLE_TYPE_SOCKET, CAP_READ));
+        auto* handle = rh.resource_as<SocketHandle>();
+        if (!handle) return -EBADH;
+        if (handle->state != SocketState::CONNECTED || !handle->endpoint) return -ENOTCONN;
+
+        Realm* self = kernel::scheduling::get_current_realm();
+        if (!self) return -ESRCH;
+
+        return handle->endpoint->recvmsg(msg, flags, self->id);
     }
 }

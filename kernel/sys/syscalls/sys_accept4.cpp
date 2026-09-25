@@ -30,11 +30,14 @@
 #include "vespera/realm/handles.h"
 
 namespace syscalls::internal {
-    i64 sys_accept(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64, u64) {
+    i64 sys_accept4(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64, u64) {
         const HandleId listen_hid = arg0;
         const auto user_addr = reinterpret_cast<sockaddr*>(arg1);
         const auto user_addrlen = reinterpret_cast<socklen_t*>(arg2);
-        const bool blocking = arg3 == 0 ? true : static_cast<bool>(arg3);
+        const auto flags = static_cast<int>(arg3);
+
+        if (flags & ~(SOCK_NONBLOCK | SOCK_CLOEXEC)) return -EINVAL;
+        const bool blocking = !(flags & SOCK_NONBLOCK);
 
         const auto rh = SYSCALL_TRY(resolve_handle(listen_hid, HANDLE_TYPE_SOCKET, CAP_READ));
 

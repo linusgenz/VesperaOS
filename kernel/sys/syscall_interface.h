@@ -210,11 +210,17 @@ namespace syscalls::internal {
 
     i64 sys_connect(u64 arg0, u64 arg1, u64, u64, u64, u64);
 
-    i64 sys_accept(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64, u64);
+    i64 sys_accept4(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64, u64);
 
     i64 sys_sendmsg(u64, u64, u64, u64, u64, u64);
 
     i64 sys_recvmsg(u64, u64, u64, u64, u64, u64);
+
+    i64 sys_socketpair(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64, u64);
+
+    i64 sys_msync(u64, u64, u64, u64, u64, u64);
+
+    i64 sys_eventfd2(u64 arg0, u64 arg1, u64, u64, u64, u64);
 } // namespace syscalls::internal
 
 void install_syscalls();

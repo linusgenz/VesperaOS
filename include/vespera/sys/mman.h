@@ -50,4 +50,8 @@
 #define MADV_WILLNEED   3 ///< Will need these pages
 #define MADV_DONTNEED   4 ///< Don't need these pages
 
+#define MS_ASYNC      1
+#define MS_SYNC       4
+#define MS_INVALIDATE 2
+
 #endif //VESPERAOS_MMAN_H

@@ -43,4 +43,6 @@
 
 #define AT_FDCWD        (-100)
 
+#define F_DUPFD_CLOEXEC 1030
+
 #endif  // VESPLIB_FFLAGS_H

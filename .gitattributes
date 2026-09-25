@@ -6,3 +6,9 @@ userspace/lib/libjpeg/**  -diff
 
 userspace/lib/lua/**  linguist-vendored=true
 userspace/lib/lua/**  -diff
+
+userspace/lib/wayland/**  linguist-vendored=true
+userspace/lib/wayland/**  -diff
+
+userspace/lib/libffi/**  linguist-vendored=true
+userspace/lib/libffi/**  -diff

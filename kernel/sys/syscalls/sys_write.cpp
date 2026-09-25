@@ -27,6 +27,7 @@
 #include <vespera/scheduling.h>
 #include <drivers/serial/serial.h>
 #include "../handle_resolution.h"
+#include "vespera/ipc/socket_handle.h"
 
 
 namespace syscalls::internal {

@@ -68,9 +68,12 @@ inline constexpr int ELOOP        = 40;
 
 inline constexpr int ENOMSG    = 42;
 inline constexpr int ETIME     = 62;
+inline constexpr int EPROTO    = 71; /* Protocol error */
 inline constexpr int EOVERFLOW = 75;
 inline constexpr int EILSEQ    = 84;
+inline constexpr int EMSGSIZE  = 90; /* Message too long */
 inline constexpr int EPROTOTYPE = 91; /* Protocol wrong type for socket */
+inline constexpr int ENOPROTOOPT = 92; /* Protocol not available */
 inline constexpr int EPROTONOSUPPORT = 93; /* Protocol not supported */
 inline constexpr int EAFNOSUPPORT = 97; /* Address family not supported by protocol */
 inline constexpr int EADDRINUSE = 98;

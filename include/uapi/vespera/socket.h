@@ -22,10 +22,22 @@
 #ifndef VESPERAOS_UAPI_SOCKET_H
 #define VESPERAOS_UAPI_SOCKET_H
 
+#include "iovec.h"
+
 typedef unsigned socklen_t;
 typedef unsigned short sa_family_t;
 
 #define SOCK_STREAM 1
+#define SOCK_CLOEXEC 02000000
+#define SOCK_NONBLOCK 00004000
+
+#define SCM_RIGHTS  1
+
+#define MSG_CTRUNC 0x8
+#define MSG_NOSIGNAL 0x4000
+#define MSG_DONTWAIT 0x40
+
+#define MSG_CMSG_CLOEXEC 0x40000000
 
 /* Protocol families.  */
 #define PF_UNSPEC	0	/* Unspecified.  */
@@ -135,5 +147,52 @@ struct sockaddr {
     sa_family_t sa_family;
     char        sa_data[14];
 };
+
+
+/* Structure describing messages sent by
+   `sendmsg' and received by `recvmsg'.  */
+struct msghdr
+{
+    void *msg_name;     /* Address to send to/receive from.  */
+    socklen_t msg_namelen;  /* Length of address data.  */
+
+    struct iovec *msg_iov;  /* Vector of data to send/receive into.  */
+    size_t msg_iovlen;      /* Number of elements in the vector.  */
+
+    void *msg_control;      /* Ancillary data (eg BSD filedesc passing). */
+    socklen_t msg_controllen;  /* Ancillary data buffer length. */
+
+    int msg_flags;      /* Flags on received message.  */
+};
+
+struct cmsghdr {
+    socklen_t cmsg_len;/* Length of data in cmsg_data plus length
+    of cmsghdr structure. */
+    int    cmsg_level; // originating protocol, e.g. SOL_SOCKET
+    int    cmsg_type;  // protocol-specific type, e.g. SCM_RIGHTS
+};
+
+#define SOL_SOCKET   1
+#define SCM_RIGHTS   1  // cmsg_data is an array of HandleIds (fds)
+
+#define CMSG_ALIGN(len)   (((len) + sizeof(size_t) - 1) & ~(sizeof(size_t) - 1))
+#define CMSG_SPACE(len)   (CMSG_ALIGN(sizeof(struct cmsghdr)) + CMSG_ALIGN(len))
+#define SENDMSG_CMSG_SPACE(n) CMSG_SPACE((n) * sizeof(int64_t))
+#define CMSG_LEN(len)     (CMSG_ALIGN(sizeof(struct cmsghdr)) + (len))
+#define CMSG_DATA(cmsg)   ((unsigned char*)(cmsg) + CMSG_ALIGN(sizeof(struct cmsghdr)))
+#define CMSG_FIRSTHDR(mhdr) \
+((mhdr)->msg_controllen >= sizeof(struct cmsghdr) \
+? (struct cmsghdr*)(mhdr)->msg_control : (struct cmsghdr*)0)
+#define CMSG_NXTHDR(mhdr, cmsg) cmsg_nxthdr(mhdr, cmsg)
+
+static inline struct cmsghdr* cmsg_nxthdr(struct msghdr* mhdr, struct cmsghdr* cmsg) {
+    unsigned char* end = (unsigned char*)(mhdr->msg_control) + mhdr->msg_controllen;
+    unsigned char* next = (unsigned char*)cmsg + CMSG_ALIGN(cmsg->cmsg_len);
+    if (next + sizeof(struct cmsghdr) > end) return (struct cmsghdr*)0;
+    return (struct cmsghdr*)next;
+}
+
+#define SOL_LOCAL 0
+#define LOCAL_PEERCRED 1
 
 #endif //VESPERAOS_UAPI_SOCKET_H
