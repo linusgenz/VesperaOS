@@ -55,7 +55,7 @@ public:
 
     int poll(bool is_reader, bool is_writer);
 
-    isize read(void* out);
+    isize read(void* out, usize count);
 
     i64 settime(int flags, u64 value_ns, u64 interval_ns, bool abstime,
                 u64* old_value_ns, u64* old_interval_ns);

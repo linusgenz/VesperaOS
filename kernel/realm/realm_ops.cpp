@@ -52,9 +52,7 @@ namespace kernel::realm {
     VoidResult send_signal(const RealmId id, const Signal sig) {
         Realm* r = RealmManager::get(id);
         if (!r) return Error::Srch;
-        Unit* u = r->unit_list;
-        if (!u) return Error::Srch;
-        signal_send(u, sig);
+        signal_send_realm(r, sig);
         return VoidResult::ok();
     }
 

@@ -61,7 +61,9 @@ int Eventfd::poll(bool is_reader, bool is_writer) {
     return mask;
 }
 
-isize Eventfd::read(void* out) {
+isize Eventfd::read(void* out, const usize count) {
+    if (count < sizeof(u64)) return -EINVAL;
+
     while (true) {
         Unit* cur = nonblock_ ? nullptr : kernel::scheduling::get_current_unit();
 
@@ -89,7 +91,10 @@ isize Eventfd::read(void* out) {
     }
 }
 
-isize Eventfd::write(const u64 val) {
+isize Eventfd::write(const void* in, const usize count) {
+    if (count < sizeof(u64)) return -EINVAL;
+
+    const u64 val = *static_cast<const u64*>(in);
     if (val == U64_MAX) return -EINVAL;
 
     while (true) {

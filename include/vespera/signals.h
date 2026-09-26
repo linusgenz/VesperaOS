@@ -29,6 +29,8 @@
 
 struct sigaction;
 class Unit;
+class Realm;
+
 enum class Signal : u32 {
     SIGINT = 2,
     SIGILL = 4,
@@ -71,7 +73,8 @@ struct SignalAction {
 };
 
 bool is_valid_signal(i32 signum);
-void signal_send(Unit* u, Signal sig);
+void signal_send_realm(Realm* r, Signal sig);
+void signal_send_unit(Unit* u, Signal sig);
 void signal_dispatch(Unit* u, TrapFrame* trap);
 void signal_default(Unit* unit, Signal sig);
 

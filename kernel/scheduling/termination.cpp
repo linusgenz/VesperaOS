@@ -158,16 +158,15 @@ namespace kernel::scheduling {
         __builtin_unreachable();
     }
 
-    i64 kill_realm_by_id(u64 rid, Signal sig) {
-        Realm* realm = RealmManager::get(rid);
+    i64 kill_realm(Realm* realm, Signal sig) {
         if (!realm) return -ESRCH;
 
-        u8 cpu_id = cpu_manager::get_current_cpu_id();
+        const u8 cpu_id = cpu_manager::get_current_cpu_id();
         auto* cpu = cpu_scheduler::get_cpu_data(cpu_id);
 
         Unit* current = cpu->current_unit;
 
-        if (current && current->rid == rid) {
+        if (current && current->rid == realm->id) {
             kill_realm_internal(realm, sig, "self kill");
         }
 
@@ -183,6 +182,12 @@ namespace kernel::scheduling {
         realm->wait_queue.wake_all();
 
         return SUCCESS_CODE;
+    }
+
+    i64 kill_realm_by_id(const u64 rid, const Signal sig) {
+        Realm* realm = RealmManager::get(rid);
+        if (!realm) return -ESRCH;
+        return kill_realm(realm, sig);
     }
 
     void exit_current(const int exit_code) {

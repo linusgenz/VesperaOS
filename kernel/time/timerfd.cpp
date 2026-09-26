@@ -58,7 +58,9 @@ int Timerfd::poll(bool is_reader, bool is_writer) {
     return mask;
 }
 
-isize Timerfd::read(void* out) {
+isize Timerfd::read(void* out, const usize count) {
+    if (count < sizeof(u64)) return -EINVAL;
+
     while (true) {
         Unit* cur = nonblock_ ? nullptr : kernel::scheduling::get_current_unit();
 

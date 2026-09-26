@@ -1,9 +1,9 @@
-// eventfd.h
+// signalfd.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 25.09.26.
+// Created by Linus Genz on 26.09.26.
 //
 // This file is part of VesperaOS.
 //
@@ -20,34 +20,41 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_EVENTFD_H
-#define VESPERAOS_EVENTFD_H
+#ifndef VESPERAOS_SIGNALFD_H
+#define VESPERAOS_SIGNALFD_H
 
 #include <vespera/sync/spinlock.h>
 #include <vespera/sync/wait_queue.h>
 #include <vespera/types.h>
 
-class Unit;
+class Realm;
+enum class Signal : u32;
 
-class Eventfd {
+class Signalfd {
     Spinlock lock_;
-    u64 counter_;
-    bool semaphore_mode_;
+    Realm* owner_;
+    u64 mask_;
     bool nonblock_;
     int refcount_;
     WaitQueue wait_;
 
-    explicit Eventfd(u64 initval, bool semaphore_mode, bool nonblock);
+    explicit Signalfd(Realm* owner, u64 mask, bool nonblock);
+    ~Signalfd() = default;
 
 public:
-    static Eventfd* create(u64 initval, bool semaphore_mode, bool nonblock);
+    static Signalfd* create(Realm* owner, u64 mask, bool nonblock);
     static void ref(void* res);
     static void destroy(void* res);
 
     int poll(bool is_reader, bool is_writer);
 
     isize read(void* out, usize count);
-    isize write(const void* in, usize count);
+
+    void set_mask(u64 mask);
+
+    void notify(Signal sig);
+
+    Signalfd* next; // intrusive, Realm::signalfd_list
 };
 
-#endif // VESPERAOS_EVENTFD_H
+#endif  // VESPERAOS_SIGNALFD_H

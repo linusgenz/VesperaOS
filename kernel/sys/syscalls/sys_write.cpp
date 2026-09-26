@@ -27,6 +27,7 @@
 #include <vespera/scheduling.h>
 #include <drivers/serial/serial.h>
 #include "../handle_resolution.h"
+#include "vespera/ipc/eventfd.h"
 #include "vespera/ipc/socket_handle.h"
 
 
@@ -79,6 +80,15 @@ namespace syscalls::internal {
                 const bool nonblock = false; // TODO: handle flags integrated with fcntl
                 const isize r = sh->endpoint->send(buf, count, !nonblock);
                 return r;
+            }
+            case HANDLE_TYPE_TIMERFD:
+            case HANDLE_TYPE_SIGNALFD: {
+                return -EINVAL;
+            }
+            case HANDLE_TYPE_EVENTFD: {
+                auto* efd = rh.resource_as<Eventfd>();
+                if (!efd) return -EBADH;
+                return efd->write(buf, count);
             }
             default:
                 return -EBADH;

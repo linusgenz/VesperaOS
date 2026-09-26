@@ -137,6 +137,7 @@ void install_syscalls() {
     syscall_table[SYSCALL_EVENTFD2] = syscalls::internal::sys_eventfd2;
     syscall_table[SYSCALL_TIMERFD_CREATE] = syscalls::internal::sys_timerfd_create;
     syscall_table[SYSCALL_TIMERFD_SETTIME] = syscalls::internal::sys_timerfd_settime;
+    syscall_table[SYSCALL_SIGNALFD4] = syscalls::internal::sys_signalfd4;
 }
 
 extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {
@@ -149,7 +150,7 @@ extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, 
         Log::print_ln("[SYSCALL] Invalid syscall number: %u", num);
 
         if (Unit* current = kernel::scheduling::get_current_unit()) {
-            signal_send(current, Signal::SIGSYS);
+            signal_send_unit(current, Signal::SIGSYS);
         }
 
         ret = -ENOSYS;

@@ -1,9 +1,9 @@
-// eventfd.h
+// signalfd.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 25.09.26.
+// Created by Linus Genz on 26.09.26.
 //
 // This file is part of VesperaOS.
 //
@@ -19,35 +19,45 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+#ifndef VESPERAOS_UAPI_SIGNALFD_H
+#define VESPERAOS_UAPI_SIGNALFD_H
 
-#ifndef VESPERAOS_EVENTFD_H
-#define VESPERAOS_EVENTFD_H
+#include "types.h"
 
-#include <vespera/sync/spinlock.h>
-#include <vespera/sync/wait_queue.h>
-#include <vespera/types.h>
+/* Flags for signalfd.  */
+enum
+{
+    SFD_CLOEXEC = 02000000,
+#define SFD_CLOEXEC SFD_CLOEXEC
+    SFD_NONBLOCK = 00004000
+#define SFD_NONBLOCK SFD_NONBLOCK
+  };
 
-class Unit;
 
-class Eventfd {
-    Spinlock lock_;
-    u64 counter_;
-    bool semaphore_mode_;
-    bool nonblock_;
-    int refcount_;
-    WaitQueue wait_;
-
-    explicit Eventfd(u64 initval, bool semaphore_mode, bool nonblock);
-
-public:
-    static Eventfd* create(u64 initval, bool semaphore_mode, bool nonblock);
-    static void ref(void* res);
-    static void destroy(void* res);
-
-    int poll(bool is_reader, bool is_writer);
-
-    isize read(void* out, usize count);
-    isize write(const void* in, usize count);
+struct signalfd_siginfo
+{
+    u32 ssi_signo;
+    i32 ssi_errno;
+    i32 ssi_code;
+    u32 ssi_pid;
+    u32 ssi_uid;
+    i32 ssi_fd;
+    u32 ssi_tid;
+    u32 ssi_band;
+    u32 ssi_overrun;
+    u32 ssi_trapno;
+    i32 ssi_status;
+    i32 ssi_int;
+    u64 ssi_ptr;
+    u64 ssi_utime;
+    u64 ssi_stime;
+    u64 ssi_addr;
+    u16 ssi_addr_lsb;
+    u16 __pad2;
+    i32 ssi_syscall;
+    u64 ssi_call_addr;
+    u32 ssi_arch;
+    u8 __pad[28];
 };
 
-#endif // VESPERAOS_EVENTFD_H
+#endif //VESPERAOS_UAPI_SIGNALFD_H

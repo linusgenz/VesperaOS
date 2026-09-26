@@ -49,7 +49,7 @@ namespace syscalls::internal {
         if (!tfd) return -ENOMEM;
 
         auto hdl_result = kernel::realm::add_handle_to_current(
-            HANDLE_TYPE_TIMERFD, tfd, CAP_READ | CAP_WRITE, true, Timerfd::destroy, Timerfd::ref);
+            HANDLE_TYPE_TIMERFD, tfd, CAP_READ, true, Timerfd::destroy, Timerfd::ref);
         if (hdl_result.is_err()) {
             Timerfd::destroy(tfd);
             return -EMFILE;

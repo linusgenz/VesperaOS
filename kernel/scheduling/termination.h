@@ -27,6 +27,7 @@
 namespace kernel::scheduling {
     [[noreturn]] void kill_current_realm(Signal sig, const char* reason);
     i64 kill_realm_by_id(u64 rid, Signal sig);
+    i64 kill_realm(Realm* realm, Signal sig);
 
     /**
      * @brief Terminates the current unit with the given exit code.

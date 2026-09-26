@@ -320,18 +320,13 @@ void RealmManager::reap(const RealmId id) {
 
 void RealmManager::signal_pgid(const RealmId pgid, const Signal sig) {
     if (pgid == 0) return;
-
     while (true) {
         const u8 begin = seq_.load();
         if (begin & 1) continue;
 
-        for (const auto& realm : realms_) {
+        for (auto& realm : realms_) {
             if (!realm.active || realm.pgid != pgid) continue;
-            Unit* u = realm.unit_list;
-            while (u) {
-                signal_send(u, sig);
-                u = u->realm_next;
-            }
+            signal_send_realm(&realm, sig);
         }
 
         if (const u8 end = seq_.load(); begin == end) return;

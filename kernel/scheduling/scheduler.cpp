@@ -200,7 +200,7 @@ namespace kernel::scheduling {
             Log::print_ln("[%llu]  %s (core dumped)  %s", static_cast<u64>(realm->id), fault_name, realm->name);
         }
 
-        signal_send(u, sig);
+        signal_send_unit(u, sig);
         signal_dispatch(u, frame);
         __builtin_unreachable();
     }

@@ -28,8 +28,10 @@
 #include <vespera/sync/spinlock.h>
 #include <vespera/sync/wait_queue.h>
 
+#include "klib/intrusive_queue.h"
 #include "vespera/security/credentials.h"
 #include "vespera/types.h"
+#include "vespera/signal/signalfd.h"
 
 class Unit;
 class HandleTable;
@@ -88,6 +90,9 @@ class Realm {
     TtyDevice* controlling_tty;
 
     kernel::security::process_credentials cred;
+
+    u64 signals_pending{0lu};
+    IntrusiveQueue<Signalfd> signalfd_list;
 
     Realm();
     TtyDevice* get_tty_device();

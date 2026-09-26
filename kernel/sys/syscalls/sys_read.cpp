@@ -29,7 +29,9 @@
 
 #include "filesystem/vfs_handle.h"
 #include "sys/handle_resolution.h"
+#include "vespera/ipc/eventfd.h"
 #include "vespera/ipc/socket_handle.h"
+#include "vespera/time/timerfd.h"
 
 namespace syscalls::internal {
     i64 sys_read(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
@@ -76,6 +78,21 @@ namespace syscalls::internal {
                 const bool nonblock = false; // TODO: handle flags integrated with fcntl
                 const isize r = sh->endpoint->recv(buf, count, !nonblock);
                 return r;
+            }
+            case HANDLE_TYPE_TIMERFD: {
+                auto* tfd = rh.resource_as<Timerfd>();
+                if (!tfd) return -EBADH;
+                return tfd->read(buf, count);
+            }
+            case HANDLE_TYPE_SIGNALFD: {
+                auto* sfd = rh.resource_as<Signalfd>();
+                if (!sfd) return -EBADH;
+                return sfd->read(buf, count);
+            }
+            case HANDLE_TYPE_EVENTFD: {
+                auto* efd = rh.resource_as<Eventfd>();
+                if (!efd) return -EBADH;
+                return efd->read(buf, count);
             }
             default:
                 return -EBADH;
