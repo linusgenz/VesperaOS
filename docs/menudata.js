@@ -206,6 +206,7 @@ var menudata={children:[
 {text:"_",url:"globals_eval.html#index__5F"},
 {text:"c",url:"globals_eval.html#index_c"},
 {text:"d",url:"globals_eval.html#index_d"},
+{text:"e",url:"globals_eval.html#index_e"},
 {text:"g",url:"globals_eval.html#index_g"},
 {text:"j",url:"globals_eval.html#index_j"},
 {text:"l",url:"globals_eval.html#index_l"},

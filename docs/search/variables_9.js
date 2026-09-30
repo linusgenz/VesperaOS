@@ -11,9 +11,9 @@ var searchData=
   ['int_5ffrac_5fdigits_8',['int_frac_digits',['../structlconv.html#a6b652f28cafc3092258b47c8099fe905',1,'lconv']]],
   ['interface_9',['interface',['../structvbus__header.html#a63682f3b386bc522b9acab384ce76007',1,'vbus_header::interface'],['../structvbus__subscribe__args.html#a8f0050283cf59f9394101b199f70afaf',1,'vbus_subscribe_args::interface']]],
   ['io_5ffuncs_10',['io_funcs',['../structFILE.html#a5738d7d6ef5f60aa9e73e55a6b28c494',1,'FILE']]],
-  ['iov_5fbase_11',['iov_base',['../structiovec.html#a07aeddeccf80f14520fdd7ef0759442b',1,'iovec']]],
+  ['iov_5fbase_11',['iov_base',['../structiovec.html#a03d7cd6fabcba6523b6366738c691321',1,'iovec']]],
   ['iov_5flen_12',['iov_len',['../structiovec.html#a17b5ac2078fd1adfabb262a95808a07d',1,'iovec']]],
   ['is_5fprimary_13',['is_primary',['../structfb__info.html#abe50b4d7e7f13ab2776516d046408a71',1,'fb_info']]],
-  ['it_5finterval_14',['it_interval',['../structitimerval.html#ae37e5edff9a3efa2841f5e614e2c2efb',1,'itimerval']]],
-  ['it_5fvalue_15',['it_value',['../structitimerval.html#a2dc8aae1b0b2e57a7ec8f7d33834495d',1,'itimerval']]]
+  ['it_5finterval_14',['it_interval',['../structitimerval.html#ae37e5edff9a3efa2841f5e614e2c2efb',1,'itimerval::it_interval'],['../structitimerspec.html#a27cedae552e2b2fe0993c1b2c4ff1889',1,'itimerspec::it_interval']]],
+  ['it_5fvalue_15',['it_value',['../structitimerval.html#a2dc8aae1b0b2e57a7ec8f7d33834495d',1,'itimerval::it_value'],['../structitimerspec.html#a754dda918053251c24558b07571d6e8f',1,'itimerspec::it_value']]]
 ];

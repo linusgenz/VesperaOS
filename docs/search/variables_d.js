@@ -8,7 +8,7 @@ var searchData=
   ['mem_5falignment_5',['mem_alignment',['../structlucifer__query__config.html#af40aeb7e966bd160afc2d1a1ee491791',1,'lucifer_query_config']]],
   ['mem_5fflags_6',['mem_flags',['../structgpu__buffer__desc__t.html#a511eacf70a0ee22b7cc036f7be5c78b6',1,'gpu_buffer_desc_t']]],
   ['mem_5funit_7',['mem_unit',['../structsysinfo.html#a891e902776769bfb4ec8e50bb0b55953',1,'sysinfo']]],
-  ['member_8',['member',['../structvbus__subscribe__args.html#a28bdf0d1fab52f54aa6649ffba78b270',1,'vbus_subscribe_args::member'],['../structvbus__header.html#a89053f79a2760a62a1a265de2b307213',1,'vbus_header::member']]],
+  ['member_8',['member',['../structvbus__header.html#a89053f79a2760a62a1a265de2b307213',1,'vbus_header::member'],['../structvbus__subscribe__args.html#a28bdf0d1fab52f54aa6649ffba78b270',1,'vbus_subscribe_args::member']]],
   ['memory_5flimit_9',['memory_limit',['../structrealm__info.html#a7028b33fa1fb99d4e4788c02b15ed667',1,'realm_info']]],
   ['min_10',['min',['../structrtc__data.html#a85077ff28bcdc4662a088d4dc39a5860',1,'rtc_data']]],
   ['minimized_11',['minimized',['../unionvbus__payload__t.html#a677b71de8336247efecf5acb2158768f',1,'vbus_payload_t']]],
@@ -17,5 +17,12 @@ var searchData=
   ['mon_5fdecimal_5fpoint_14',['mon_decimal_point',['../structlconv.html#a1aa08afe707c1d5d40b4d01369176480',1,'lconv']]],
   ['mon_5fgrouping_15',['mon_grouping',['../structlconv.html#a12ecf5d2f7ceb0cfe0f66fd3200eef54',1,'lconv']]],
   ['mon_5fthousands_5fsep_16',['mon_thousands_sep',['../structlconv.html#a4f04f4fd9ea670d21fc76fb5c77c032d',1,'lconv']]],
-  ['month_17',['month',['../structrtc__data.html#a0b70edcc2238ee700f4be46ca92883ac',1,'rtc_data']]]
+  ['month_17',['month',['../structrtc__data.html#a0b70edcc2238ee700f4be46ca92883ac',1,'rtc_data']]],
+  ['msg_5fcontrol_18',['msg_control',['../structmsghdr.html#afba5fc31b0f197e25602d2232ca6d783',1,'msghdr']]],
+  ['msg_5fcontrollen_19',['msg_controllen',['../structmsghdr.html#ac23c08657b5f48364c658ee1c548936c',1,'msghdr']]],
+  ['msg_5fflags_20',['msg_flags',['../structmsghdr.html#a9e8ff97d402c99551cbfd564e9e10a74',1,'msghdr']]],
+  ['msg_5fiov_21',['msg_iov',['../structmsghdr.html#a1b893a6f84c4ba52708c5dcfcc720293',1,'msghdr']]],
+  ['msg_5fiovlen_22',['msg_iovlen',['../structmsghdr.html#ad4ef1bd6821e599bf42f936850d2c4d7',1,'msghdr']]],
+  ['msg_5fname_23',['msg_name',['../structmsghdr.html#a691a8866b21c7083974a2ff1e7987ce1',1,'msghdr']]],
+  ['msg_5fnamelen_24',['msg_namelen',['../structmsghdr.html#a47762b69eee1c9ba5736d64516ea0960',1,'msghdr']]]
 ];

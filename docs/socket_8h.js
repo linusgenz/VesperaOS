@@ -1,6 +1,8 @@
 var socket_8h =
 [
     [ "sockaddr", "structsockaddr.html", "structsockaddr" ],
+    [ "msghdr", "structmsghdr.html", "structmsghdr" ],
+    [ "cmsghdr", "structcmsghdr.html", "structcmsghdr" ],
     [ "AF_ALG", "socket_8h.html#ac78798e2ee06415cbc9260d30b9e7173", null ],
     [ "AF_APPLETALK", "socket_8h.html#a435c2de946538ddb0ea3d9b53a63829f", null ],
     [ "AF_ASH", "socket_8h.html#a056bd6964ac0a1cc380bb35e5a7fd171", null ],
@@ -51,6 +53,17 @@ var socket_8h =
     [ "AF_WANPIPE", "socket_8h.html#a80141a22f1947aa610fd91f0addef484", null ],
     [ "AF_X25", "socket_8h.html#a013a262a3dabf8ed6e43bfc8a11efb69", null ],
     [ "AF_XDP", "socket_8h.html#a5ff2d3ee01d12d923a988c3a8e2b794b", null ],
+    [ "CMSG_ALIGN", "socket_8h.html#a907a77978127b9622f23f2778b0324a0", null ],
+    [ "CMSG_DATA", "socket_8h.html#a5ab6d56e410ac0904107e84aeb1484cc", null ],
+    [ "CMSG_FIRSTHDR", "socket_8h.html#a326c46eb0fceb09b6ebb075804fd1e0c", null ],
+    [ "CMSG_LEN", "socket_8h.html#a1cf31f7d0320e1fa024ebced6d54c8b9", null ],
+    [ "CMSG_NXTHDR", "socket_8h.html#a4f70853d9633fb80428189cd7bb292d0", null ],
+    [ "CMSG_SPACE", "socket_8h.html#a6a6d1e8e926f5b43e45353c7e8c3c7fa", null ],
+    [ "LOCAL_PEERCRED", "socket_8h.html#ad42d462b339c4fa3f42409cafa79081f", null ],
+    [ "MSG_CMSG_CLOEXEC", "socket_8h.html#aa986e954543bb20abe6ed04ad6e513b9", null ],
+    [ "MSG_CTRUNC", "socket_8h.html#aa3261137c1a29fee864922e392f5c46f", null ],
+    [ "MSG_DONTWAIT", "socket_8h.html#ab18d3d439e4a9c8d0f73e7166e8eb376", null ],
+    [ "MSG_NOSIGNAL", "socket_8h.html#a9f55d0e90dc8cc6b2287312435cdde48", null ],
     [ "PF_ALG", "socket_8h.html#af15f4946f22313143183ea18e5f516ce", null ],
     [ "PF_APPLETALK", "socket_8h.html#a911ba6ca52b83a1690352a176c4e9423", null ],
     [ "PF_ASH", "socket_8h.html#a3b40ab81ea7a575a0fe17703e35f9ce7", null ],
@@ -101,7 +114,15 @@ var socket_8h =
     [ "PF_WANPIPE", "socket_8h.html#a2915fc3260573e08a27b77c1fd351b53", null ],
     [ "PF_X25", "socket_8h.html#a0f4e3ab817885543366f4e2c49ced51c", null ],
     [ "PF_XDP", "socket_8h.html#ad2fef00c03b785a3d8455e46de262d95", null ],
+    [ "SCM_RIGHTS", "socket_8h.html#a6d9c97ae285439adaf1b0a78a9c93d7f", null ],
+    [ "SCM_RIGHTS", "socket_8h.html#a6d9c97ae285439adaf1b0a78a9c93d7f", null ],
+    [ "SENDMSG_CMSG_SPACE", "socket_8h.html#aaa182e1a8f8ba4fcd49822c4ded1a426", null ],
+    [ "SOCK_CLOEXEC", "socket_8h.html#ac337901f5606f0cf6f8e9867ef3fc1c4", null ],
+    [ "SOCK_NONBLOCK", "socket_8h.html#ae04efe05cb3dc3314c7710cfb8cd380a", null ],
     [ "SOCK_STREAM", "socket_8h.html#a249394484f9410a2e3f8eba24657feb9", null ],
+    [ "SOL_LOCAL", "socket_8h.html#a6e14e58a5d53936798ae51c947c62b90", null ],
+    [ "SOL_SOCKET", "socket_8h.html#a92d045f6ee2f343d6b28830a9fec082e", null ],
     [ "sa_family_t", "socket_8h.html#a27a82860cef19f4a53f68516e7b2ee0e", null ],
-    [ "socklen_t", "socket_8h.html#afb1a61946c13fc19c32b18be7c506d65", null ]
+    [ "socklen_t", "socket_8h.html#afb1a61946c13fc19c32b18be7c506d65", null ],
+    [ "cmsg_nxthdr", "socket_8h.html#a800c81237f8afa959ea971685cd5780d", null ]
 ];

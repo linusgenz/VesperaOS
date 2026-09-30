@@ -93,22 +93,42 @@ $(document).ready(function(){initNavTree('socket_8h.html',''); initResizable(); 
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#define-members">Macros</a> &#124;
-<a href="#typedef-members">Typedefs</a>  </div>
+<a href="#typedef-members">Typedefs</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">socket.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-
+<div class="textblock"><code>#include &quot;<a class="el" href="iovec_8h_source.html">iovec.h</a>&quot;</code><br />
+</div>
 <p><a href="socket_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsockaddr.html">sockaddr</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmsghdr.html">msghdr</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcmsghdr.html">cmsghdr</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:a249394484f9410a2e3f8eba24657feb9" id="r_a249394484f9410a2e3f8eba24657feb9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#a249394484f9410a2e3f8eba24657feb9">SOCK_STREAM</a>&#160;&#160;&#160;1</td></tr>
 <tr class="separator:a249394484f9410a2e3f8eba24657feb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac337901f5606f0cf6f8e9867ef3fc1c4" id="r_ac337901f5606f0cf6f8e9867ef3fc1c4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#ac337901f5606f0cf6f8e9867ef3fc1c4">SOCK_CLOEXEC</a>&#160;&#160;&#160;02000000</td></tr>
+<tr class="separator:ac337901f5606f0cf6f8e9867ef3fc1c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae04efe05cb3dc3314c7710cfb8cd380a" id="r_ae04efe05cb3dc3314c7710cfb8cd380a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#ae04efe05cb3dc3314c7710cfb8cd380a">SOCK_NONBLOCK</a>&#160;&#160;&#160;00004000</td></tr>
+<tr class="separator:ae04efe05cb3dc3314c7710cfb8cd380a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d9c97ae285439adaf1b0a78a9c93d7f" id="r_a6d9c97ae285439adaf1b0a78a9c93d7f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#a6d9c97ae285439adaf1b0a78a9c93d7f">SCM_RIGHTS</a>&#160;&#160;&#160;1</td></tr>
+<tr class="separator:a6d9c97ae285439adaf1b0a78a9c93d7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa3261137c1a29fee864922e392f5c46f" id="r_aa3261137c1a29fee864922e392f5c46f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#aa3261137c1a29fee864922e392f5c46f">MSG_CTRUNC</a>&#160;&#160;&#160;0x8</td></tr>
+<tr class="separator:aa3261137c1a29fee864922e392f5c46f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f55d0e90dc8cc6b2287312435cdde48" id="r_a9f55d0e90dc8cc6b2287312435cdde48"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#a9f55d0e90dc8cc6b2287312435cdde48">MSG_NOSIGNAL</a>&#160;&#160;&#160;0x4000</td></tr>
+<tr class="separator:a9f55d0e90dc8cc6b2287312435cdde48"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab18d3d439e4a9c8d0f73e7166e8eb376" id="r_ab18d3d439e4a9c8d0f73e7166e8eb376"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#ab18d3d439e4a9c8d0f73e7166e8eb376">MSG_DONTWAIT</a>&#160;&#160;&#160;0x40</td></tr>
+<tr class="separator:ab18d3d439e4a9c8d0f73e7166e8eb376"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa986e954543bb20abe6ed04ad6e513b9" id="r_aa986e954543bb20abe6ed04ad6e513b9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#aa986e954543bb20abe6ed04ad6e513b9">MSG_CMSG_CLOEXEC</a>&#160;&#160;&#160;0x40000000</td></tr>
+<tr class="separator:aa986e954543bb20abe6ed04ad6e513b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a51dba11ffc8e3b1bf695e721b3144094" id="r_a51dba11ffc8e3b1bf695e721b3144094"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#a51dba11ffc8e3b1bf695e721b3144094">PF_UNSPEC</a>&#160;&#160;&#160;0	/* Unspecified.  */</td></tr>
 <tr class="separator:a51dba11ffc8e3b1bf695e721b3144094"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a521c315ca2a2a4e6345878e84af4085e" id="r_a521c315ca2a2a4e6345878e84af4085e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#a521c315ca2a2a4e6345878e84af4085e">PF_LOCAL</a>&#160;&#160;&#160;1	/* Local to host (pipes and file-domain).  */</td></tr>
@@ -309,6 +329,28 @@ Macros</h2></td></tr>
 <tr class="separator:afcc6dfb23bf4173a128c0a9990f6fda1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae10a2aa1fdf011e17faa172c1a55ee1f" id="r_ae10a2aa1fdf011e17faa172c1a55ee1f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#ae10a2aa1fdf011e17faa172c1a55ee1f">AF_MAX</a>&#160;&#160;&#160;<a class="el" href="socket_8h.html#afe751ce3bf358951bd9b7135679e6431">PF_MAX</a></td></tr>
 <tr class="separator:ae10a2aa1fdf011e17faa172c1a55ee1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92d045f6ee2f343d6b28830a9fec082e" id="r_a92d045f6ee2f343d6b28830a9fec082e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#a92d045f6ee2f343d6b28830a9fec082e">SOL_SOCKET</a>&#160;&#160;&#160;1</td></tr>
+<tr class="separator:a92d045f6ee2f343d6b28830a9fec082e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d9c97ae285439adaf1b0a78a9c93d7f" id="r_a6d9c97ae285439adaf1b0a78a9c93d7f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#a6d9c97ae285439adaf1b0a78a9c93d7f">SCM_RIGHTS</a>&#160;&#160;&#160;1</td></tr>
+<tr class="separator:a6d9c97ae285439adaf1b0a78a9c93d7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a907a77978127b9622f23f2778b0324a0" id="r_a907a77978127b9622f23f2778b0324a0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#a907a77978127b9622f23f2778b0324a0">CMSG_ALIGN</a>(len)&#160;&#160;&#160;(((len) + sizeof(<a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>) - 1) &amp; ~(sizeof(<a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>) - 1))</td></tr>
+<tr class="separator:a907a77978127b9622f23f2778b0324a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a6d1e8e926f5b43e45353c7e8c3c7fa" id="r_a6a6d1e8e926f5b43e45353c7e8c3c7fa"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#a6a6d1e8e926f5b43e45353c7e8c3c7fa">CMSG_SPACE</a>(len)&#160;&#160;&#160;(<a class="el" href="socket_8h.html#a907a77978127b9622f23f2778b0324a0">CMSG_ALIGN</a>(sizeof(struct <a class="el" href="structcmsghdr.html">cmsghdr</a>)) + <a class="el" href="socket_8h.html#a907a77978127b9622f23f2778b0324a0">CMSG_ALIGN</a>(len))</td></tr>
+<tr class="separator:a6a6d1e8e926f5b43e45353c7e8c3c7fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa182e1a8f8ba4fcd49822c4ded1a426" id="r_aaa182e1a8f8ba4fcd49822c4ded1a426"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#aaa182e1a8f8ba4fcd49822c4ded1a426">SENDMSG_CMSG_SPACE</a>(n)&#160;&#160;&#160;<a class="el" href="socket_8h.html#a6a6d1e8e926f5b43e45353c7e8c3c7fa">CMSG_SPACE</a>((n) * sizeof(<a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>))</td></tr>
+<tr class="separator:aaa182e1a8f8ba4fcd49822c4ded1a426"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1cf31f7d0320e1fa024ebced6d54c8b9" id="r_a1cf31f7d0320e1fa024ebced6d54c8b9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#a1cf31f7d0320e1fa024ebced6d54c8b9">CMSG_LEN</a>(len)&#160;&#160;&#160;(<a class="el" href="socket_8h.html#a907a77978127b9622f23f2778b0324a0">CMSG_ALIGN</a>(sizeof(struct <a class="el" href="structcmsghdr.html">cmsghdr</a>)) + (len))</td></tr>
+<tr class="separator:a1cf31f7d0320e1fa024ebced6d54c8b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ab6d56e410ac0904107e84aeb1484cc" id="r_a5ab6d56e410ac0904107e84aeb1484cc"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#a5ab6d56e410ac0904107e84aeb1484cc">CMSG_DATA</a>(cmsg)&#160;&#160;&#160;((unsigned char*)(cmsg) + <a class="el" href="socket_8h.html#a907a77978127b9622f23f2778b0324a0">CMSG_ALIGN</a>(sizeof(struct <a class="el" href="structcmsghdr.html">cmsghdr</a>)))</td></tr>
+<tr class="separator:a5ab6d56e410ac0904107e84aeb1484cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a326c46eb0fceb09b6ebb075804fd1e0c" id="r_a326c46eb0fceb09b6ebb075804fd1e0c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#a326c46eb0fceb09b6ebb075804fd1e0c">CMSG_FIRSTHDR</a>(mhdr)</td></tr>
+<tr class="separator:a326c46eb0fceb09b6ebb075804fd1e0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f70853d9633fb80428189cd7bb292d0" id="r_a4f70853d9633fb80428189cd7bb292d0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#a4f70853d9633fb80428189cd7bb292d0">CMSG_NXTHDR</a>(mhdr,  cmsg)&#160;&#160;&#160;<a class="el" href="socket_8h.html#a800c81237f8afa959ea971685cd5780d">cmsg_nxthdr</a>(mhdr, cmsg)</td></tr>
+<tr class="separator:a4f70853d9633fb80428189cd7bb292d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e14e58a5d53936798ae51c947c62b90" id="r_a6e14e58a5d53936798ae51c947c62b90"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#a6e14e58a5d53936798ae51c947c62b90">SOL_LOCAL</a>&#160;&#160;&#160;0</td></tr>
+<tr class="separator:a6e14e58a5d53936798ae51c947c62b90"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad42d462b339c4fa3f42409cafa79081f" id="r_ad42d462b339c4fa3f42409cafa79081f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#ad42d462b339c4fa3f42409cafa79081f">LOCAL_PEERCRED</a>&#160;&#160;&#160;1</td></tr>
+<tr class="separator:ad42d462b339c4fa3f42409cafa79081f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
@@ -316,6 +358,11 @@ Typedefs</h2></td></tr>
 <tr class="separator:afb1a61946c13fc19c32b18be7c506d65"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a27a82860cef19f4a53f68516e7b2ee0e" id="r_a27a82860cef19f4a53f68516e7b2ee0e"><td class="memItemLeft" align="right" valign="top">typedef unsigned short&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#a27a82860cef19f4a53f68516e7b2ee0e">sa_family_t</a></td></tr>
 <tr class="separator:a27a82860cef19f4a53f68516e7b2ee0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a800c81237f8afa959ea971685cd5780d" id="r_a800c81237f8afa959ea971685cd5780d"><td class="memItemLeft" align="right" valign="top">static struct <a class="el" href="structcmsghdr.html">cmsghdr</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="socket_8h.html#a800c81237f8afa959ea971685cd5780d">cmsg_nxthdr</a> (struct <a class="el" href="structmsghdr.html">msghdr</a> *mhdr, struct <a class="el" href="structcmsghdr.html">cmsghdr</a> *cmsg)</td></tr>
+<tr class="separator:a800c81237f8afa959ea971685cd5780d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="ac78798e2ee06415cbc9260d30b9e7173" name="ac78798e2ee06415cbc9260d30b9e7173"></a>
@@ -1012,6 +1059,197 @@ Typedefs</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define AF_XDP&#160;&#160;&#160;<a class="el" href="socket_8h.html#ad2fef00c03b785a3d8455e46de262d95">PF_XDP</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a907a77978127b9622f23f2778b0324a0" name="a907a77978127b9622f23f2778b0324a0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a907a77978127b9622f23f2778b0324a0">&#9670;&#160;</a></span>CMSG_ALIGN</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define CMSG_ALIGN</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">len</td><td>)</td>
+          <td>&#160;&#160;&#160;(((len) + sizeof(<a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>) - 1) &amp; ~(sizeof(<a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>) - 1))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5ab6d56e410ac0904107e84aeb1484cc" name="a5ab6d56e410ac0904107e84aeb1484cc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5ab6d56e410ac0904107e84aeb1484cc">&#9670;&#160;</a></span>CMSG_DATA</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define CMSG_DATA</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">cmsg</td><td>)</td>
+          <td>&#160;&#160;&#160;((unsigned char*)(cmsg) + <a class="el" href="socket_8h.html#a907a77978127b9622f23f2778b0324a0">CMSG_ALIGN</a>(sizeof(struct <a class="el" href="structcmsghdr.html">cmsghdr</a>)))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a326c46eb0fceb09b6ebb075804fd1e0c" name="a326c46eb0fceb09b6ebb075804fd1e0c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a326c46eb0fceb09b6ebb075804fd1e0c">&#9670;&#160;</a></span>CMSG_FIRSTHDR</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define CMSG_FIRSTHDR</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">mhdr</td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">((mhdr)-&gt;msg_controllen &gt;= <span class="keyword">sizeof</span>(<span class="keyword">struct</span> <a class="code hl_struct" href="structcmsghdr.html">cmsghdr</a>) \</div>
+<div class="line">? (<span class="keyword">struct </span><a class="code hl_struct" href="structcmsghdr.html">cmsghdr</a>*)(mhdr)-&gt;msg_control : (<span class="keyword">struct </span><a class="code hl_struct" href="structcmsghdr.html">cmsghdr</a>*)0)</div>
+<div class="ttc" id="astructcmsghdr_html"><div class="ttname"><a href="structcmsghdr.html">cmsghdr</a></div><div class="ttdef"><b>Definition</b> socket.h:168</div></div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a1cf31f7d0320e1fa024ebced6d54c8b9" name="a1cf31f7d0320e1fa024ebced6d54c8b9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1cf31f7d0320e1fa024ebced6d54c8b9">&#9670;&#160;</a></span>CMSG_LEN</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define CMSG_LEN</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">len</td><td>)</td>
+          <td>&#160;&#160;&#160;(<a class="el" href="socket_8h.html#a907a77978127b9622f23f2778b0324a0">CMSG_ALIGN</a>(sizeof(struct <a class="el" href="structcmsghdr.html">cmsghdr</a>)) + (len))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4f70853d9633fb80428189cd7bb292d0" name="a4f70853d9633fb80428189cd7bb292d0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4f70853d9633fb80428189cd7bb292d0">&#9670;&#160;</a></span>CMSG_NXTHDR</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define CMSG_NXTHDR</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">mhdr, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">cmsg&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;<a class="el" href="socket_8h.html#a800c81237f8afa959ea971685cd5780d">cmsg_nxthdr</a>(mhdr, cmsg)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6a6d1e8e926f5b43e45353c7e8c3c7fa" name="a6a6d1e8e926f5b43e45353c7e8c3c7fa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6a6d1e8e926f5b43e45353c7e8c3c7fa">&#9670;&#160;</a></span>CMSG_SPACE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define CMSG_SPACE</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">len</td><td>)</td>
+          <td>&#160;&#160;&#160;(<a class="el" href="socket_8h.html#a907a77978127b9622f23f2778b0324a0">CMSG_ALIGN</a>(sizeof(struct <a class="el" href="structcmsghdr.html">cmsghdr</a>)) + <a class="el" href="socket_8h.html#a907a77978127b9622f23f2778b0324a0">CMSG_ALIGN</a>(len))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad42d462b339c4fa3f42409cafa79081f" name="ad42d462b339c4fa3f42409cafa79081f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad42d462b339c4fa3f42409cafa79081f">&#9670;&#160;</a></span>LOCAL_PEERCRED</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define LOCAL_PEERCRED&#160;&#160;&#160;1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa986e954543bb20abe6ed04ad6e513b9" name="aa986e954543bb20abe6ed04ad6e513b9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa986e954543bb20abe6ed04ad6e513b9">&#9670;&#160;</a></span>MSG_CMSG_CLOEXEC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MSG_CMSG_CLOEXEC&#160;&#160;&#160;0x40000000</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa3261137c1a29fee864922e392f5c46f" name="aa3261137c1a29fee864922e392f5c46f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa3261137c1a29fee864922e392f5c46f">&#9670;&#160;</a></span>MSG_CTRUNC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MSG_CTRUNC&#160;&#160;&#160;0x8</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab18d3d439e4a9c8d0f73e7166e8eb376" name="ab18d3d439e4a9c8d0f73e7166e8eb376"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab18d3d439e4a9c8d0f73e7166e8eb376">&#9670;&#160;</a></span>MSG_DONTWAIT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MSG_DONTWAIT&#160;&#160;&#160;0x40</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9f55d0e90dc8cc6b2287312435cdde48" name="a9f55d0e90dc8cc6b2287312435cdde48"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9f55d0e90dc8cc6b2287312435cdde48">&#9670;&#160;</a></span>MSG_NOSIGNAL</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MSG_NOSIGNAL&#160;&#160;&#160;0x4000</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1718,6 +1956,80 @@ Typedefs</h2></td></tr>
 
 </div>
 </div>
+<a id="a6d9c97ae285439adaf1b0a78a9c93d7f" name="a6d9c97ae285439adaf1b0a78a9c93d7f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6d9c97ae285439adaf1b0a78a9c93d7f">&#9670;&#160;</a></span>SCM_RIGHTS <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SCM_RIGHTS&#160;&#160;&#160;1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6d9c97ae285439adaf1b0a78a9c93d7f" name="a6d9c97ae285439adaf1b0a78a9c93d7f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6d9c97ae285439adaf1b0a78a9c93d7f">&#9670;&#160;</a></span>SCM_RIGHTS <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SCM_RIGHTS&#160;&#160;&#160;1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aaa182e1a8f8ba4fcd49822c4ded1a426" name="aaa182e1a8f8ba4fcd49822c4ded1a426"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa182e1a8f8ba4fcd49822c4ded1a426">&#9670;&#160;</a></span>SENDMSG_CMSG_SPACE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SENDMSG_CMSG_SPACE</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">n</td><td>)</td>
+          <td>&#160;&#160;&#160;<a class="el" href="socket_8h.html#a6a6d1e8e926f5b43e45353c7e8c3c7fa">CMSG_SPACE</a>((n) * sizeof(<a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac337901f5606f0cf6f8e9867ef3fc1c4" name="ac337901f5606f0cf6f8e9867ef3fc1c4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac337901f5606f0cf6f8e9867ef3fc1c4">&#9670;&#160;</a></span>SOCK_CLOEXEC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SOCK_CLOEXEC&#160;&#160;&#160;02000000</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae04efe05cb3dc3314c7710cfb8cd380a" name="ae04efe05cb3dc3314c7710cfb8cd380a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae04efe05cb3dc3314c7710cfb8cd380a">&#9670;&#160;</a></span>SOCK_NONBLOCK</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SOCK_NONBLOCK&#160;&#160;&#160;00004000</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a249394484f9410a2e3f8eba24657feb9" name="a249394484f9410a2e3f8eba24657feb9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a249394484f9410a2e3f8eba24657feb9">&#9670;&#160;</a></span>SOCK_STREAM</h2>
 
@@ -1726,6 +2038,34 @@ Typedefs</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define SOCK_STREAM&#160;&#160;&#160;1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6e14e58a5d53936798ae51c947c62b90" name="a6e14e58a5d53936798ae51c947c62b90"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6e14e58a5d53936798ae51c947c62b90">&#9670;&#160;</a></span>SOL_LOCAL</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SOL_LOCAL&#160;&#160;&#160;0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a92d045f6ee2f343d6b28830a9fec082e" name="a92d045f6ee2f343d6b28830a9fec082e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92d045f6ee2f343d6b28830a9fec082e">&#9670;&#160;</a></span>SOL_SOCKET</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SOL_SOCKET&#160;&#160;&#160;1</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1757,6 +2097,43 @@ Typedefs</h2></td></tr>
           <td class="memname">typedef unsigned <a class="el" href="alltypes_8h.html#afb1a61946c13fc19c32b18be7c506d65">socklen_t</a></td>
         </tr>
       </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="a800c81237f8afa959ea971685cd5780d" name="a800c81237f8afa959ea971685cd5780d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a800c81237f8afa959ea971685cd5780d">&#9670;&#160;</a></span>cmsg_nxthdr()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static struct <a class="el" href="structcmsghdr.html">cmsghdr</a> * cmsg_nxthdr </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structmsghdr.html">msghdr</a> *&#160;</td>
+          <td class="paramname"><em>mhdr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structcmsghdr.html">cmsghdr</a> *&#160;</td>
+          <td class="paramname"><em>cmsg</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>

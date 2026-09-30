@@ -21,5 +21,9 @@ var searchData=
   ['ms_5fnoatime_18',['MS_NOATIME',['../include_2uapi_2vespera_2mount_8h.html#ac880b4fe92ddcb8e13b3a7f5be1874d9',1,'mount.h']]],
   ['ms_5fnoexec_19',['MS_NOEXEC',['../include_2uapi_2vespera_2mount_8h.html#ac1afc3dd404e32a8243b20c5e2098b46',1,'mount.h']]],
   ['ms_5frdonly_20',['MS_RDONLY',['../include_2uapi_2vespera_2mount_8h.html#a8e7a9d539a0b19e807c0886d6e068ebe',1,'mount.h']]],
-  ['ms_5fremount_21',['MS_REMOUNT',['../include_2uapi_2vespera_2mount_8h.html#a6f2370947d60e3a39113f30c318c81da',1,'mount.h']]]
+  ['ms_5fremount_21',['MS_REMOUNT',['../include_2uapi_2vespera_2mount_8h.html#a6f2370947d60e3a39113f30c318c81da',1,'mount.h']]],
+  ['msg_5fcmsg_5fcloexec_22',['MSG_CMSG_CLOEXEC',['../socket_8h.html#aa986e954543bb20abe6ed04ad6e513b9',1,'socket.h']]],
+  ['msg_5fctrunc_23',['MSG_CTRUNC',['../socket_8h.html#aa3261137c1a29fee864922e392f5c46f',1,'socket.h']]],
+  ['msg_5fdontwait_24',['MSG_DONTWAIT',['../socket_8h.html#ab18d3d439e4a9c8d0f73e7166e8eb376',1,'socket.h']]],
+  ['msg_5fnosignal_25',['MSG_NOSIGNAL',['../socket_8h.html#a9f55d0e90dc8cc6b2287312435cdde48',1,'socket.h']]]
 ];

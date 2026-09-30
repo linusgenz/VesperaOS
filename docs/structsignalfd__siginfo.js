@@ -1,0 +1,25 @@
+var structsignalfd__siginfo =
+[
+    [ "__pad", "structsignalfd__siginfo.html#a4a55cd6a542161de6badbc42bd0c359e", null ],
+    [ "__pad2", "structsignalfd__siginfo.html#afefd86571e78381839568595e056efd8", null ],
+    [ "ssi_addr", "structsignalfd__siginfo.html#a45004946e08352908ef759e41a6c0482", null ],
+    [ "ssi_addr_lsb", "structsignalfd__siginfo.html#a06340a378bfd6dc73f1da10b2fdf4316", null ],
+    [ "ssi_arch", "structsignalfd__siginfo.html#a215bc2a8cb9f9115d8473d16935d5dc5", null ],
+    [ "ssi_band", "structsignalfd__siginfo.html#a7f1673fa5fb4bbf572ad3e4302f9ee33", null ],
+    [ "ssi_call_addr", "structsignalfd__siginfo.html#a9d8d5cd2f35dbc0ade01b16de123e63b", null ],
+    [ "ssi_code", "structsignalfd__siginfo.html#a9790a719646945ef11fa3fa3a208ddc5", null ],
+    [ "ssi_errno", "structsignalfd__siginfo.html#a7fca336c8a0d4678c9d648a19b61d068", null ],
+    [ "ssi_fd", "structsignalfd__siginfo.html#a1712dca0029bf194cb001a79f331dd08", null ],
+    [ "ssi_int", "structsignalfd__siginfo.html#aa14d3bf643fd2c5e9f9927c03c85f0a2", null ],
+    [ "ssi_overrun", "structsignalfd__siginfo.html#a72906a0e9fa3b0ac88b6c9c6490524cf", null ],
+    [ "ssi_pid", "structsignalfd__siginfo.html#a4fb92e63185b238a34db9e1573e95832", null ],
+    [ "ssi_ptr", "structsignalfd__siginfo.html#a30c58773b578002ec23a07b43eae9345", null ],
+    [ "ssi_signo", "structsignalfd__siginfo.html#a75b05ca7b58f1f7cf731cd6a362e23f4", null ],
+    [ "ssi_status", "structsignalfd__siginfo.html#ad91e97b08d98e26d9765622d93105438", null ],
+    [ "ssi_stime", "structsignalfd__siginfo.html#aca6ecefd96a461cb58af5bd05b58bafd", null ],
+    [ "ssi_syscall", "structsignalfd__siginfo.html#a79f0a98596e868cca3e889c780460191", null ],
+    [ "ssi_tid", "structsignalfd__siginfo.html#ab3f2ee48118fa50d969afaf78f1cd616", null ],
+    [ "ssi_trapno", "structsignalfd__siginfo.html#aefcc0d7760eafddd16ddbbe6714ec822", null ],
+    [ "ssi_uid", "structsignalfd__siginfo.html#a46c39340daac26a956024ad23d860f58", null ],
+    [ "ssi_utime", "structsignalfd__siginfo.html#a968293eb2b4293e78eb7e86ad4a810e1", null ]
+];
