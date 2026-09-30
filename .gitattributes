@@ -12,3 +12,6 @@ userspace/lib/wayland/**  -diff
 
 userspace/lib/libffi/**  linguist-vendored=true
 userspace/lib/libffi/**  -diff
+
+userspace/lib/mesa/**  linguist-vendored=true
+userspace/lib/mesa/**  -diff
