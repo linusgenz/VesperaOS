@@ -71,9 +71,7 @@ if(LD_ARGS_GC_SECTIONS)
     target_link_options(GLESv2 PRIVATE ${LD_ARGS_GC_SECTIONS})
 endif()
 
-install(TARGETS GLESv2
-        LIBRARY DESTINATION ${VESPERA_SYSROOT}/usr/lib
-        ARCHIVE DESTINATION ${VESPERA_SYSROOT}/usr/lib
-        RUNTIME DESTINATION ${VESPERA_SYSROOT}/usr/bin
-        COMPONENT runtime
+install(FILES       $<TARGET_FILE:GLESv2>
+        DESTINATION "${VESPERA_SYSROOT}/usr/lib"
+        COMPONENT   runtime
 )

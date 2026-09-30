@@ -67,8 +67,6 @@ target_link_libraries(mesa_intel_common
         mesa_util
         mesa_intel_dev
         mesa_intel_isl
-        PRIVATE
-        pthread
 )
 
 target_compile_options(mesa_intel_common PRIVATE ${MESA_COMMON_C_FLAGS})

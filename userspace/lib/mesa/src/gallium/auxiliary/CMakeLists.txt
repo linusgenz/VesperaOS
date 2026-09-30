@@ -155,30 +155,27 @@ set(GALLIUM_AUX_SOURCES
         ${GALLIUM_AUX_ROOT}/util/u_vertex_state_cache.h
         ${GALLIUM_AUX_ROOT}/util/u_video.h
         ${GALLIUM_AUX_ROOT}/util/u_viewport.h
-        # nir/tgsi_to_nir.c + nir_to_tgsi.c haengen NICHT an
-        # with_gfx_compute (stehen in meson.build ausserhalb des
-        # if with_gfx_compute-Blocks-Aequivalents -- Kernliste).
-        # iris nutzt intern NIR direkt, aber tgsi_to_nir/nir_to_tgsi
-        # werden von gallium-generischem Code (u_threaded_context,
-        # Treiber-Interop) potenziell referenziert; mit aufgenommen,
-        # da sie nicht am with_gfx_compute-Gate haengen.
+
         ${GALLIUM_AUX_ROOT}/nir/nir_draw_helpers.c
         ${GALLIUM_AUX_ROOT}/nir/tgsi_to_nir.c
         ${GALLIUM_AUX_ROOT}/nir/nir_to_tgsi.c
         #  ${GALLIUM_AUX_ROOT}/nir/nir_to_tgsi_info.c
+
+        ${GALLIUM_AUX_ROOT}/hud/font.c
+        ${GALLIUM_AUX_ROOT}/hud/hud_context.c
+        ${GALLIUM_AUX_ROOT}/hud/hud_cpu.c
+        ${GALLIUM_AUX_ROOT}/hud/hud_driver_query.c
+        ${GALLIUM_AUX_ROOT}/hud/hud_fps.c
+        # ${GALLIUM_AUX_ROOT}/hud/hud_cpufreq.c
+        #${GALLIUM_AUX_ROOT}/hud/hud_diskstat.c
+
+        ${GALLIUM_AUX_ROOT}/pipe-loader/pipe_loader.c
+        ${GALLIUM_AUX_ROOT}/pipe-loader/pipe_loader_drm.c
+        ${GALLIUM_AUX_ROOT}/pipe-loader/pipe_loader_sw.c
+
+        ${GALLIUM_AUX_ROOT}/sw_screen_create_vk.c
 )
 
-# ────────────────────────────────────────────────────────────────
-# cso_cache/ — meson.build Zeilen 113-118, liegt strukturell INNERHALB
-# des with_gfx_compute-Blocks (siehe Kopfkommentar), hat aber KEINE
-# funktionale Abhaengigkeit zu draw/gallivm: cso_cache ist reines
-# High-Level State-Object-Caching/Deduplizierung fuer pipe_context
-# (Blend/Rasterizer/DSA/Sampler-State-Objekte), das der State-Tracker
-# (state_tracker/st_atom_*.c, st_cb_*.c) direkt nutzt, unabhaengig
-# vom Software-Vertex-Pipeline-Pfad. Bewusst separat aus dem
-# with_gfx_compute-Block herausgezogen, da es fuer den iris-Pfad
-# gebraucht wird, ohne draw/gallivm nachzuziehen.
-# ────────────────────────────────────────────────────────────────
 set(GALLIUM_AUX_CSO_SOURCES
         ${GALLIUM_AUX_ROOT}/cso_cache/cso_cache.c
         ${GALLIUM_AUX_ROOT}/cso_cache/cso_cache.h
@@ -188,18 +185,6 @@ set(GALLIUM_AUX_CSO_SOURCES
         ${GALLIUM_AUX_ROOT}/cso_cache/cso_hash.h
 )
 
-# ────────────────────────────────────────────────────────────────
-# translate/ — meson.build Zeilen 259-264, liegt ebenfalls strukturell
-# INNERHALB des with_gfx_compute-Blocks, wird aber von util/u_vbuf.c
-# gebraucht (bereits unconditional Teil von GALLIUM_AUX_SOURCES oben,
-# meson.build Zeile 103-104) — u_vbuf ist der generische Vertex-Buffer-
-# Emulationslayer, den Treiber fuer von der Hardware nicht direkt
-# unterstuetzte Vertex-Formate nutzen. translate_generic.c ist der
-# portable C-Pfad; translate_sse.c ist eine optionale SSE-Beschleunigung
-# (x86-spezifisch, fuer uns unproblematisch, da VesperaOS x86_64-only
-# ist). Bewusst separat aus dem with_gfx_compute-Block herausgezogen,
-# analog zu cso_cache/ oben.
-# ────────────────────────────────────────────────────────────────
 set(GALLIUM_AUX_TRANSLATE_SOURCES
         ${GALLIUM_AUX_ROOT}/translate/translate.c
         ${GALLIUM_AUX_ROOT}/translate/translate.h
@@ -209,20 +194,6 @@ set(GALLIUM_AUX_TRANSLATE_SOURCES
         ${GALLIUM_AUX_ROOT}/translate/translate_sse.c
 )
 
-# ────────────────────────────────────────────────────────────────
-# rtasm/ — meson.build Zeilen 217-220, liegt ebenfalls strukturell
-# INNERHALB des with_gfx_compute-Blocks. Runtime-Assembler: jittet zur
-# Laufzeit x86-SSE-Maschinencode fuer translate_cache.c (spezialisierte
-# Vertex-Attribut-Konvertierungsroutinen statt generischem interpretiertem
-# Code). translate/ haengt direkt daran, siehe oben.
-#
-# ACHTUNG: rtasm_execmem.c braucht ausfuehrbaren, beschreibbaren Speicher
-# (klassisch via mmap(PROT_READ|PROT_WRITE|PROT_EXEC, ...) oder aequivalent).
-# TODO(vespera): Pruefen, ob euer Speicherverwaltungs-Syscall-Interface das
-# in dieser Form hergibt -- falls nicht, ist das der erste Stolperstein,
-# entweder beim Kompilieren (fehlende mmap-Flags in eurer libc) oder zur
-# Laufzeit (SIGSEGV/SIGILL beim Ausfuehren des gejitteten Codes).
-# ────────────────────────────────────────────────────────────────
 set(GALLIUM_AUX_RTASM_SOURCES
         ${GALLIUM_AUX_ROOT}/rtasm/rtasm_execmem.c
         ${GALLIUM_AUX_ROOT}/rtasm/rtasm_execmem.h
@@ -230,17 +201,6 @@ set(GALLIUM_AUX_RTASM_SOURCES
         ${GALLIUM_AUX_ROOT}/rtasm/rtasm_x86sse.h
 )
 
-# ────────────────────────────────────────────────────────────────
-# indices/ — meson.build Zeilen 213-216, liegt strukturell INNERHALB
-# des with_gfx_compute-Blocks. util_primconvert_* wird von u_vbuf.c
-# direkt aufgerufen (u_vbuf_draw_vbo -> util_primconvert_draw_vbo),
-# also unconditional gebraucht, analog zu cso_cache/translate/rtasm.
-#
-# u_indices_gen.c/u_unfilled_gen.c (die Codegen-Ausgaben) sind bei uns
-# bereits unconditional Teil des Kern-Layers weiter oben in dieser
-# Datei -- indices/u_primconvert.c ist die noch fehlende statische
-# Quelle aus demselben Verzeichnis.
-# ────────────────────────────────────────────────────────────────
 set(GALLIUM_AUX_INDICES_SOURCES
         ${GALLIUM_AUX_ROOT}/indices/u_indices.h
         ${GALLIUM_AUX_ROOT}/indices/u_indices_priv.h
@@ -248,18 +208,6 @@ set(GALLIUM_AUX_INDICES_SOURCES
         ${GALLIUM_AUX_ROOT}/indices/u_primconvert.h
 )
 
-# ────────────────────────────────────────────────────────────────
-# tgsi/ — meson.build Zeilen 221-258, liegt strukturell INNERHALB
-# des with_gfx_compute-Blocks. TGSI-IR (Parsing/Dump/Scan/Transform)
-# wird vom state_tracker direkt fuer Kompat-Funktionalitaet gebraucht
-# (tgsi_get_generic_gl_varying_index in st_program.h) -- bestaetigt
-# als tatsaechlich unconditional benoetigt, analog zu cso_cache/
-# translate/rtasm/indices/draw oben. Der eigene TODO-Kommentar von
-# weiter oben in dieser Datei ("falls undefined reference auf tgsi_*
-# Symbole auftaucht") hat sich bestaetigt.
-#
-# 1:1 aus meson.build uebernommen, keine Datei ausgelassen.
-# ────────────────────────────────────────────────────────────────
 set(GALLIUM_AUX_TGSI_SOURCES
         ${GALLIUM_AUX_ROOT}/tgsi/tgsi_aa_point.c
         ${GALLIUM_AUX_ROOT}/tgsi/tgsi_aa_point.h
@@ -301,16 +249,6 @@ set(GALLIUM_AUX_TGSI_SOURCES
         ${GALLIUM_AUX_ROOT}/tgsi/tgsi_vpos.c
 )
 
-# ────────────────────────────────────────────────────────────────
-# driver_trace/ — meson.build Zeilen 180-200 (Kernblock, dd_* separat
-# behandelt) sind bereits als dd_context.c/dd_screen.c/dd_pipe.h/
-# dd_public.h TEIL des with_gfx_compute-Blocks; die driver_trace/tr_*
-# Dateien selbst waren bislang NUR ueber enums2names.py (fuer den
-# tr_util.c/h Codegen) referenziert, nie als eigene Sourcen-Liste
-# gebaut -- trace_dumping_* (aus tr_dump.c) wird von cso_context.c
-# direkt aufgerufen, ist also unconditional noetig, analog zu allen
-# vorherigen Blocken. 1:1 aus meson.build uebernommen.
-# ────────────────────────────────────────────────────────────────
 set(GALLIUM_AUX_DRIVER_TRACE_SOURCES
         ${GALLIUM_AUX_ROOT}/driver_trace/tr_context.c
         ${GALLIUM_AUX_ROOT}/driver_trace/tr_context.h
@@ -326,23 +264,6 @@ set(GALLIUM_AUX_DRIVER_TRACE_SOURCES
         ${GALLIUM_AUX_ROOT}/driver_trace/tr_texture.h
 )
 
-# ────────────────────────────────────────────────────────────────
-# draw/ — meson.build Zeilen 119-179 (+ Custom-Target Zeilen 275-296).
-# Liegt strukturell INNERHALB des with_gfx_compute-Blocks (Software-
-# Vertex-Pipeline), wird aber vom state_tracker fuer Kern-Funktionalitaet
-# gebraucht, die nicht optional ist: glRasterPos (st_cb_rasterpos.c),
-# GL_FEEDBACK/GL_SELECT Rendermodes (st_cb_feedback.c, st_draw_feedback.c),
-# und den generischen Vertex-Shader-Pfad in st_draw.c/st_program.c.
-# Bewusst 1:1 aus meson.build uebernommen, analog zu cso_cache/translate/
-# rtasm/indices oben -- keine Dateien aus diesem Block ausgelassen.
-#
-# NICHT enthalten: die drei gallivm-abhaengigen draw_llvm*.c-Dateien
-# (meson.build Zeilen 370-373, liegen im *verschachtelten* llvm-gated
-# Unterblock, nicht im hier portierten draw/-Kernblock) sowie
-# tessellator/ (Zeilen 374-377, ebenfalls im llvm-Unterblock). Falls
-# spaeter Tessellation-Shader ueber den draw-Software-Pfad noetig
-# werden, muss das zusammen mit gallivm/ nachgezogen werden.
-# ────────────────────────────────────────────────────────────────
 set(GALLIUM_AUX_DRAW_SOURCES
         ${GALLIUM_AUX_ROOT}/draw/draw_cliptest_tmp.h
         ${GALLIUM_AUX_ROOT}/draw/draw_context.c
@@ -407,10 +328,6 @@ set(GALLIUM_AUX_DRAW_SOURCES
         ${GALLIUM_AUX_ROOT}/draw/draw_vs_variant.c
 )
 
-# draw_nir_lower_opcodes.c — meson.build Zeilen 275-283. Python-Codegen,
-# analog zum bereits vorhandenen u_indices_gen.c/u_unfilled_gen.c-Muster.
-# -p erwartet das nir-Quellverzeichnis fuer die Algebraic-Replacement-
-# Regeln, die das Skript einliest.
 set(DRAW_NIR_LOWER_OPCODES_C ${GALLIUM_AUX_GEN_DIR}/draw_nir_lower_opcodes.c)
 add_custom_command(
         OUTPUT ${DRAW_NIR_LOWER_OPCODES_C}
@@ -423,12 +340,6 @@ add_custom_command(
         VERBATIM
 )
 
-
-# ────────────────────────────────────────────────────────────────
-# u_indices_gen.c / u_unfilled_gen.c — meson.build Zeilen 495-507.
-# Python-Codegen, IMMER aktiv (nicht an with_gfx_compute gebunden),
-# analog zum genxml/tracepoints-Muster.
-# ────────────────────────────────────────────────────────────────
 set(U_INDICES_GEN_C ${GALLIUM_AUX_GEN_DIR}/u_indices_gen.c)
 add_custom_command(
         OUTPUT ${U_INDICES_GEN_C}
@@ -451,12 +362,6 @@ add_custom_command(
         VERBATIM
 )
 
-# ────────────────────────────────────────────────────────────────
-# tr_util.[ch] — meson.build Zeilen 456-463. enums2names.py generiert
-# aus mehreren Header-Inputs eine Enum<->String-Tabelle. Braucht
-# p_defines.h, p_video_enums.h aus gallium/include/pipe/, sowie
-# util/blend.h aus dem Haupt-util-Layer.
-# ────────────────────────────────────────────────────────────────
 set(TR_UTIL_C ${GALLIUM_AUX_GEN_DIR}/tr_util.c)
 set(TR_UTIL_H ${GALLIUM_AUX_GEN_DIR}/tr_util.h)
 add_custom_command(
@@ -477,13 +382,6 @@ add_custom_command(
         VERBATIM
 )
 
-# ────────────────────────────────────────────────────────────────
-# u_tracepoints.[ch] — meson.build Zeilen 465-493. Gleiches
-# Python-Codegen-Muster wie intel_tracepoints (siehe intel/ds/
-# CMakeLists.txt) — ohne --perfetto-hdr, da Gallium's u_tracepoints
-# nur den u_trace-Header + Quelle erzeugt, keine gesonderte
-# Perfetto-Variante wie im Intel-Layer.
-# ────────────────────────────────────────────────────────────────
 set(U_TRACEPOINTS_C ${GALLIUM_AUX_GEN_DIR}/u_tracepoints.c)
 set(U_TRACEPOINTS_H ${GALLIUM_AUX_GEN_DIR}/u_tracepoints.h)
 add_custom_command(
@@ -541,8 +439,10 @@ target_include_directories(mesa_gallium_aux
         ${GALLIUM_AUX_ROOT}/util
         ${MESA_ROOT}/src/gallium/include
         ${MESA_ROOT}/src/gallium/auxiliary
+        ${MESA_ROOT}/src/gallium/winsys
         ${MESA_ROOT}/src
         ${MESA_ROOT}/include
+        ${MESA_ROOT}/src/loader
         ${GALLIUM_AUX_GEN_DIR}
         PRIVATE
         ${VESPERA_SYSROOT}/usr/include
@@ -555,31 +455,14 @@ target_compile_options(mesa_gallium_aux PRIVATE
 
 target_compile_options(mesa_gallium_aux PRIVATE -fvisibility=hidden)
 
-# dependencies -- meson.build: dep_libdrm, dep_llvm, dep_dl, dep_m,
-# dep_thread, dep_lmsensors, dep_ws2_32, idep_nir, idep_nir_headers,
-# idep_mesautil.
-#
-# Bei uns:
-#   - dep_llvm      -> NICHT gelinkt, da wir gallivm/ auslassen (kein
-#                       Cross-LLVM vorhanden/noetig fuer diesen Layer)
-#   - dep_ws2_32    -> Windows-Sockets, entfaellt komplett
-#   - dep_lmsensors -> Sensor-Support fuer hud/, entfaellt (hud/ ist
-#                       ohnehin nicht Teil dieses Layers bei uns)
-#   - dep_libdrm    -> TODO(vespera): noch nicht als Cross-Target
-#                       verfuegbar (gleiche Situation wie beim
-#                       ausgelassenen pps_intel in intel/ds). Sobald
-#                       libdrm im Sysroot verfuegbar ist, hier
-#                       ergaenzen -- pb_bufmgr* und Teile von
-#                       driver_trace/tr_screen.c erwarten das
-#                       eigentlich, koennten also bis dahin nur
-#                       eingeschraenkt funktionieren.
-#   - dep_dl        -> falls eure libc dlopen/dlsym separat auslagert,
-#                       hier ergaenzen; sonst i.d.R. Teil der libc
-#   - dep_thread    -> euer pthread-Layer (Targetname pruefen, siehe
-#                       auch TODO in util/c11/CMakeLists.txt)
+target_compile_definitions(mesa_gallium_aux PRIVATE HAVE_DRI)
+
 target_link_libraries(mesa_gallium_aux PUBLIC
         mesa_util
         mesa_nir
+        swdri
+        wsw
+        ws_null
         vesplib
 )
 
@@ -588,4 +471,7 @@ add_dependencies(mesa_gallium_aux
         mesa_gallium_aux_gen
         mesa_util
         mesa_nir
+        swdri
+        wsw
+        ws_null
 )

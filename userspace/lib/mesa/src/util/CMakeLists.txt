@@ -254,6 +254,7 @@ target_link_options(mesa_util PRIVATE
 target_link_libraries(mesa_util
         PUBLIC
         mesa_blake3
+        vesplib
         PRIVATE
         mesa_util_c11
 )

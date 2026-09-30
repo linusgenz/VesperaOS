@@ -1,34 +1,3 @@
-# ════════════════════════════════════════════════════════════════
-# lib/mesa/host-tools/CMakeLists.txt
-#
-# EIGENSTÄNDIGES CMake-Projekt für den BUILD-HOST (dein Linux-System,
-# LLVM 19+, Distro-Pakete). Wird von der Root-CMakeLists via
-# ExternalProject_Add als komplett separater `cmake -S -B` Lauf
-# aufgerufen — KEIN CMAKE_TOOLCHAIN_FILE, kein Vespera-Sysroot.
-#
-# Baut, 1:1 abgebildet aus:
-#   src/compiler/meson.build   -> libcompiler
-#   src/compiler/nir/meson.build -> libnir (+ generierter Code)
-#   src/compiler/spirv/meson.build -> libvtn + vtn_bindgen2
-#   src/compiler/clc/meson.build   -> libmesaclc + mesa_clc
-#   src/util/meson.build       -> mesa_util_host (NICHT im Detail unten
-#                                  ausgeführt, du hast diese Datei
-#                                  noch nicht geschickt — Platzhalter
-#                                  am Ende, siehe TODO)
-#
-# WICHTIGE ERKENNTNIS aus den meson.build-Dateien:
-#   - vtn_bindgen2 liegt in compiler/spirv/, NICHT in compiler/clc/.
-#     Es linkt idep_vtn (SPIR-V/NIR-Parsing) + idep_nir + idep_mesautil.
-#   - mesa_clc braucht LLVM+Clang ALS LIBRARY (clc_helpers.cpp
-#     kompiliert OpenCL-C via eingebettetem Clang zu LLVM-IR, dann
-#     via LLVMSPIRVLib zu SPIR-V) UND SPIRV-Tools (zum Linken/
-#     Optimieren des SPIR-V).
-#   - has_spirv_link_workaround: bei LLVM >= 17 MUSS SPIRV-Tools
-#     einen bestimmten Patch enthalten (SetAllowPtrTypeMismatch),
-#     sonst bricht der Mesa-Build mit einem error() ab. Bei dir
-#     (LLVM 19+) greift das zwingend — s. CHECK weiter unten.
-# ════════════════════════════════════════════════════════════════
-
 cmake_minimum_required(VERSION 3.20)
 project(mesa_host_tools C CXX)
 
@@ -36,27 +5,16 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Pfad zu deinem Mesa-Checkout (Root, dort wo src/ liegt).
-# Von der äußeren CMakeLists via -DMESA_SOURCE_ROOT=... gesetzt,
-# hier nur ein Fallback für Testläufe direkt in host-tools/.
 if(NOT DEFINED MESA_SOURCE_ROOT)
     set(MESA_SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../")
 endif()
 set(MESA_SRC ${MESA_SOURCE_ROOT}/src)
 
-# ────────────────────────────────────────────────────────────────
-# LLVM / Clang — Distro-Pakete, LLVM 19+.
-# Auf Debian/Ubuntu heißen die Config-Dateien oft versioniert, z.B.
-# /usr/lib/llvm-19/lib/cmake/llvm/LLVMConfig.cmake — falls
-# find_package ohne HINTS nichts findet, setz beim Konfigurieren:
-#   -DLLVM_DIR=/usr/lib/llvm-19/lib/cmake/llvm
-#   -DClang_DIR=/usr/lib/llvm-19/lib/cmake/clang
-# ────────────────────────────────────────────────────────────────
 find_package(LLVM REQUIRED CONFIG)
 find_package(Clang REQUIRED CONFIG)
 
-message(STATUS "Gefunden: LLVM ${LLVM_PACKAGE_VERSION} in ${LLVM_DIR}")
-message(STATUS "Gefunden: Clang in ${Clang_DIR}")
+message(STATUS "Found: LLVM ${LLVM_PACKAGE_VERSION} in ${LLVM_DIR}")
+message(STATUS "Found: Clang in ${Clang_DIR}")
 
 if(TARGET LLVM)
     set(LLVM_LIBS LLVM)
@@ -69,14 +27,6 @@ endif()
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../FindMesaPython.cmake)
 
-# Clang-Libraries, die clc_helpers.cpp für die OpenCL-C-Kompilierung
-# braucht (Frontend + Codegen + Driver-Glue). Manche Distros (z.B.
-# Arch) liefern die einzelnen clang*-Static-Libs NICHT aus, sondern
-# nur die kombinierte libclang-cpp.so (bestätigt: Arch clang-Paket
-# enthaelt nur libclang-cpp.so, keine libclangFrontend.a etc. — siehe
-# `pacman -Ql clang`). Andere Distros (Debian/Ubuntu, Fedora) haben
-# die feingranularen Einzel-Libs. Wir probieren beides, kombinierte
-# zuerst.
 find_library(CLANG_CPP_LIB NAMES clang-cpp HINTS ${LLVM_LIBRARY_DIRS})
 
 if(CLANG_CPP_LIB)
@@ -99,32 +49,10 @@ else()
     )
 endif()
 
-# ────────────────────────────────────────────────────────────────
-# SPIRV-Tools — Distro-Paket (spirv-tools-dev o.ä.).
-# ────────────────────────────────────────────────────────────────
 find_package(SPIRV-Tools CONFIG REQUIRED)
 find_package(SPIRV-Tools-opt CONFIG REQUIRED)
 find_package(SPIRV-Tools-link CONFIG REQUIRED)
 
-# CHECK: mesa_clc.c / clc_helpers.cpp verlangt bei LLVM >= 17 zwingend
-# spvtools::LinkerOptions::SetAllowPtrTypeMismatch(true). Das ist seit
-# SPIRV-Tools ~2022 Standard, mit aktuellen Distro-Paketen (2024/2025)
-# sollte das erfüllt sein. Der eigentliche compile_definitions-Eintrag
-# HAS_SPIRV_LINK_LLVM_WORKAROUND=1 sitzt unten direkt an
-# mesa_libclc_helper (siehe dort) — das ist der Ort, an dem er in
-# meson (_libmesaclc_c_args) auch tatsächlich verwendet wird.
-# Vor dem ersten echten Build lohnt sich ein kurzer manueller Test:
-#   echo '#include <spirv-tools/linker.hpp>' | g++ -x c++ -c - \
-#     -o /dev/null -DTEST && \
-#   grep -r "SetAllowPtrTypeMismatch" /usr/include/spirv-tools/linker.hpp
-# Findet grep nichts, ist dein SPIRV-Tools-Paket zu alt für LLVM 19.
-
-# ────────────────────────────────────────────────────────────────
-# SPIRV-LLVM-Translator (dein "spirv-llvm-translator"-Paket).
-# CMake-Config-Target heißt üblicherweise LLVMSPIRVLib. Falls
-# find_package hier scheitert (manche Distros liefern nur die .so
-# ohne Config-cmake), Fallback per find_library/find_path.
-# ────────────────────────────────────────────────────────────────
 find_package(LLVMSPIRVLib QUIET CONFIG)
 if(NOT LLVMSPIRVLib_FOUND)
     find_library(LLVMSPIRVLib_LIBRARY
@@ -149,48 +77,6 @@ if(NOT LLVMSPIRVLib_FOUND)
     )
 endif()
 
-# ════════════════════════════════════════════════════════════════
-# mesa_util_host  (src/util/meson.build)
-#
-# Portiert aus deiner Vespera-Cross-CMakeLists (lib/mesa/src/util/
-# CMakeLists.txt), auf den HOST-Build umgestellt. Übernommen 1:1,
-# weil bereits korrekt und mit echtem Codegen statt Glob-Rateversuch:
-#   - format_srgb.c Codegen
-#   - git_sha1.h Handling
-#   - shader_stats.h Codegen
-#   - u_format_gen.h / u_format_pack.h / u_format_table.c Codegen
-#     via u_format_table.py (das hatte ich vorher nur mit file(GLOB)
-#     grob nachgebildet — deine Version ist hier maßgeblich)
-#   - MESA_UTIL_SOURCES Liste, blake3 als add_subdirectory
-#
-# GEÄNDERT ggü. deiner Cross-Version, weil das hier der HOST-Build
-# ist, nicht der Vespera-Cross-Build:
-#   - ${VESPERA_SYSROOT}/usr/include (PRIVATE include) ENTFERNT —
-#     existiert im Host-Kontext nicht, dein Sysroot ist Vespera-spezifisch
-#   - add_dependencies(mesa_util_host sysroot_headers) ENTFERNT — dieses
-#     Target kommt aus deinem Cross-Build-Baum, hier nicht vorhanden
-#   - install(... DESTINATION ${VESPERA_SYSROOT}/usr/lib ...) ENTFERNT
-#     und durch normales bin/-Install (Teil des host-tools-Projekts)
-#     ersetzt — ein Host-Tool gehört nicht in den Vespera-Sysroot
-#   - add_library(... SHARED ...) -> STATIC — mesa_clc/vtn_bindgen2
-#     sind einzelne Executables ohne Installations-RPATH-Bedarf;
-#     static vermeidet unnötige .so-Distribution im host-tools-
-#     Install-Prefix (entspricht auch meson: static_library('mesa_util_host', ...))
-#   - ${MESA_ROOT} -> ${MESA_SOURCE_ROOT} (Variablenname aus der
-#     Root-CMakeLists dieses Host-Baums, siehe oben im File)
-#   - ${MESA_COMMON_C_FLAGS} ENTFERNT — das ist ein Vespera-Cross-
-#     Compile-Flag-Set (z.B. -nostdinc, Cross-Sysroot-Pfade); auf dem
-#     Host bauen wir mit normalen Compiler-Defaults
-#   - pthread -> Threads::Threads (portabler CMake-Weg, gleiche Wirkung)
-#
-# UNKLAR / ANNAHME: die HAVE_*-Compile-Definitions (HAVE_ENDIAN_H,
-# HAS_SCHED_GETAFFINITY, HAVE_FUNC_ATTRIBUTE_PACKED, ...) waren in
-# deiner Version hartkodiert für Vespera. Auf einem aktuellen Linux-
-# Host mit glibc gelten praktisch alle davon ebenfalls, deshalb hier
-# unverändert übernommen — falls mesa_util_host-Quellcode auf dem Host
-# Compiler-Warnungen/Fehler zu fehlenden Feature-Makros wirft, ist
-# das der erste Ort zum Nachschauen.
-# ════════════════════════════════════════════════════════════════
 find_package(Threads REQUIRED)
 
 set(UTIL_SRC ${MESA_SRC}/util)
@@ -264,35 +150,9 @@ add_custom_command(
 )
 
 list(APPEND MESA_UTIL_FORMAT_SOURCES ${U_FORMAT_TABLE_C})
-# Reine Header als Sources aufnehmen, damit CMake/Ninja ihre
-# custom_command auch ausführt (nur .c-Outputs, die tatsächlich
-# kompiliert werden, ziehen ihre custom_command sonst automatisch).
+
 list(APPEND MESA_UTIL_FORMAT_SOURCES ${U_FORMAT_GEN_H} ${U_FORMAT_PACK_H})
 
-# ---- blake3 ----
-# WICHTIG: NICHT add_subdirectory(${UTIL_SRC}/blake3) — die dort
-# liegende blake3/CMakeLists.txt (die du mir geschickt hast) ist
-# deine Vespera-Cross-Version mit -nostdinc, --sysroot=${VESPERA_SYSROOT},
-# -idirafter ${COMPILER_BUILTIN_INCLUDE} usw. Die würde auf dem Host
-# mit deinem System-GCC/Clang sofort scheitern, weil diese Pfade und
-# Flags Vespera-spezifisch sind. Stattdessen bauen wir mesa_blake3_host
-# hier inline, mit derselben Quelldatei-Auswahl/Filter-Logik wie in
-# deiner Vorlage, aber Host-Compile-Flags.
-#
-# GEÄNDERT ggü. deiner blake3/CMakeLists.txt:
-#   - ${VESPERA_SYSROOT}/usr/include (PRIVATE) ENTFERNT
-#   - -nostdinc, --sysroot=..., -isystem ${VESPERA_SYSROOT}/..., \
-#     -idirafter ${COMPILER_BUILTIN_INCLUDE} ALLE ENTFERNT — Host baut
-#     mit normalen System-Headern, kein Cross-Sysroot nötig
-#   - add_dependencies(... sysroot_headers) ENTFERNT — Target existiert
-#     im Host-Baum nicht
-#   - -O0 -g ENTFERNT — für Host-Tools reicht Release (siehe
-#     CMAKE_BUILD_TYPE=Release in der äußeren ExternalProject_Add);
-#     falls du Debug-Symbole für mesa_clc selbst brauchst (z.B. um
-#     einen Codegen-Bug zu debuggen), einfach wieder ergänzen
-#   - SIMD-Ausschlussfilter (sse2/sse41/avx2/avx512/neon) UNVERÄNDERT
-#     übernommen — auf dem Host reicht die portable Referenz-
-#     implementierung genauso wie im Cross-Build
 file(GLOB BLAKE3_SOURCES ${UTIL_SRC}/blake3/*.c)
 if(NOT BLAKE3_SOURCES)
     message(FATAL_ERROR
@@ -397,16 +257,8 @@ if(UNWIND_LIBRARY)
     target_compile_definitions(mesa_util_host PRIVATE HAVE_LIBUNWIND)
 endif()
 
-# Kein install() hier — mesa_util_host ist eine interne statische Library
-# des Host-Tools-Builds, nur mesa_clc/vtn_bindgen2 werden am Ende
-# installiert (siehe ganz unten in diesem File).
-
-# ════════════════════════════════════════════════════════════════
-# libcompiler  (src/compiler/meson.build)
-# ════════════════════════════════════════════════════════════════
 set(COMPILER_INC ${MESA_SRC}/compiler)
 
-# builtin_types.h/.c — generiert via builtin_types_h.py / builtin_types_c.py
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/builtin_types.h
         COMMAND ${MESA_PYTHON3_EXECUTABLE} ${COMPILER_INC}/builtin_types_h.py
@@ -450,12 +302,6 @@ target_include_directories(mesa_compiler_host PUBLIC
 )
 target_link_libraries(mesa_compiler_host PUBLIC mesa_util_host)
 
-# ════════════════════════════════════════════════════════════════
-# libnir  (src/compiler/nir/meson.build)
-# with_nir_headers_only ist für uns FALSE — mesa_clc/vtn_bindgen2
-# brauchen die volle NIR-Funktionalität (Optimierungspässe etc.),
-# nicht nur die Header-Stubs.
-# ════════════════════════════════════════════════════════════════
 set(NIR_SRC ${MESA_SRC}/compiler/nir)
 set(NIR_GEN ${CMAKE_CURRENT_BINARY_DIR}/nir)
 file(MAKE_DIRECTORY ${NIR_GEN})
@@ -638,15 +484,11 @@ target_include_directories(mesa_nir_host PUBLIC
         ${MESA_SRC}
 )
 target_link_libraries(mesa_nir_host PUBLIC mesa_compiler_host mesa_util_host)
-# -Wno-misleading-indentation für nir_opt_algebraic.c (siehe Kommentar
-# im Original-meson_nir.build — generierte Datei ist zu groß für GCCs Check)
+
 set_source_files_properties(${NIR_GEN}/nir_opt_algebraic.c PROPERTIES
         COMPILE_OPTIONS "-Wno-misleading-indentation"
 )
 
-# ════════════════════════════════════════════════════════════════
-# libvtn + vtn_bindgen2  (src/compiler/spirv/meson.build)
-# ════════════════════════════════════════════════════════════════
 set(SPIRV_SRC ${MESA_SRC}/compiler/spirv)
 set(SPIRV_GEN ${CMAKE_CURRENT_BINARY_DIR}/spirv)
 file(MAKE_DIRECTORY ${SPIRV_GEN})
@@ -698,24 +540,12 @@ target_link_libraries(mesa_vtn PUBLIC mesa_nir_host mesa_util_host
         SPIRV-Tools SPIRV-Tools-opt
 )
 
-# vtn_bindgen2 — SPIR-V -> eingebetteter C++-Code-Generator.
-# meson: dependencies = [idep_vtn, idep_mesautil, idep_nir]
 add_executable(vtn_bindgen2 ${SPIRV_SRC}/vtn_bindgen2.c)
 target_include_directories(vtn_bindgen2 PRIVATE
         ${SPIRV_SRC} ${MESA_SOURCE_ROOT}/include ${MESA_SRC}
 )
 target_link_libraries(vtn_bindgen2 PRIVATE mesa_vtn mesa_nir_host mesa_util_host)
 
-# ════════════════════════════════════════════════════════════════
-# libmesaclc + mesa_clc  (src/compiler/clc/meson.build)
-# Hinweis: opencl-c-base.h / opencl-c.h Bundling (xxd-artige Header-
-# Einbettung) und die static-libclc-Logik (dep_clc) sind in meson
-# optional/bedingt. Für einen ersten funktionierenden mesa_clc lassen
-# wir das absichtlich weg (DYNAMIC_LIBCLC_PATH-Zweig, sprich: mesa_clc
-# lädt libclc zur Laufzeit dynamisch, statt es einzubetten) — das ist
-# der einfachere Pfad und in der Praxis meist ausreichend. Wenn du
-# bundled/static libclc willst, sag Bescheid, das ist ein Extra-Schritt.
-# ════════════════════════════════════════════════════════════════
 set(CLC_SRC ${MESA_SRC}/compiler/clc)
 
 add_library(mesa_libclc_helper STATIC
@@ -753,8 +583,4 @@ target_link_libraries(mesa_clc PRIVATE
 #add_dependencies(mesa_libclc_helper sysroot_headers)
 #add_dependencies(mesa_clc sysroot_headers)
 
-# ────────────────────────────────────────────────────────────────
-# install — beide Executables landen im Prefix, den die Root-
-# CMakeLists per ExternalProject_Add(... INSTALL ...) vorgibt.
-# ────────────────────────────────────────────────────────────────
 install(TARGETS mesa_clc vtn_bindgen2 RUNTIME DESTINATION bin)

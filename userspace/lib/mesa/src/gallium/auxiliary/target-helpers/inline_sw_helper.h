@@ -67,7 +67,7 @@ sw_screen_create_named(struct sw_winsys *winsys, const char *driver)
 
 
 static inline struct pipe_screen *
-sw_screen_create_vk(struct sw_winsys *winsys, bool sw_vk)
+inline_sw_screen_create_vk(struct sw_winsys *winsys, bool sw_vk)
 {
    UNUSED bool only_sw = debug_get_bool_option("LIBGL_ALWAYS_SOFTWARE", false);
    const char *drivers[] = {

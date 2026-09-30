@@ -95,8 +95,14 @@ add_subdirectory(src/intel/blorp)
 add_subdirectory(src/intel/ds)
 add_subdirectory(src/gallium/auxiliary)
 add_subdirectory(src/gallium/drivers/iris)
+add_subdirectory(src/gallium/frontends/dri)
+add_subdirectory(src/gallium/winsys/sw/dri)
+add_subdirectory(src/gallium/winsys/sw/wrapper)
+add_subdirectory(src/gallium/winsys/sw/null)
 add_subdirectory(src/mesa)
+add_subdirectory(src/loader)
 add_subdirectory(src/mesa/glapi/es2api)
+add_subdirectory(src/egl)
 # add_subdirectory(src/gallium/frontends/mesa)
 # add_subdirectory(src/mesa/main)
 
@@ -118,10 +124,13 @@ add_custom_target(mesa_root
         mesa_intel_perf
         mesa_intel_shaders
         mesa_gallium_aux
+        mesa_dri_frontend
         mesa_iris_driver
+        mesa_loader
         glapi
         GLESv2
         mesa
+        egl
         COMMENT "Building all wired Mesa layers"
 )
 
