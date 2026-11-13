@@ -18,14 +18,15 @@ var searchData=
   ['handle_5ftype_5fsocket_15',['HANDLE_TYPE_SOCKET',['../handles_8h.html#a6ecccf862deec75a2023ea892c8e4c2c',1,'handles.h']]],
   ['handle_5ftype_5ftimerfd_16',['HANDLE_TYPE_TIMERFD',['../handles_8h.html#a89e852493616c9319eee0a83f9c09f53',1,'handles.h']]],
   ['handle_5ftype_5funit_17',['HANDLE_TYPE_UNIT',['../handles_8h.html#a9dec1a6d452fc4aa25863f4f48db44dd',1,'handles.h']]],
-  ['handle_5fvbus_18',['handle_vbus',['../userspace_2lib_2include_2vbus_8h.html#a9a6ab293f8132e3752d29ecb13cb1605',1,'HANDLE_VBUS:&#160;vbus.h'],['../handles_8h.html#a9a6ab293f8132e3752d29ecb13cb1605',1,'HANDLE_VBUS:&#160;handles.h']]],
+  ['handle_5fvbus_18',['HANDLE_VBUS',['../userspace_2lib_2include_2vbus_8h.html#a9a6ab293f8132e3752d29ecb13cb1605',1,'HANDLE_VBUS:&#160;vbus.h'],['../handles_8h.html#a9a6ab293f8132e3752d29ecb13cb1605',1,'HANDLE_VBUS:&#160;handles.h']]],
   ['htobe16_19',['htobe16',['../endian_8h.html#a4b9167199621b390f82c3e5361ba6df6',1,'endian.h']]],
   ['htobe32_20',['htobe32',['../endian_8h.html#aa65407014913309932b9a5ea3c16a86d',1,'endian.h']]],
   ['htobe64_21',['htobe64',['../endian_8h.html#a5c81b75e6da4507e0a90b6f6169c4787',1,'endian.h']]],
   ['htole16_22',['htole16',['../endian_8h.html#a3ea73a6089f61223b225c46e2ba58a47',1,'endian.h']]],
   ['htole32_23',['htole32',['../endian_8h.html#a9bea1e76e277f13ae39ac86095510bfa',1,'endian.h']]],
   ['htole64_24',['htole64',['../endian_8h.html#a3070a5f8867dbc37bdafcb1a7cd491bf',1,'endian.h']]],
-  ['huge_5fval_25',['HUGE_VAL',['../math_8h.html#af2164b2db92d8a0ed3838ad5c28db971',1,'math.h']]],
-  ['huge_5fvalf_26',['HUGE_VALF',['../math_8h.html#acd69981d54c27fe0ff514645dbfc6359',1,'math.h']]],
-  ['huge_5fvall_27',['HUGE_VALL',['../math_8h.html#ab8b359c356d4311bf5d4ae6c03f43182',1,'math.h']]]
+  ['huge_25',['HUGE',['../math_8h.html#a5f3d17bf39f78da3422ca52e475d7724',1,'math.h']]],
+  ['huge_5fval_26',['HUGE_VAL',['../math_8h.html#af2164b2db92d8a0ed3838ad5c28db971',1,'math.h']]],
+  ['huge_5fvalf_27',['HUGE_VALF',['../math_8h.html#acd69981d54c27fe0ff514645dbfc6359',1,'math.h']]],
+  ['huge_5fvall_28',['HUGE_VALL',['../math_8h.html#ab8b359c356d4311bf5d4ae6c03f43182',1,'math.h']]]
 ];

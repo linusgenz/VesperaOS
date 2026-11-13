@@ -25,8 +25,6 @@ var unistd_8h =
     [ "X_OK", "unistd_8h.html#a5e995ef7690698b62bf016b14fbc45ca", null ],
     [ "gid_t", "unistd_8h.html#aa7352f1065fe606194d792e2b292cf83", null ],
     [ "off_t", "unistd_8h.html#a053c614b69adbac710bb132a6eb9ccf6", null ],
-    [ "pid_t", "unistd_8h.html#a288e13e815d43b06e75819f8939524df", null ],
-    [ "ssize_t", "unistd_8h.html#aa9e017f700fef59e03bf6d5bc2e59a7e", null ],
     [ "uid_t", "unistd_8h.html#af2306308627701b66dc6f3babe821ab4", null ],
     [ "_exit", "unistd_8h.html#aee2ffcdf92b92a337c592a7ef9174769", null ],
     [ "access", "unistd_8h.html#aeff22ad09b35eda92f6c5632300b05da", null ],

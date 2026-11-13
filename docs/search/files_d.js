@@ -7,7 +7,7 @@ var searchData=
   ['signalfd_2eh_4',['signalfd.h',['../signalfd_8h.html',1,'']]],
   ['socket_2eh_5',['socket.h',['../socket_8h.html',1,'']]],
   ['spawn_2eh_6',['spawn.h',['../spawn_8h.html',1,'']]],
-  ['stat_2eh_7',['stat.h',['../userspace_2lib_2include_2sys_2stat_8h.html',1,'(Global Namespace)'],['../include_2uapi_2vespera_2stat_8h.html',1,'(Global Namespace)']]],
+  ['stat_2eh_7',['stat.h',['../include_2uapi_2vespera_2stat_8h.html',1,'(Global Namespace)'],['../userspace_2lib_2include_2sys_2stat_8h.html',1,'(Global Namespace)']]],
   ['stdalign_2eh_8',['stdalign.h',['../stdalign_8h.html',1,'']]],
   ['stdarg_2eh_9',['stdarg.h',['../stdarg_8h.html',1,'']]],
   ['stdbool_2eh_10',['stdbool.h',['../stdbool_8h.html',1,'']]],

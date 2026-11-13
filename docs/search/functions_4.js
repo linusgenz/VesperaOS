@@ -8,6 +8,8 @@ var searchData=
   ['dlerror_5',['dlerror',['../dlfcn_8h.html#a2bbbe680edd6e3918311f5dbf33b3996',1,'dlfcn.h']]],
   ['dlopen_6',['dlopen',['../dlfcn_8h.html#afbed7af6231db23cc469bae1e3826404',1,'dlfcn.h']]],
   ['dlsym_7',['dlsym',['../dlfcn_8h.html#a475fbe1c663d71eed2a0fc00148f568e',1,'dlfcn.h']]],
-  ['dup_8',['dup',['../unistd_8h.html#a4c16b3e0f35d0e104aa87db705451f2f',1,'unistd.h']]],
-  ['dup2_9',['dup2',['../unistd_8h.html#a324659434edc336235d789274e95fb5c',1,'unistd.h']]]
+  ['drem_8',['drem',['../math_8h.html#a79f05e005777d80722e4a845af9ce085',1,'math.h']]],
+  ['dremf_9',['dremf',['../math_8h.html#a098b1c5ea6ee7223d425aec31b4d20d8',1,'math.h']]],
+  ['dup_10',['dup',['../unistd_8h.html#a4c16b3e0f35d0e104aa87db705451f2f',1,'unistd.h']]],
+  ['dup2_11',['dup2',['../unistd_8h.html#a324659434edc336235d789274e95fb5c',1,'unistd.h']]]
 ];

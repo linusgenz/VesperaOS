@@ -114,7 +114,7 @@ var socket_8h =
     [ "PF_WANPIPE", "socket_8h.html#a2915fc3260573e08a27b77c1fd351b53", null ],
     [ "PF_X25", "socket_8h.html#a0f4e3ab817885543366f4e2c49ced51c", null ],
     [ "PF_XDP", "socket_8h.html#ad2fef00c03b785a3d8455e46de262d95", null ],
-    [ "SCM_RIGHTS", "socket_8h.html#a6d9c97ae285439adaf1b0a78a9c93d7f", null ],
+    [ "SCM_RIGHTS", "socket_8h.html#a9b3bb7f1de3349c1760cb1e4c7f3edd7", null ],
     [ "SCM_RIGHTS", "socket_8h.html#a6d9c97ae285439adaf1b0a78a9c93d7f", null ],
     [ "SENDMSG_CMSG_SPACE", "socket_8h.html#aaa182e1a8f8ba4fcd49822c4ded1a426", null ],
     [ "SOCK_CLOEXEC", "socket_8h.html#ac337901f5606f0cf6f8e9867ef3fc1c4", null ],
@@ -122,7 +122,5 @@ var socket_8h =
     [ "SOCK_STREAM", "socket_8h.html#a249394484f9410a2e3f8eba24657feb9", null ],
     [ "SOL_LOCAL", "socket_8h.html#a6e14e58a5d53936798ae51c947c62b90", null ],
     [ "SOL_SOCKET", "socket_8h.html#a92d045f6ee2f343d6b28830a9fec082e", null ],
-    [ "sa_family_t", "socket_8h.html#a27a82860cef19f4a53f68516e7b2ee0e", null ],
-    [ "socklen_t", "socket_8h.html#afb1a61946c13fc19c32b18be7c506d65", null ],
     [ "cmsg_nxthdr", "socket_8h.html#a800c81237f8afa959ea971685cd5780d", null ]
 ];

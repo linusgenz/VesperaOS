@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['id_0',['id',['../structrealm__info.html#a1979e3af3f207de06782e84ec2cfa9d6',1,'realm_info::id'],['../ioctl__smart_8h.html#a06b0c1fe0b3340c9767270a44106fff3',1,'id:&#160;ioctl_smart.h'],['../structunit__info.html#a312611eacd8b7fe7ee54c65ba058eff5',1,'unit_info::id'],['../structsmart__attribute.html#aa967d2d34ee80c4db35d78b6fdde94a4',1,'smart_attribute::id']]],
+  ['id_0',['id',['../structsmart__attribute.html#aa967d2d34ee80c4db35d78b6fdde94a4',1,'smart_attribute::id'],['../structrealm__info.html#a1979e3af3f207de06782e84ec2cfa9d6',1,'realm_info::id'],['../structunit__info.html#a312611eacd8b7fe7ee54c65ba058eff5',1,'unit_info::id'],['../ioctl__smart_8h.html#a06b0c1fe0b3340c9767270a44106fff3',1,'id:&#160;ioctl_smart.h']]],
   ['idle_5fcycles_1',['idle_cycles',['../structcpu__usage__stat.html#a93cbceecc8a138b99525c48988b88db0',1,'cpu_usage_stat']]],
   ['index_2',['index',['../structvbus__battery.html#a6fd125675c82c4fe289698fee50f10d6',1,'vbus_battery']]],
   ['init_5farray_3',['init_array',['../structelf__loaded__object.html#a859bf664c9b6e50be332367a60a62666',1,'elf_loaded_object']]],

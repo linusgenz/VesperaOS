@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['magic_0',['magic',['../structheap__seg.html#a8f0fdfc26ae4de4f7040cc76cdf1811b',1,'heap_seg::magic'],['../structvbus__header.html#a3e5c07fb5b2735e6d3256aaee956cdd8',1,'vbus_header::magic'],['../structcrep__sync.html#a8677d466bb1db59ecc2703c960efd0b5',1,'crep_sync::magic']]],
+  ['magic_0',['magic',['../structcrep__sync.html#a8677d466bb1db59ecc2703c960efd0b5',1,'crep_sync::magic'],['../structheap__seg.html#a8f0fdfc26ae4de4f7040cc76cdf1811b',1,'heap_seg::magic'],['../structvbus__header.html#a3e5c07fb5b2735e6d3256aaee956cdd8',1,'vbus_header::magic']]],
   ['map_5fbase_1',['map_base',['../structelf__loaded__object.html#aae41b8b85751d9b35e2765f92094d5a5',1,'elf_loaded_object']]],
   ['map_5fsize_2',['map_size',['../structelf__loaded__object.html#ab284def43ce26bfbf7ee21b3d15c15c7',1,'elf_loaded_object']]],
   ['max_5funits_3',['max_units',['../structrealm__info.html#a8a8d62f8ea58d74dc11ed43488bbf62b',1,'realm_info']]],

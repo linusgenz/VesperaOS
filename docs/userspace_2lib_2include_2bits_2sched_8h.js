@@ -10,6 +10,5 @@ var userspace_2lib_2include_2bits_2sched_8h =
     [ "CPU_SET", "userspace_2lib_2include_2bits_2sched_8h.html#a71a56437b99e4b0bc5afdeba3d4ca2a9", null ],
     [ "CPU_SET_S", "userspace_2lib_2include_2bits_2sched_8h.html#aa749c5570fae6ed77503c9a092933f48", null ],
     [ "CPU_ZERO", "userspace_2lib_2include_2bits_2sched_8h.html#a98badb98d1f5623c998f4c529d803a8f", null ],
-    [ "CPU_ZERO_S", "userspace_2lib_2include_2bits_2sched_8h.html#a1a5a460b08b8c07e48b78862827acf15", null ],
-    [ "pid_t", "userspace_2lib_2include_2bits_2sched_8h.html#a288e13e815d43b06e75819f8939524df", null ]
+    [ "CPU_ZERO_S", "userspace_2lib_2include_2bits_2sched_8h.html#a1a5a460b08b8c07e48b78862827acf15", null ]
 ];

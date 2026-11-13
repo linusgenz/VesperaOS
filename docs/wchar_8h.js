@@ -2,8 +2,6 @@ var wchar_8h =
 [
     [ "_WINT_T", "wchar_8h.html#a551670863eb3c1db08e4b28b7fc30cc1", null ],
     [ "WEOF", "wchar_8h.html#a00d21696ad5bdb60d9aec03e3e5d9086", null ],
-    [ "wchar_t", "wchar_8h.html#a5f245e933e58ed4d268146a5b1f116ca", null ],
-    [ "wint_t", "wchar_8h.html#abd99e7f4ef6b86204820c995f988403b", null ],
     [ "wcschr", "wchar_8h.html#ac6ead98687966ae909a6fb01af553183", null ],
     [ "wcscmp", "wchar_8h.html#ab361438866831d03563fbb430c1514c5", null ],
     [ "wcscpy", "wchar_8h.html#a79dfa042809689b5192467b09d6be486", null ],

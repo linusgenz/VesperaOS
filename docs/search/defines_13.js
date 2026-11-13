@@ -22,7 +22,7 @@ var searchData=
   ['vbus_5fdisp_5fwindow_5fminimized_19',['VBUS_DISP_WINDOW_MINIMIZED',['../crepusculum__protocol_8h.html#a58a412c01369570c7ac57121d8781288',1,'crepusculum_protocol.h']]],
   ['vbus_5fdisp_5fwindow_5fopened_20',['VBUS_DISP_WINDOW_OPENED',['../crepusculum__protocol_8h.html#a2bebe35363e8c6b81c610e7f2c926e58',1,'crepusculum_protocol.h']]],
   ['vbus_5fdisp_5fwindow_5frestored_21',['VBUS_DISP_WINDOW_RESTORED',['../crepusculum__protocol_8h.html#a7b5cbeb9c466c47648e8385a221562ad',1,'crepusculum_protocol.h']]],
-  ['vbus_5fiface_5fdisplay_22',['vbus_iface_display',['../crepusculum__protocol_8h.html#ab5e956ee8027cdd663f3b24fde0c1ed3',1,'VBUS_IFACE_DISPLAY:&#160;crepusculum_protocol.h'],['../include_2uapi_2vespera_2vbus_8h.html#ab5e956ee8027cdd663f3b24fde0c1ed3',1,'VBUS_IFACE_DISPLAY:&#160;vbus.h']]],
+  ['vbus_5fiface_5fdisplay_22',['VBUS_IFACE_DISPLAY',['../crepusculum__protocol_8h.html#ab5e956ee8027cdd663f3b24fde0c1ed3',1,'VBUS_IFACE_DISPLAY:&#160;crepusculum_protocol.h'],['../include_2uapi_2vespera_2vbus_8h.html#ab5e956ee8027cdd663f3b24fde0c1ed3',1,'VBUS_IFACE_DISPLAY:&#160;vbus.h']]],
   ['vbus_5fiface_5finput_23',['VBUS_IFACE_INPUT',['../include_2uapi_2vespera_2vbus_8h.html#a819a4cf35182dec580482d41e832cb16',1,'vbus.h']]],
   ['vbus_5fiface_5fpower_24',['VBUS_IFACE_POWER',['../include_2uapi_2vespera_2vbus_8h.html#acbef063eceed3bed40ad7cf6ce80cee5',1,'vbus.h']]],
   ['vbus_5fiface_5fproc_25',['VBUS_IFACE_PROC',['../include_2uapi_2vespera_2vbus_8h.html#a854f32c48bad461a3306c4a27a1a0655',1,'vbus.h']]],

@@ -42,7 +42,6 @@ var stdint_8h =
     [ "int_least64_t", "stdint_8h.html#a2073b30b3170d509bc756bf5c7862caf", null ],
     [ "int_least8_t", "stdint_8h.html#aadfd725efbf565422ab13db91ccca53c", null ],
     [ "intmax_t", "stdint_8h.html#a036cd61bb4b30bb510b9538af4cebd1d", null ],
-    [ "intptr_t", "stdint_8h.html#aa9e7b0ed8f34f9c482a7a32d7f18c054", null ],
     [ "uint16_t", "stdint_8h.html#a273cf69d639a59973b6019625df33e30", null ],
     [ "uint32_t", "stdint_8h.html#a435d1572bf3f880d55459d9805097f62", null ],
     [ "uint64_t", "stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad", null ],
@@ -55,6 +54,5 @@ var stdint_8h =
     [ "uint_least32_t", "stdint_8h.html#ac0af81082969e5e3f4d939b1de7002ac", null ],
     [ "uint_least64_t", "stdint_8h.html#ab604f73dd823867b43702ae88b4f4445", null ],
     [ "uint_least8_t", "stdint_8h.html#ac76e2383debd5a3b100514044828961a", null ],
-    [ "uintmax_t", "stdint_8h.html#a2ba5f6c0633401558d277b2c0e4f758d", null ],
-    [ "uintptr_t", "stdint_8h.html#a83242de74310b4aec3fc506bc3644211", null ]
+    [ "uintmax_t", "stdint_8h.html#a2ba5f6c0633401558d277b2c0e4f758d", null ]
 ];
