@@ -31,11 +31,15 @@
 namespace syscalls::internal {
     i64 sys_socket(const u64 arg0, const u64 arg1, const u64 arg2, u64, u64, u64) {
         const auto domain = static_cast<i32>(arg0);
-        const auto type = static_cast<i32>(arg1);
+        const auto raw_type = static_cast<i32>(arg1);
         const auto protocol = static_cast<i32>(arg2);
 
+        const i32 base_type = raw_type & SOCK_TYPE_MASK;
+        const bool nonblock = (raw_type & SOCK_NONBLOCK) != 0;
+        const bool cloexec  = (raw_type & SOCK_CLOEXEC) != 0; // noop as we do not have exec()
+
         if (domain != AF_UNIX) return -EAFNOSUPPORT;
-        if (type != SOCK_STREAM) return -EPROTOTYPE;
+        if (base_type != SOCK_STREAM) return -EPROTOTYPE;
         if (protocol != 0) return -EPROTONOSUPPORT;
 
         SocketHandle* handle = SocketHandle::create();

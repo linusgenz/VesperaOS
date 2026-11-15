@@ -32,7 +32,6 @@ namespace syscalls::internal {
         const HandleId hid = arg0;
         const auto msg = reinterpret_cast<msghdr*>(arg1);
         const auto flags = static_cast<unsigned>(arg2);
-
         if (!msg) return -EINVAL;
 
         const auto rh = SYSCALL_TRY(resolve_handle(hid, HANDLE_TYPE_SOCKET, CAP_READ));

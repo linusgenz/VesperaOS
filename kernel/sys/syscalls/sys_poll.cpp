@@ -100,13 +100,18 @@ namespace syscalls::internal {
 
                     case HANDLE_TYPE_SOCKET: {
                         auto* sh = rh.resource_as<SocketHandle>();
-
-                        if (!sh || sh->state != SocketState::CONNECTED || !sh->endpoint) {
+                        if (!sh) {
                             bad_handle = true;
                             break;
                         }
 
-                        mask = sh->endpoint->poll();
+                        if (sh->state == SocketState::CONNECTED && sh->endpoint) {
+                            mask = sh->endpoint->poll();
+                        } else if (sh->state == SocketState::LISTENING && sh->listener) {
+                            mask = sh->listener->poll();
+                        } else {
+                            bad_handle = true;
+                        }
                         break;
                     }
 
