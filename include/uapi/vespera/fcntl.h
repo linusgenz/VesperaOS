@@ -43,6 +43,10 @@
 
 #define AT_FDCWD        (-100)
 
+#ifndef O_CLOEXEC
+#define O_CLOEXEC 0x80000 /**< No exec-time handle table semantics yet; accepted, currently a no-op. */
+#endif
+
 #define F_DUPFD_CLOEXEC 1030
 
 #endif  // VESPLIB_FFLAGS_H

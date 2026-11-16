@@ -116,6 +116,8 @@ namespace kernel::vm {
                 }
 
                 backing_obj = entry->device->chardev->get_backing_object(cf, offset);
+            } else if (hdl_type == HANDLE_TYPE_DMABUF) {
+                backing_obj = static_cast<VmBackingObject*>(he->resource);
             } else {
                 return -EBADH;
             }
@@ -140,6 +142,10 @@ namespace kernel::vm {
             backing_obj->add_mapping();
         }
 
+        const CacheMode cache_mode = backing_obj
+            ? backing_obj->get_cache_mode()
+            : CacheMode::WriteBack;
+
         const usize page_offset = (hdl_type == HANDLE_TYPE_DEVICE) ? 0 : offset;
         for (usize i = 0; i < npages; i++) {
             phys_addr_t phys;
@@ -161,7 +167,7 @@ namespace kernel::vm {
 
             u64 pt_flags = (1ULL << UserSuper);
             if (prot & PROT_WRITE) pt_flags |= (1ULL << ReadWrite);
-            ptm->map_memory(virt_from_raw(base + i * PAGE_SIZE), phys, pt_flags);
+            ptm->map_memory(virt_from_raw(base + i * PAGE_SIZE), phys, pt_flags, cache_mode);
         }
 
         auto* area = static_cast<kernel::units::VmArea*>(kernel::memory::malloc(sizeof(kernel::units::VmArea)));
@@ -379,7 +385,7 @@ namespace kernel::vm {
                 if (const phys_addr_t phys = ptm->get_physical_address_ignore_present(va); !phys_null(phys)) {
                     u64 pt_flags = (1ULL << UserSuper);
                     if (prot & PROT_WRITE) pt_flags |= (1ULL << ReadWrite);
-                    ptm->map_memory(va, phys, pt_flags, make_present);
+                    ptm->map_memory(va, phys, pt_flags, CacheMode::WriteBack, make_present);
                 }
             }
 

@@ -88,12 +88,12 @@ namespace kernel::memory {
 
     // Page Table Manager
 
-    void map_memory(virt_addr_t virt_addr, phys_addr_t phys_addr, const u64 flags) {
-        page_table_manager.map_memory(virt_addr, phys_addr, flags);
+    void map_memory(virt_addr_t virt_addr, phys_addr_t phys_addr, const u64 flags, CacheMode cache_mode) {
+        page_table_manager.map_memory(virt_addr, phys_addr, flags, cache_mode);
     }
 
-    void map_range(const virt_addr_t virt_start, const phys_addr_t phys_start, const usize size, const u64 flags) {
-        page_table_manager.map_range(virt_start, phys_start, size, flags);
+    void map_range(const virt_addr_t virt_start, const phys_addr_t phys_start, const usize size, const u64 flags, CacheMode cache_mode) {
+        page_table_manager.map_range(virt_start, phys_start, size, flags, cache_mode);
     }
 
     void unmap_memory(virt_addr_t virt_addr) {

@@ -26,6 +26,8 @@
 #include <vespera/types.h>
 #include <vespera/mm/addr.h>
 
+#include "memory.h"
+
 namespace kernel::vm {
 
     class VmBackingObject {
@@ -36,6 +38,10 @@ namespace kernel::vm {
 
         virtual void sync_page(usize offset_in_bytes, phys_addr_t phys, bool is_dirty) {
             (void)offset_in_bytes; (void)phys; (void)is_dirty;
+        }
+
+        [[nodiscard]] virtual CacheMode get_cache_mode() const {
+            return CacheMode::WriteBack;
         }
 
         [[nodiscard]] virtual usize get_size() const = 0;

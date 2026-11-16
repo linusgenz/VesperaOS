@@ -24,6 +24,7 @@
 
 #include <vespera/types.h>
 #include <vespera/ioctl.h>
+#include "../fcntl.h"
 
 struct drm_syncobj_create {
     u32 handle;
@@ -133,6 +134,18 @@ struct drm_syncobj_timeline_array {
     u32 flags;
 };
 
+#define DRM_RDWR O_RDWR
+#define DRM_CLOEXEC O_CLOEXEC
+struct drm_prime_handle {
+    u32 handle;
+
+    /** Flags.. only applicable for handle->fd */
+    u32 flags;
+
+    /** Returned dmabuf file descriptor */
+    u64 fd;
+};
+
 #define DRM_IOCTL_BASE          'd'
 #define DRM_IO(nr)          _IO(DRM_IOCTL_BASE,nr)
 #define DRM_IOR(nr,type)        _IOR(DRM_IOCTL_BASE,nr,type)
@@ -146,5 +159,6 @@ struct drm_syncobj_timeline_array {
 #define DRM_IOCTL_SYNCOBJ_WAIT        DRM_IOWR(0xC3, struct drm_syncobj_wait)
 #define DRM_IOCTL_SYNCOBJ_RESET        DRM_IOWR(0xC4, struct drm_syncobj_array)
 #define DRM_IOCTL_SYNCOBJ_SIGNAL    DRM_IOWR(0xC5, struct drm_syncobj_array)
+#define DRM_IOCTL_PRIME_HANDLE_TO_FD    DRM_IOWR(0x2d, struct drm_prime_handle)
 
 #endif //_VESPERA_DRM_H_

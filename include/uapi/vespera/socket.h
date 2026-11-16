@@ -28,6 +28,8 @@ typedef unsigned socklen_t;
 typedef unsigned short sa_family_t;
 
 #define SOCK_STREAM 1
+
+#define SOCK_TYPE_MASK 0xf
 #define SOCK_CLOEXEC 02000000
 #define SOCK_NONBLOCK 00004000
 
@@ -176,6 +178,14 @@ struct cmsghdr {
 #define SCM_RIGHTS   1  // cmsg_data is an array of HandleIds (fds)
 
 #define CMSG_ALIGN(len)   (((len) + sizeof(size_t) - 1) & ~(sizeof(size_t) - 1))
+
+static inline struct cmsghdr* cmsg_nxthdr(struct msghdr* mhdr, struct cmsghdr* cmsg) {
+    unsigned char* end = (unsigned char*)(mhdr->msg_control) + mhdr->msg_controllen;
+    unsigned char* next = (unsigned char*)cmsg + CMSG_ALIGN(cmsg->cmsg_len);
+    if (next + sizeof(struct cmsghdr) > end) return (struct cmsghdr*)0;
+    return (struct cmsghdr*)next;
+}
+
 #define CMSG_SPACE(len)   (CMSG_ALIGN(sizeof(struct cmsghdr)) + CMSG_ALIGN(len))
 #define SENDMSG_CMSG_SPACE(n) CMSG_SPACE((n) * sizeof(int64_t))
 #define CMSG_LEN(len)     (CMSG_ALIGN(sizeof(struct cmsghdr)) + (len))
@@ -184,13 +194,6 @@ struct cmsghdr {
 ((mhdr)->msg_controllen >= sizeof(struct cmsghdr) \
 ? (struct cmsghdr*)(mhdr)->msg_control : (struct cmsghdr*)0)
 #define CMSG_NXTHDR(mhdr, cmsg) cmsg_nxthdr(mhdr, cmsg)
-
-static inline struct cmsghdr* cmsg_nxthdr(struct msghdr* mhdr, struct cmsghdr* cmsg) {
-    unsigned char* end = (unsigned char*)(mhdr->msg_control) + mhdr->msg_controllen;
-    unsigned char* next = (unsigned char*)cmsg + CMSG_ALIGN(cmsg->cmsg_len);
-    if (next + sizeof(struct cmsghdr) > end) return (struct cmsghdr*)0;
-    return (struct cmsghdr*)next;
-}
 
 #define SOL_LOCAL 0
 #define LOCAL_PEERCRED 1

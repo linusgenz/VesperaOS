@@ -48,7 +48,7 @@ struct Resolution {
 
 struct DisplayMode {
     Resolution resolution;
-    u32 refresh_rate_mhz{60000}; // in mHz (60000 = 60 Hz)
+    u32 refresh_rate_mhz{60000u}; // in mHz (60000 = 60 Hz)
     u32 bpp{32u};                // Bits per pixel
 
     [[nodiscard]] constexpr uint32_t refresh_rate_hz() const noexcept {

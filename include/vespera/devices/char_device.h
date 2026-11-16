@@ -32,7 +32,8 @@
 
 class TtyDevice;
 struct CharFile {
-    void* driver_private;
+    void* driver_private = nullptr;
+    const KernelDevice* node = nullptr;
 };
 
 class CharDevice {

@@ -27,16 +27,23 @@ enum PtFlag {
     Present = 0,
     ReadWrite = 1,
     UserSuper = 2,
-    WriteThrough = 3,
-    CacheDisabled = 4,
+    PWT = 3,
+    PCD = 4,
     Accessed = 5,
     Dirty = 6,
-    LargerPages = 7,
+    PatOrPs = 7,
     Global = 8,
     Custom0 = 9,
     Custom1 = 10,
     Custom2 = 11,
     NX = 63  // only if supported
+};
+
+enum class CacheMode {
+    WriteBack = 0,       // PAT0 (PWT=0, PCD=0, PAT=0) -> WB
+    WriteCombining = 1,  // PAT1 (PWT=1, PCD=0, PAT=0) -> WC
+    UncacheableMinus = 2,// PAT2 (PWT=0, PCD=1, PAT=0) -> UC-
+    Uncacheable = 3      // PAT3 (PWT=1, PCD=1, PAT=0) -> UC
 };
 
 namespace kernel::memory {
@@ -45,11 +52,11 @@ namespace kernel::memory {
     // Page Table Management
     void initialize_page_table_manager(BootInfo* boot_info);
 
-    void map_memory(virt_addr_t virtual_addr, phys_addr_t physical_addr, u64 flags = 0);
+    void map_memory(virt_addr_t virtual_addr, phys_addr_t physical_addr, u64 flags = 0, CacheMode cache_mode = CacheMode::WriteBack);
 
     // void set_user_flags(void* virtual_memory, usize size);
 
-    void map_range(virt_addr_t virt_start, phys_addr_t phys_start, usize size, u64 flags = 0);
+    void map_range(virt_addr_t virt_start, phys_addr_t phys_start, usize size, u64 flags = 0, CacheMode cache_mode = CacheMode::WriteBack);
 
     void unmap_range(virt_addr_t virt_start, usize size);
 

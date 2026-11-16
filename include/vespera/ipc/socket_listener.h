@@ -58,6 +58,7 @@ public:
 
     static void ref(void* res);
     static void destroy(void* res);
+    int poll() const;
 
 private:
     SocketListener() = default;
@@ -72,7 +73,7 @@ private:
     IntrusiveQueue<BacklogEntry> backlog_;
     WaitQueue accept_wait_;  // accept() blocks here until backlog non-empty
     WaitQueue connect_wait_; // connect() blocks here if backlog is full
-    Spinlock lock_;
+    mutable Spinlock lock_;
 };
 
 

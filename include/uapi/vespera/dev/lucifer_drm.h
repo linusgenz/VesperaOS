@@ -173,6 +173,12 @@ struct lucifer_query_pci_info {
 
     /* DeviceManager node name, e.g. "dri/card0" */
     char name[16];
+
+    char render_name[16];
+
+#define LUCIFER_NODE_PRIMARY 0
+#define LUCIFER_NODE_RENDER  2
+    uint32_t node_type;
 };
 
 /**
@@ -341,6 +347,9 @@ struct lucifer_exec {
     uint64_t syncs;        /**< in, pointer to array of struct lucifer_sync */
     uint32_t num_syncs;     /**< in */
     uint32_t pad0;
+
+    uint64_t handles;
+    uint32_t num_handles;
 
     uint64_t out_seqno; /**< out, fence value for this submission */
 };
