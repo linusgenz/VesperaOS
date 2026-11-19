@@ -3,6 +3,7 @@ var include_2uapi_2vespera_2fcntl_8h =
     [ "AT_FDCWD", "include_2uapi_2vespera_2fcntl_8h.html#a301749b9aa4b9416c329bb8b19345216", null ],
     [ "F_DUPFD_CLOEXEC", "include_2uapi_2vespera_2fcntl_8h.html#af532232f0b65dc6296aedd2b60de7285", null ],
     [ "O_APPEND", "include_2uapi_2vespera_2fcntl_8h.html#ae036f789407d21f07b211552d67b3214", null ],
+    [ "O_CLOEXEC", "include_2uapi_2vespera_2fcntl_8h.html#ad6d8fbe4e494b4dbe051612572d3f757", null ],
     [ "O_CREAT", "include_2uapi_2vespera_2fcntl_8h.html#a1cf6b1de1fffedaa1d26b189e9a8d2cc", null ],
     [ "O_DIRECTORY", "include_2uapi_2vespera_2fcntl_8h.html#a6afd3dd2f570069804b40e6aa24fc966", null ],
     [ "O_EXCL", "include_2uapi_2vespera_2fcntl_8h.html#a9f5acfe79fafe14b6694447bd0e9f10b", null ],

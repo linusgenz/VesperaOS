@@ -109,6 +109,8 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a70b1670597c2a4638aa7b2154194d467" id="r_a70b1670597c2a4638aa7b2154194d467"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#aba7bc1797add20fe3efdf37ced1182c5">uint8_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a70b1670597c2a4638aa7b2154194d467">revision</a></td></tr>
 <tr class="memitem:aaae4a05dcceebe3c29e44a648d250c4e" id="r_aaae4a05dcceebe3c29e44a648d250c4e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#aba7bc1797add20fe3efdf37ced1182c5">uint8_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aaae4a05dcceebe3c29e44a648d250c4e">pad1</a> [3]</td></tr>
 <tr class="memitem:aaa702eead53d2b7fe1e27818859f6da1" id="r_aaa702eead53d2b7fe1e27818859f6da1"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aaa702eead53d2b7fe1e27818859f6da1">name</a> [16]</td></tr>
+<tr class="memitem:a18d2b6d8da9cdf25bd35de66879c3cf6" id="r_a18d2b6d8da9cdf25bd35de66879c3cf6"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a18d2b6d8da9cdf25bd35de66879c3cf6">render_name</a> [16]</td></tr>
+<tr class="memitem:af530d2a2f31f3ed654bac6c42fca07ae" id="r_af530d2a2f31f3ed654bac6c42fca07ae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af530d2a2f31f3ed654bac6c42fca07ae">node_type</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>PCI bus location + identity, for drmGetDevice2()/drmDevice enumeration in libdrm. Mirrors drmPciBusInfo + drmPciDeviceInfo 1:1 so the userspace side is a straight field copy with no translation.</p>
@@ -198,6 +200,20 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="af530d2a2f31f3ed654bac6c42fca07ae" name="af530d2a2f31f3ed654bac6c42fca07ae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af530d2a2f31f3ed654bac6c42fca07ae">&#9670;&#160;</a></span>node_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a> lucifer_query_pci_info::node_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="aeae421336dd90811a80b4b161f7748a1" name="aeae421336dd90811a80b4b161f7748a1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aeae421336dd90811a80b4b161f7748a1">&#9670;&#160;</a></span>pad0</h2>
 
@@ -220,6 +236,20 @@ Public Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="stdint_8h.html#aba7bc1797add20fe3efdf37ced1182c5">uint8_t</a> lucifer_query_pci_info::pad1[3]</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a18d2b6d8da9cdf25bd35de66879c3cf6" name="a18d2b6d8da9cdf25bd35de66879c3cf6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a18d2b6d8da9cdf25bd35de66879c3cf6">&#9670;&#160;</a></span>render_name</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char lucifer_query_pci_info::render_name[16]</td>
         </tr>
       </table>
 </div><div class="memdoc">

@@ -1,7 +1,7 @@
 var searchData=
 [
   ['o_5fappend_0',['O_APPEND',['../include_2uapi_2vespera_2fcntl_8h.html#ae036f789407d21f07b211552d67b3214',1,'fcntl.h']]],
-  ['o_5fcloexec_1',['O_CLOEXEC',['../userspace_2lib_2include_2fcntl_8h.html#ad6d8fbe4e494b4dbe051612572d3f757',1,'fcntl.h']]],
+  ['o_5fcloexec_1',['O_CLOEXEC',['../include_2uapi_2vespera_2fcntl_8h.html#ad6d8fbe4e494b4dbe051612572d3f757',1,'fcntl.h']]],
   ['o_5fcreat_2',['O_CREAT',['../include_2uapi_2vespera_2fcntl_8h.html#a1cf6b1de1fffedaa1d26b189e9a8d2cc',1,'fcntl.h']]],
   ['o_5fdirectory_3',['O_DIRECTORY',['../include_2uapi_2vespera_2fcntl_8h.html#a6afd3dd2f570069804b40e6aa24fc966',1,'fcntl.h']]],
   ['o_5fexcl_4',['O_EXCL',['../include_2uapi_2vespera_2fcntl_8h.html#a9f5acfe79fafe14b6694447bd0e9f10b',1,'fcntl.h']]],

@@ -11,7 +11,6 @@ var userspace_2lib_2include_2fcntl_8h =
     [ "F_SETLK", "userspace_2lib_2include_2fcntl_8h.html#a68a7fc570f2fc271acc5358a6418504e", null ],
     [ "F_SETLKW", "userspace_2lib_2include_2fcntl_8h.html#aabb866cd0cf7ed3544dfc335e0e360fd", null ],
     [ "FD_CLOEXEC", "userspace_2lib_2include_2fcntl_8h.html#a7e7a00c884ea124bb9f687b16cb5db9b", null ],
-    [ "O_CLOEXEC", "userspace_2lib_2include_2fcntl_8h.html#ad6d8fbe4e494b4dbe051612572d3f757", null ],
     [ "O_NOFOLLOW", "userspace_2lib_2include_2fcntl_8h.html#a82d4d551b214905742c9e045185d352a", null ],
     [ "creat", "userspace_2lib_2include_2fcntl_8h.html#a6a6f985cc61227f641f7cc75927b06fc", null ],
     [ "fcntl", "userspace_2lib_2include_2fcntl_8h.html#ad39ebe4c4767eaa9a680777400cfaafe", null ],

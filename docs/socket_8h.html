@@ -105,6 +105,7 @@ Classes</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-define-members" class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:a249394484f9410a2e3f8eba24657feb9" id="r_a249394484f9410a2e3f8eba24657feb9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a249394484f9410a2e3f8eba24657feb9">SOCK_STREAM</a>&#160;&#160;&#160;1</td></tr>
+<tr class="memitem:a844a02180836d947d7ae128032e0be81" id="r_a844a02180836d947d7ae128032e0be81"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a844a02180836d947d7ae128032e0be81">SOCK_TYPE_MASK</a>&#160;&#160;&#160;0xf</td></tr>
 <tr class="memitem:ac337901f5606f0cf6f8e9867ef3fc1c4" id="r_ac337901f5606f0cf6f8e9867ef3fc1c4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac337901f5606f0cf6f8e9867ef3fc1c4">SOCK_CLOEXEC</a>&#160;&#160;&#160;02000000</td></tr>
 <tr class="memitem:ae04efe05cb3dc3314c7710cfb8cd380a" id="r_ae04efe05cb3dc3314c7710cfb8cd380a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae04efe05cb3dc3314c7710cfb8cd380a">SOCK_NONBLOCK</a>&#160;&#160;&#160;00004000</td></tr>
 <tr class="memitem:a6d9c97ae285439adaf1b0a78a9c93d7f" id="r_a6d9c97ae285439adaf1b0a78a9c93d7f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6d9c97ae285439adaf1b0a78a9c93d7f">SCM_RIGHTS</a>&#160;&#160;&#160;1</td></tr>
@@ -963,8 +964,8 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line">((<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>*)(cmsg) + <a class="code hl_define" href="#a907a77978127b9622f23f2778b0324a0">CMSG_ALIGN</a>(<span class="keyword">sizeof</span>(<span class="keyword">struct</span> <a class="code hl_struct" href="structcmsghdr.html">cmsghdr</a>)))</div>
-<div class="ttc" id="asocket_8h_html_a907a77978127b9622f23f2778b0324a0"><div class="ttname"><a href="#a907a77978127b9622f23f2778b0324a0">CMSG_ALIGN</a></div><div class="ttdeci">#define CMSG_ALIGN(len)</div><div class="ttdef"><b>Definition</b> socket.h:178</div></div>
-<div class="ttc" id="astructcmsghdr_html"><div class="ttname"><a href="structcmsghdr.html">cmsghdr</a></div><div class="ttdef"><b>Definition</b> socket.h:168</div></div>
+<div class="ttc" id="asocket_8h_html_a907a77978127b9622f23f2778b0324a0"><div class="ttname"><a href="#a907a77978127b9622f23f2778b0324a0">CMSG_ALIGN</a></div><div class="ttdeci">#define CMSG_ALIGN(len)</div><div class="ttdef"><b>Definition</b> socket.h:180</div></div>
+<div class="ttc" id="astructcmsghdr_html"><div class="ttname"><a href="structcmsghdr.html">cmsghdr</a></div><div class="ttdef"><b>Definition</b> socket.h:170</div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1024,7 +1025,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line"><a class="code hl_function" href="#a800c81237f8afa959ea971685cd5780d">cmsg_nxthdr</a>(mhdr, cmsg)</div>
-<div class="ttc" id="asocket_8h_html_a800c81237f8afa959ea971685cd5780d"><div class="ttname"><a href="#a800c81237f8afa959ea971685cd5780d">cmsg_nxthdr</a></div><div class="ttdeci">static struct cmsghdr * cmsg_nxthdr(struct msghdr *mhdr, struct cmsghdr *cmsg)</div><div class="ttdef"><b>Definition</b> socket.h:188</div></div>
+<div class="ttc" id="asocket_8h_html_a800c81237f8afa959ea971685cd5780d"><div class="ttname"><a href="#a800c81237f8afa959ea971685cd5780d">cmsg_nxthdr</a></div><div class="ttdeci">static struct cmsghdr * cmsg_nxthdr(struct msghdr *mhdr, struct cmsghdr *cmsg)</div><div class="ttdef"><b>Definition</b> socket.h:182</div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1859,7 +1860,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line"><a class="code hl_define" href="#a6a6d1e8e926f5b43e45353c7e8c3c7fa">CMSG_SPACE</a>((n) * <span class="keyword">sizeof</span>(<a class="code hl_typedef" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>))</div>
-<div class="ttc" id="asocket_8h_html_a6a6d1e8e926f5b43e45353c7e8c3c7fa"><div class="ttname"><a href="#a6a6d1e8e926f5b43e45353c7e8c3c7fa">CMSG_SPACE</a></div><div class="ttdeci">#define CMSG_SPACE(len)</div><div class="ttdef"><b>Definition</b> socket.h:179</div></div>
+<div class="ttc" id="asocket_8h_html_a6a6d1e8e926f5b43e45353c7e8c3c7fa"><div class="ttname"><a href="#a6a6d1e8e926f5b43e45353c7e8c3c7fa">CMSG_SPACE</a></div><div class="ttdeci">#define CMSG_SPACE(len)</div><div class="ttdef"><b>Definition</b> socket.h:189</div></div>
 <div class="ttc" id="astdint_8h_html_a996e72f71b11a5bb8b3b7b6936b1516d"><div class="ttname"><a href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a></div><div class="ttdeci">long long int64_t</div><div class="ttdef"><b>Definition</b> stdint.h:33</div></div>
 </div><!-- fragment -->
 </div>
@@ -1900,6 +1901,20 @@ Functions</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define SOCK_STREAM&#160;&#160;&#160;1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a844a02180836d947d7ae128032e0be81" name="a844a02180836d947d7ae128032e0be81"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a844a02180836d947d7ae128032e0be81">&#9670;&#160;</a></span>SOCK_TYPE_MASK</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SOCK_TYPE_MASK&#160;&#160;&#160;0xf</td>
         </tr>
       </table>
 </div><div class="memdoc">

@@ -38,6 +38,8 @@ var lucifer__drm_8h =
     [ "LUCIFER_IOCTL_VM_BIND", "lucifer__drm_8h.html#a8c3cf8cccb859df4842b4312153fe03f", null ],
     [ "LUCIFER_IOCTL_VM_CREATE", "lucifer__drm_8h.html#aa74c23eedd095697dcfe8743afea52c6", null ],
     [ "LUCIFER_IOCTL_VM_DESTROY", "lucifer__drm_8h.html#acb925da397dda586d1e403ed4ceac597", null ],
+    [ "LUCIFER_NODE_PRIMARY", "lucifer__drm_8h.html#a9a8fd83c3634f3c0ab618c3c17585220", null ],
+    [ "LUCIFER_NODE_RENDER", "lucifer__drm_8h.html#a26834f0668480bb586610b4753566517", null ],
     [ "lucifer_engine_class", "lucifer__drm_8h.html#a1a79d4f0ca6fde89087ee27e653b5571", [
       [ "LUCIFER_ENGINE_CLASS_RENDER", "lucifer__drm_8h.html#a1a79d4f0ca6fde89087ee27e653b5571ae7f5e47341dde488d14a56058f86c521", null ],
       [ "LUCIFER_ENGINE_CLASS_COPY", "lucifer__drm_8h.html#a1a79d4f0ca6fde89087ee27e653b5571adbf519c4cf305fef7d7e5db5d08fee3b", null ]

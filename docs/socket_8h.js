@@ -120,6 +120,7 @@ var socket_8h =
     [ "SOCK_CLOEXEC", "socket_8h.html#ac337901f5606f0cf6f8e9867ef3fc1c4", null ],
     [ "SOCK_NONBLOCK", "socket_8h.html#ae04efe05cb3dc3314c7710cfb8cd380a", null ],
     [ "SOCK_STREAM", "socket_8h.html#a249394484f9410a2e3f8eba24657feb9", null ],
+    [ "SOCK_TYPE_MASK", "socket_8h.html#a844a02180836d947d7ae128032e0be81", null ],
     [ "SOL_LOCAL", "socket_8h.html#a6e14e58a5d53936798ae51c947c62b90", null ],
     [ "SOL_SOCKET", "socket_8h.html#a92d045f6ee2f343d6b28830a9fec082e", null ],
     [ "cmsg_nxthdr", "socket_8h.html#a800c81237f8afa959ea971685cd5780d", null ]

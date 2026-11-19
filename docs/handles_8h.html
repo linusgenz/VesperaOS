@@ -113,6 +113,7 @@ Macros</h2></td></tr>
 <tr class="memitem:a77a38d218b64e7c8d7bec93cf8e0ed42" id="r_a77a38d218b64e7c8d7bec93cf8e0ed42"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a77a38d218b64e7c8d7bec93cf8e0ed42">HANDLE_TYPE_EVENTFD</a>&#160;&#160;&#160;0x1300000000000000ULL</td></tr>
 <tr class="memitem:a89e852493616c9319eee0a83f9c09f53" id="r_a89e852493616c9319eee0a83f9c09f53"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a89e852493616c9319eee0a83f9c09f53">HANDLE_TYPE_TIMERFD</a>&#160;&#160;&#160;0x1400000000000000ULL</td></tr>
 <tr class="memitem:a32b16cea46cc403aeee69e1c8d9e7157" id="r_a32b16cea46cc403aeee69e1c8d9e7157"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a32b16cea46cc403aeee69e1c8d9e7157">HANDLE_TYPE_SIGNALFD</a>&#160;&#160;&#160;0x1500000000000000ULL</td></tr>
+<tr class="memitem:a467c3b68b25ce73ae8f1b9d1dabb285a" id="r_a467c3b68b25ce73ae8f1b9d1dabb285a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a467c3b68b25ce73ae8f1b9d1dabb285a">HANDLE_TYPE_DMABUF</a>&#160;&#160;&#160;0x1600000000000000ULL</td></tr>
 <tr class="memitem:aa8bdf33a8a477a7f84782d4075cac16e" id="r_aa8bdf33a8a477a7f84782d4075cac16e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa8bdf33a8a477a7f84782d4075cac16e">HANDLE_STDIN</a>&#160;&#160;&#160;(<a class="el" href="#a7320acad67c37ee34fa6f28cab733f7c">HANDLE_TYPE_DEVICE</a> | 0x0000000000000000ULL)</td></tr>
 <tr class="memitem:ab713aac387c884999067ab2eb12eb2a3" id="r_ab713aac387c884999067ab2eb12eb2a3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab713aac387c884999067ab2eb12eb2a3">HANDLE_STDOUT</a>&#160;&#160;&#160;(<a class="el" href="#a7320acad67c37ee34fa6f28cab733f7c">HANDLE_TYPE_DEVICE</a> | 0x0000000000000001ULL)</td></tr>
 <tr class="memitem:a20f587d71e5bfe98fd92929ab61bde41" id="r_a20f587d71e5bfe98fd92929ab61bde41"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a20f587d71e5bfe98fd92929ab61bde41">HANDLE_STDERR</a>&#160;&#160;&#160;(<a class="el" href="#a7320acad67c37ee34fa6f28cab733f7c">HANDLE_TYPE_DEVICE</a> | 0x0000000000000002ULL)</td></tr>
@@ -211,6 +212,20 @@ Macros</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define HANDLE_TYPE_DIRECTORY&#160;&#160;&#160;0x3000000000000000ULL</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a467c3b68b25ce73ae8f1b9d1dabb285a" name="a467c3b68b25ce73ae8f1b9d1dabb285a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a467c3b68b25ce73ae8f1b9d1dabb285a">&#9670;&#160;</a></span>HANDLE_TYPE_DMABUF</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define HANDLE_TYPE_DMABUF&#160;&#160;&#160;0x1600000000000000ULL</td>
         </tr>
       </table>
 </div><div class="memdoc">

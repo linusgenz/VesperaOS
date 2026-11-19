@@ -97,5 +97,7 @@ var searchData=
   ['lucifer_5fioctl_5fversion_94',['LUCIFER_IOCTL_VERSION',['../lucifer__drm_8h.html#a2e436cc971b02e8c70bea47c3f795888',1,'lucifer_drm.h']]],
   ['lucifer_5fioctl_5fvm_5fbind_95',['LUCIFER_IOCTL_VM_BIND',['../lucifer__drm_8h.html#a8c3cf8cccb859df4842b4312153fe03f',1,'lucifer_drm.h']]],
   ['lucifer_5fioctl_5fvm_5fcreate_96',['LUCIFER_IOCTL_VM_CREATE',['../lucifer__drm_8h.html#aa74c23eedd095697dcfe8743afea52c6',1,'lucifer_drm.h']]],
-  ['lucifer_5fioctl_5fvm_5fdestroy_97',['LUCIFER_IOCTL_VM_DESTROY',['../lucifer__drm_8h.html#acb925da397dda586d1e403ed4ceac597',1,'lucifer_drm.h']]]
+  ['lucifer_5fioctl_5fvm_5fdestroy_97',['LUCIFER_IOCTL_VM_DESTROY',['../lucifer__drm_8h.html#acb925da397dda586d1e403ed4ceac597',1,'lucifer_drm.h']]],
+  ['lucifer_5fnode_5fprimary_98',['LUCIFER_NODE_PRIMARY',['../lucifer__drm_8h.html#a9a8fd83c3634f3c0ab618c3c17585220',1,'lucifer_drm.h']]],
+  ['lucifer_5fnode_5frender_99',['LUCIFER_NODE_RENDER',['../lucifer__drm_8h.html#a26834f0668480bb586610b4753566517',1,'lucifer_drm.h']]]
 ];

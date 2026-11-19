@@ -94,6 +94,7 @@ $(function(){initNavTree('drm_8h.html','',''); });
 <div class="contents">
 <div class="textblock"><code>#include &lt;<a class="el" href="include_2uapi_2vespera_2types_8h_source.html">vespera/types.h</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="include_2uapi_2vespera_2ioctl_8h_source.html">vespera/ioctl.h</a>&gt;</code><br />
+<code>#include &quot;<a class="el" href="include_2uapi_2vespera_2fcntl_8h_source.html">../fcntl.h</a>&quot;</code><br />
 </div>
 <p><a href="drm_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -108,6 +109,7 @@ Classes</h2></td></tr>
 <tr class="memitem:drm_5Fsyncobj_5Feventfd" id="r_drm_5Fsyncobj_5Feventfd"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdrm__syncobj__eventfd.html">drm_syncobj_eventfd</a></td></tr>
 <tr class="memitem:drm_5Fsyncobj_5Farray" id="r_drm_5Fsyncobj_5Farray"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdrm__syncobj__array.html">drm_syncobj_array</a></td></tr>
 <tr class="memitem:drm_5Fsyncobj_5Ftimeline_5Farray" id="r_drm_5Fsyncobj_5Ftimeline_5Farray"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdrm__syncobj__timeline__array.html">drm_syncobj_timeline_array</a></td></tr>
+<tr class="memitem:drm_5Fprime_5Fhandle" id="r_drm_5Fprime_5Fhandle"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdrm__prime__handle.html">drm_prime_handle</a></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-define-members" class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
@@ -119,6 +121,8 @@ Macros</h2></td></tr>
 <tr class="memitem:afb3db96f6f01ab85b60f19467d4f4ee4" id="r_afb3db96f6f01ab85b60f19467d4f4ee4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afb3db96f6f01ab85b60f19467d4f4ee4">DRM_SYNCOBJ_WAIT_FLAGS_WAIT_AVAILABLE</a>&#160;&#160;&#160;(1 &lt;&lt; 2) /* wait for <a class="el" href="userspace_2lib_2include_2time_8h.html#a99ef1cb2c789827dd5db3886dccf9067">time</a> point to become available */</td></tr>
 <tr class="memitem:a7508e79a80bbdeca22f8cf8e542f620e" id="r_a7508e79a80bbdeca22f8cf8e542f620e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7508e79a80bbdeca22f8cf8e542f620e">DRM_SYNCOBJ_WAIT_FLAGS_WAIT_DEADLINE</a>&#160;&#160;&#160;(1 &lt;&lt; 3) /* set fence deadline to deadline_nsec */</td></tr>
 <tr class="memitem:a6baa0553d5222c2a78e6b689b54ebc57" id="r_a6baa0553d5222c2a78e6b689b54ebc57"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6baa0553d5222c2a78e6b689b54ebc57">DRM_SYNCOBJ_QUERY_FLAGS_LAST_SUBMITTED</a>&#160;&#160;&#160;(1 &lt;&lt; 0) /* last available point on timeline syncobj */</td></tr>
+<tr class="memitem:ad966aecff719458c879c64527df88395" id="r_ad966aecff719458c879c64527df88395"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad966aecff719458c879c64527df88395">DRM_RDWR</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2fcntl_8h.html#abb0586253488ee61072b73557eeb873b">O_RDWR</a></td></tr>
+<tr class="memitem:a50fe4beeba52b99aea2866ad82c68527" id="r_a50fe4beeba52b99aea2866ad82c68527"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a50fe4beeba52b99aea2866ad82c68527">DRM_CLOEXEC</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2fcntl_8h.html#ad6d8fbe4e494b4dbe051612572d3f757">O_CLOEXEC</a></td></tr>
 <tr class="memitem:ad36a2d0daccc2e33833a2713f4465549" id="r_ad36a2d0daccc2e33833a2713f4465549"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad36a2d0daccc2e33833a2713f4465549">DRM_IOCTL_BASE</a>&#160;&#160;&#160;'d'</td></tr>
 <tr class="memitem:ade8c9e2f9c95749bd1c189a45e133c22" id="r_ade8c9e2f9c95749bd1c189a45e133c22"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ade8c9e2f9c95749bd1c189a45e133c22">DRM_IO</a>(nr)</td></tr>
 <tr class="memitem:a8096b2f54daafad124e6d296617400ed" id="r_a8096b2f54daafad124e6d296617400ed"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8096b2f54daafad124e6d296617400ed">DRM_IOR</a>(nr,  type)</td></tr>
@@ -131,8 +135,23 @@ Macros</h2></td></tr>
 <tr class="memitem:a75103e1a8aaa1063ea8f12c2fd866539" id="r_a75103e1a8aaa1063ea8f12c2fd866539"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a75103e1a8aaa1063ea8f12c2fd866539">DRM_IOCTL_SYNCOBJ_WAIT</a>&#160;&#160;&#160;<a class="el" href="#a4d87f2451bced4acf9ec73b614f13675">DRM_IOWR</a>(0xC3, struct <a class="el" href="structdrm__syncobj__wait.html">drm_syncobj_wait</a>)</td></tr>
 <tr class="memitem:ac13d87ec290bf2f068e27ca1062cb413" id="r_ac13d87ec290bf2f068e27ca1062cb413"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac13d87ec290bf2f068e27ca1062cb413">DRM_IOCTL_SYNCOBJ_RESET</a>&#160;&#160;&#160;<a class="el" href="#a4d87f2451bced4acf9ec73b614f13675">DRM_IOWR</a>(0xC4, struct <a class="el" href="structdrm__syncobj__array.html">drm_syncobj_array</a>)</td></tr>
 <tr class="memitem:a96454c209853a68e26b4c32c18ca553e" id="r_a96454c209853a68e26b4c32c18ca553e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a96454c209853a68e26b4c32c18ca553e">DRM_IOCTL_SYNCOBJ_SIGNAL</a>&#160;&#160;&#160;<a class="el" href="#a4d87f2451bced4acf9ec73b614f13675">DRM_IOWR</a>(0xC5, struct <a class="el" href="structdrm__syncobj__array.html">drm_syncobj_array</a>)</td></tr>
+<tr class="memitem:a360c64ae88509855db988f08ff9e9dd7" id="r_a360c64ae88509855db988f08ff9e9dd7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a360c64ae88509855db988f08ff9e9dd7">DRM_IOCTL_PRIME_HANDLE_TO_FD</a>&#160;&#160;&#160;<a class="el" href="#a4d87f2451bced4acf9ec73b614f13675">DRM_IOWR</a>(0x2d, struct <a class="el" href="structdrm__prime__handle.html">drm_prime_handle</a>)</td></tr>
 </table>
 <a name="doc-define-members" id="doc-define-members"></a><h2 id="header-doc-define-members" class="groupheader">Macro Definition Documentation</h2>
+<a id="a50fe4beeba52b99aea2866ad82c68527" name="a50fe4beeba52b99aea2866ad82c68527"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a50fe4beeba52b99aea2866ad82c68527">&#9670;&#160;</a></span>DRM_CLOEXEC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DRM_CLOEXEC&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2fcntl_8h.html#ad6d8fbe4e494b4dbe051612572d3f757">O_CLOEXEC</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ade8c9e2f9c95749bd1c189a45e133c22" name="ade8c9e2f9c95749bd1c189a45e133c22"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ade8c9e2f9c95749bd1c189a45e133c22">&#9670;&#160;</a></span>DRM_IO</h2>
 
@@ -148,7 +167,7 @@ Macros</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line"><a class="code hl_define" href="include_2uapi_2vespera_2ioctl_8h.html#a840d10d2fed07b8a85f260031f2fa47b">_IO</a>(<a class="code hl_define" href="#ad36a2d0daccc2e33833a2713f4465549">DRM_IOCTL_BASE</a>,nr)</div>
-<div class="ttc" id="adrm_8h_html_ad36a2d0daccc2e33833a2713f4465549"><div class="ttname"><a href="#ad36a2d0daccc2e33833a2713f4465549">DRM_IOCTL_BASE</a></div><div class="ttdeci">#define DRM_IOCTL_BASE</div><div class="ttdef"><b>Definition</b> drm.h:136</div></div>
+<div class="ttc" id="adrm_8h_html_ad36a2d0daccc2e33833a2713f4465549"><div class="ttname"><a href="#ad36a2d0daccc2e33833a2713f4465549">DRM_IOCTL_BASE</a></div><div class="ttdeci">#define DRM_IOCTL_BASE</div><div class="ttdef"><b>Definition</b> drm.h:149</div></div>
 <div class="ttc" id="ainclude_2uapi_2vespera_2ioctl_8h_html_a840d10d2fed07b8a85f260031f2fa47b"><div class="ttname"><a href="include_2uapi_2vespera_2ioctl_8h.html#a840d10d2fed07b8a85f260031f2fa47b">_IO</a></div><div class="ttdeci">#define _IO(type, nr)</div><div class="ttdef"><b>Definition</b> ioctl.h:65</div></div>
 </div><!-- fragment -->
 </div>
@@ -161,6 +180,20 @@ Macros</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define DRM_IOCTL_BASE&#160;&#160;&#160;'d'</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a360c64ae88509855db988f08ff9e9dd7" name="a360c64ae88509855db988f08ff9e9dd7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a360c64ae88509855db988f08ff9e9dd7">&#9670;&#160;</a></span>DRM_IOCTL_PRIME_HANDLE_TO_FD</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DRM_IOCTL_PRIME_HANDLE_TO_FD&#160;&#160;&#160;<a class="el" href="#a4d87f2451bced4acf9ec73b614f13675">DRM_IOWR</a>(0x2d, struct <a class="el" href="structdrm__prime__handle.html">drm_prime_handle</a>)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -332,6 +365,20 @@ Macros</h2></td></tr>
 <b>Value:</b><div class="fragment"><div class="line"><a class="code hl_define" href="include_2uapi_2vespera_2ioctl_8h.html#a44fae4c755ca3409100a7bf8e993c642">_IOWR</a>(<a class="code hl_define" href="#ad36a2d0daccc2e33833a2713f4465549">DRM_IOCTL_BASE</a>,nr,type)</div>
 <div class="ttc" id="ainclude_2uapi_2vespera_2ioctl_8h_html_a44fae4c755ca3409100a7bf8e993c642"><div class="ttname"><a href="include_2uapi_2vespera_2ioctl_8h.html#a44fae4c755ca3409100a7bf8e993c642">_IOWR</a></div><div class="ttdeci">#define _IOWR(type, nr, data_type)</div><div class="ttdef"><b>Definition</b> ioctl.h:68</div></div>
 </div><!-- fragment -->
+</div>
+</div>
+<a id="ad966aecff719458c879c64527df88395" name="ad966aecff719458c879c64527df88395"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad966aecff719458c879c64527df88395">&#9670;&#160;</a></span>DRM_RDWR</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DRM_RDWR&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2fcntl_8h.html#abb0586253488ee61072b73557eeb873b">O_RDWR</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
 </div>
 </div>
 <a id="a63cb44037cf9ce71dc3731d7798eb010" name="a63cb44037cf9ce71dc3731d7798eb010"></a>
