@@ -61,6 +61,7 @@ namespace gpu::intel::core {
     // index 4 = LLC write-back. Only these two are used until display/media caching
     // modes are needed.
     enum class PpgttCaching : u32 {
+        WRITE_THROUGH = 2,
         NONE = 3,
         LLC  = 4,
     };
@@ -85,6 +86,7 @@ namespace gpu::intel::core {
             gfx_addr_t gpu_addr, phys_addr_t phys_start, usize size,
             PpgttCaching caching, bool writable
         );
+        bool clear_range(gfx_addr_t gpu_addr, usize size);
         void* gpu_to_virt(gfx_addr_t gpu_addr) const;
         void dump_batch_buffer(gfx_addr_t batch_addr, u32 batch_len) const;
 

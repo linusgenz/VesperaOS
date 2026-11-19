@@ -29,6 +29,7 @@
 #include <vespera/types.h>
 
 #include "intel_engine.h"
+#include "intel_node_kind.h"
 #include "intel_ppgtt.h"
 #include "slot_table.h"
 #include "uapi/vespera/dev/drm.h"
@@ -71,6 +72,10 @@ namespace gpu::intel::core {
         /// has already returned phys_addr's pages to the allocator
         bool purged = false;
 
+        const EngineContext* last_write_ctx = nullptr;
+        u32 last_write_seqno = 0;
+        u8  last_engine_class = 0;
+
         /// Refs: the handle slot itself (dropped by gem_close()/LucFile
         /// teardown) plus one per live IntelGemBackingObject
         /// (add_mapping()/remove_mapping()). Pages are freed -- and the
@@ -80,7 +85,7 @@ namespace gpu::intel::core {
         u32 refcount = 0;
 
         void inc_ref() {
-            refcount++;
+            __atomic_add_fetch(&refcount, 1, __ATOMIC_RELAXED);
         }
 
         /// Returns true if this was the last reference (pages already
@@ -93,13 +98,18 @@ namespace gpu::intel::core {
         /// `file_id` must be unique among every LucFile currently open on
         /// `device` -- see context_for_engine() for why (it derives each
         /// per-engine LRC's sw_context_id from it).
-        explicit LucFile(IntelGpuDevice& device, u32 file_id) : device_(device), file_id_(file_id) {
+        explicit LucFile(IntelGpuDevice& device, u32 file_id, NodeKind node_kind)
+            : device_(device), file_id_(file_id), node_kind_(node_kind) {
         }
 
         ~LucFile();
 
         LucFile(const LucFile&) = delete;
         LucFile& operator=(const LucFile&) = delete;
+
+        [[nodiscard]] NodeKind node_kind() const {
+            return node_kind_;
+        }
 
         int ioctl(u32 request, void* arg);
 
@@ -141,9 +151,16 @@ namespace gpu::intel::core {
 
         [[nodiscard]] bool exec_submit(lucifer_exec& args);
 
-        static constexpr usize LUCIFER_NUM_ENGINE_CLASSES = 2; // RENDER, COPY -- mirrors IntelGpuDevice's
-        EngineContext engine_contexts_[LUCIFER_NUM_ENGINE_CLASSES];
-        bool engine_contexts_initialized_[LUCIFER_NUM_ENGINE_CLASSES] = {};
+        static constexpr usize LUCIFER_NUM_ENGINE_CLASSES = 2;
+        static constexpr usize LUCIFER_QUEUES_PER_CLASS   = 3; // HACK: iris_batch_name
+        static constexpr usize LUCIFER_NUM_CONTEXTS =
+            LUCIFER_NUM_ENGINE_CLASSES * LUCIFER_QUEUES_PER_CLASS;
+
+        EngineContext engine_contexts_[LUCIFER_NUM_CONTEXTS];
+        bool engine_contexts_initialized_[LUCIFER_NUM_CONTEXTS] = {};
+
+        static constexpr u32 engine_class_of(u32 e) { return e & 0xffu; }
+        static constexpr u32 queue_of(u32 e)        { return (e >> 8) & 0xffu; }
 
         /// Returns this file's EngineContext for `engine`, allocating and
         /// initializing its LRC on first call
@@ -176,9 +193,14 @@ namespace gpu::intel::core {
         bool syncobj_reset(const u32* handles, u32 count_handles);
         bool syncobj_signal(const u32* handles, u32 count_handles);
 
+        [[nodiscard]] static bool is_primary_only_ioctl(u32 request);
+
+        [[nodiscard]] int prime_handle_to_fd(drm_prime_handle& args) const;
+
         IntelGpuDevice& device_;
 
         u32 file_id_{0u};
+        NodeKind node_kind_;
 
         mutable Spinlock handle_lock_{"luc_file_handles"};
     };

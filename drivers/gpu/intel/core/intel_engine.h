@@ -35,6 +35,9 @@
 #include "../regs/execlist_regs.h"
 
 namespace gpu::intel::core {
+    inline volatile u64 g_dbg_rt_phys = 0;
+    inline volatile u64 g_dbg_rt_gpu = 0;
+
     constexpr u32 ENGINE_RING_TAIL_OFF = 0x30;
     constexpr u32 ENGINE_RING_HEAD_OFF = 0x34;
     constexpr u32 ENGINE_RING_START_OFF = 0x38;
@@ -54,6 +57,7 @@ namespace gpu::intel::core {
     constexpr u32 HWSP_SEQNO_OFFSET = HWSP_SEQNO_OFFSET_DWORDS + 16;
 
     constexpr u32 PPHWSP_SEQNO_DWORD_INDEX = 34;
+    constexpr u32 PPHWSP_SCRATCH_DWORD_INDEX = 36;
 
     constexpr u32 ENGINE_RING_IPEIR_OFF = 0x64;        ///< Instruction Parser Error Identification
     constexpr u32 ENGINE_RING_IPEHR_OFF = 0x68;        ///< Instruction Parser Error Header (the actual bad DWord0)
@@ -93,14 +97,41 @@ namespace gpu::intel::core {
         gfx_addr_t gfx_addr{};
         virt_addr_t cpu_addr{};
         phys_addr_t phys_addr{};
-        u32 size = 0;
-        u32 tail = 0;
+        u32 size{0u};
+        u32 tail{0u};
+        u32 head{0u};
+
+        struct Entry {
+            u32 seqno;
+            u32 postfix;
+        };
+        static constexpr u32 MAX_INFLIGHT = 256;
+        Entry inflight[MAX_INFLIGHT]{};
+        u32 inflight_head{0u};
+        u32 inflight_tail{0u};
+
+        [[nodiscard]] bool inflight_empty() const { return inflight_head == inflight_tail; }
+        [[nodiscard]] bool inflight_full() const {
+            return ((inflight_tail + 1) & (MAX_INFLIGHT - 1)) == inflight_head;
+        }
+
+        void inflight_push(const u32 seqno, const u32 postfix) {
+            inflight[inflight_tail] = Entry{seqno, postfix};
+            inflight_tail = (inflight_tail + 1) & (MAX_INFLIGHT - 1);
+        }
+
+        static constexpr u32 CACHELINE_BYTES = 64u;
+        [[nodiscard]] u32 free_space() const {
+            return (head - tail - CACHELINE_BYTES) & (size - 1);
+        }
     };
 
     struct EngineContext {
         GgttAllocation lrc;
         u32 lrc_pages{0u};
         u32 sw_context_id{0u};
+
+        bool has_run_once{false};
 
         /// context's own physical ring buffer
         Ring ring;
@@ -339,12 +370,14 @@ namespace gpu::intel::core {
         /// instead, which pads the context's own ring and drives the
         /// execlist port rather than RING_BUFFER_TAIL.
         void ring_flush();
-        [[nodiscard]] bool ring_wait_space(const Ring& ring, u32 required_bytes, u32 timeout_us) const;
+       // [[nodiscard]] bool ring_wait_space(Ring& ring, const EngineContext* ctx, u32 required_bytes, u32 timeout_us) const;
+
+        bool ring_wait_space(const EngineContext& ctx, Ring& ring, u32 required_bytes, u32 timeout_us) const;
 
         /// Convenience overload for existing RCS/BCS call sites: same
         /// active-ring redirection as ring_write(u32)/ring_write_cmd(T).
-        [[nodiscard]] bool ring_wait_space(u32 required_bytes, u32 timeout_us) const {
-            return ring_wait_space(*active_dispatch_ring_, required_bytes, timeout_us);
+        [[nodiscard]] bool ring_wait_space(const EngineContext& ctx, u32 required_bytes, u32 timeout_us) const {
+            return ring_wait_space(ctx, *active_dispatch_ring_, required_bytes, timeout_us);
         }
 
         virtual void emit_flush(u32 seqno) = 0;
@@ -378,7 +411,7 @@ namespace gpu::intel::core {
         /// scheduler does. `sibling` is the *other* currently-active slot's context (or nullptr if
         /// the other slot is idle), so the resulting hardware submission carries both live
         /// elements rather than only the one just (re)dispatched.
-        void submit_ring(EngineContext& ctx, const EngineContext* sibling = nullptr);
+        void submit_ring(EngineContext& ctx, u32 seqno, const EngineContext* sibling = nullptr);
 
         void hwsp_alloc();
         u32 seqno_next();
@@ -430,7 +463,7 @@ namespace gpu::intel::core {
         /// offset. Called by submit_ring() in Execlist mode instead of the RING_BUFFER_TAIL MMIO
         /// write that ring_flush() does in Legacy mode.
         void lrc_update_tail(const EngineContext& ctx, u32 tail_bytes) const;
-
+        void ring_retire(const EngineContext& ctx, Ring& ring) const;
 
 
         /// Legacy-mode ring.

@@ -97,9 +97,16 @@ namespace gpu::intel::core {
             volatile u8* mmio_base, const volatile INTEL_IGP_PCI_CONFIG* igp_cfg, const pci::pci_id& pci_id
         );
 
-        [[nodiscard]] GgttAllocation alloc_persistent(usize num_pages, u64 flags = 0, u8 pat_index = GTT_PAT_UC);
+        [[nodiscard]] GgttAllocation alloc_persistent_aligned(usize num_pages, u32 align_pages, u64 flags = 0, CacheMode cache_mode = CacheMode::WriteBack, u8 pat_index = GTT_PAT_UC);
+        [[nodiscard]] GgttAllocation alloc_transient_aligned(usize num_pages, u32 align_pages, u64 flags, CacheMode cache_mode = CacheMode::WriteBack, u8 pat_index = GTT_PAT_UC);
 
-        [[nodiscard]] GgttAllocation alloc_transient(usize num_pages, u64 flags, u8 pat_index);
+        [[nodiscard]] GgttAllocation alloc_persistent(usize num_pages, u64 flags = 0, CacheMode cache_mode = CacheMode::WriteBack, u8 pat_index = GTT_PAT_UC) {
+            return alloc_persistent_aligned(num_pages, 0, flags, cache_mode, pat_index);
+        }
+
+        [[nodiscard]] GgttAllocation alloc_transient(usize num_pages, u64 flags, CacheMode cache_mode = CacheMode::WriteBack, u8 pat_index = GTT_PAT_UC) {
+            return alloc_transient_aligned(num_pages, 0, flags, cache_mode, pat_index);
+        }
 
         void free_transient(const GgttAllocation& alloc, usize num_pages);
 
@@ -127,8 +134,8 @@ namespace gpu::intel::core {
        private:
         void init_index_space(u32 total_entries, u32 start_index);
 
-        [[nodiscard]] u32 index_alloc_persistent(u32 num_pages);
-        [[nodiscard]] u32 index_alloc_transient(u32 num_pages);
+        [[nodiscard]] u32 index_alloc_persistent(u32 num_pages, u32 align_pages);
+        [[nodiscard]] u32 index_alloc_transient(u32 num_pages, u32 align_pages);
         void index_free_transient(u32 start_index);
 
         void coalesce();

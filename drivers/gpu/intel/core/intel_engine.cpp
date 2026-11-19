@@ -32,10 +32,19 @@
 #include <gpu/intel/regs/ring_regs.h>
 #include <gpu/intel/regs/force_to_nonpriv_regs.h>
 
+#include "intel_dbg.h"
 #include "mi_commands.h"
+#include "intel_workarounds.h"
+#include "mocs_init.h"
+#include "gpu/intel/rcs/commands/cmd_pipe_control.h"
+
+// TODO(FIX): hardware race ib lite restore, we have to check wether ctx switch is pending
+// see lrc_set_reg in dispatch_batxcch and and the end of submit_ring
 
 namespace gpu::intel::core {
-    IntelEngine::IntelEngine(EngineType type, IntelGpuDevice& device, u32 engine_mmio_offset, const ForceWakeDomain& fw_domain)
+    IntelEngine::IntelEngine(
+        EngineType type, IntelGpuDevice& device, u32 engine_mmio_offset, const ForceWakeDomain& fw_domain
+    )
         : type_(type), device_(device), engine_mmio_offset_(engine_mmio_offset), fw_domain_(fw_domain) {
     }
 
@@ -78,6 +87,15 @@ namespace gpu::intel::core {
                 if (!engine_whitelist_apply()) {
                     Log::error("intel-%s: whitelist restore after engine reset failed", engine_type_to_string(type_));
                 }
+
+                if (type_ == EngineType::RCS) {
+                    if (!wa::apply_rcs_engine_workarounds(device_.mmio_base(), device_.fuse_topology().mcr_selector)) {
+                        Log::error("intel-rcs: engine workarounds restore after reset failed");
+                    }
+
+                    MocsTable(device()).init();
+                }
+
                 return true;
             }
 
@@ -170,14 +188,13 @@ namespace gpu::intel::core {
         engine_reg_write(ENGINE_RING_TAIL_OFF, tail);
     }
 
-    void IntelEngine::submit_ring(EngineContext& ctx, const EngineContext* sibling) {
+    void IntelEngine::submit_ring(EngineContext& ctx, u32 seqno, const EngineContext* sibling) {
         switch (submission_mode_) {
             case SubmissionMode::LegacyRing: {
-                // TAIL must be 8-byte aligned (bits [2:0] = MBZ)
                 while (engine_ring_.tail & 0x7) {
                     ring_write(engine_ring_, MI_NOOP);
                 }
-
+                asm volatile("wbinvd" ::: "memory");
                 asm volatile("mfence" ::: "memory");
 
                 RING_BUFFER_TAIL tail{};
@@ -185,63 +202,103 @@ namespace gpu::intel::core {
                 engine_reg_write(ENGINE_RING_TAIL_OFF, tail);
                 break;
             }
-
             case SubmissionMode::Execlist: {
                 if (virt_null(ctx.lrc.cpu_addr) || virt_null(ctx.ring.cpu_addr)) {
-                    Log::error(
-                        "intel-%s: submit_ring() called in Execlist mode with no LRC/ring allocated for this context",
-                        engine_type_to_string(type_)
-                    );
+                    Log::error("intel-%s: submit_ring() called in Execlist mode with no LRC/ring allocated for this context",
+                               engine_type_to_string(type_));
                     return;
                 }
-
-                // TAIL must be 8-byte aligned (bits [2:0] = MBZ) -- this
-                // context's own ring, not engine_ring_.
                 while (ctx.ring.tail & 0x7) {
                     ring_write(ctx.ring, MI_NOOP);
                 }
-
-                asm volatile("mfence" ::: "memory");
-
                 lrc_update_tail(ctx, ctx.ring.tail);
+
+                asm volatile("wbinvd" ::: "memory");
+                asm volatile("mfence" ::: "memory");
                 lrc_submit(ctx, sibling);
                 break;
             }
         }
     }
-
     void IntelEngine::lrc_update_tail(const EngineContext& ctx, u32 tail_bytes) const {
         RING_BUFFER_TAIL tail{};
         tail.set_tail_offset_bytes(tail_bytes);
         lrc_write_ring_field(ctx, LRC_DW_RING_TAIL, ENGINE_RING_TAIL_OFF, tail.raw);
     }
 
-    bool IntelEngine::ring_wait_space(const Ring& ring, u32 required_bytes, u32 timeout_us) const {
+    void IntelEngine::ring_retire(const EngineContext& ctx, Ring& ring) const {
+        const u32 done = __atomic_load_n(seqno_ptr_for_read(ctx), __ATOMIC_ACQUIRE);
+
+        while (!ring.inflight_empty()) {
+            const Ring::Entry& e = ring.inflight[ring.inflight_head];
+            if (static_cast<i32>(done - e.seqno) < 0) {
+                break; // FIFO-Reihenfolge: alle folgenden sind ebenfalls noch nicht fertig
+            }
+            ring.head = e.postfix;
+            ring.inflight_head = (ring.inflight_head + 1) & (Ring::MAX_INFLIGHT - 1);
+        }
+    }
+
+    bool IntelEngine::ring_wait_space(const EngineContext& ctx, Ring& ring,
+                                      const u32 required_bytes, const u32 timeout_us) const {
+        ring_retire(ctx, ring);
+        if (!ring.inflight_full() && ring.free_space() >= required_bytes) {
+            return true;
+        }
+
         const u64 start = kernel::time::get_uptime_us();
-
         while ((kernel::time::get_uptime_us() - start) < timeout_us) {
-            // NOTE: RING_HEAD MMIO reflects whichever context is currently
-            // active on the physical CS -- correct for engine_ring_ in
-            // Legacy mode, but only an approximation for a not-currently-
-            // running Execlist context's own ring. Pre-existing limitation,
-            // unchanged by the per-context ring split.
-            const auto head_reg = engine_reg_read<RING_BUFFER_HEAD>(ENGINE_RING_HEAD_OFF);
-            const u32 head = head_reg.head_offset_bytes();
-
-            const u32 avail = (ring.tail >= head) ? (ring.size - ring.tail) + head : head - ring.tail;
-
-            if (avail >= required_bytes) {
+            ring_retire(ctx, ring);
+            if (!ring.inflight_full() && ring.free_space() >= required_bytes) {
                 return true;
             }
-
-            kernel::time::sleep_us(1);
+            // Hinweis: dispatch_batch() hält submit_lock_ (IRQs aus), daher pause statt sleep_us!
+            asm volatile("pause");
         }
 
         return false;
     }
 
+    /*bool IntelEngine::ring_wait_space(Ring& ring, const EngineContext* ctx, u32 required_bytes, u32 timeout_us) const {
+        const u64 start = kernel::time::get_uptime_us();
+        constexpr u32 CACHELINE_BYTES = 64;
+
+        auto compute_avail = [&](u32 head) -> u32 {
+            const u32 raw_space = (head - ring.tail) & (ring.size - 1);
+            const u32 free_bytes = (raw_space == 0) ? ring.size : raw_space;
+            return (free_bytes > CACHELINE_BYTES) ? (free_bytes - CACHELINE_BYTES) : 0;
+        };
+
+        Log::log_dbc("required: %u ring-size: %u, ring-tail: %u, sw_head: %u, avail: %u",
+                     required_bytes, ring.size, ring.tail, ring.head, compute_avail(ring.head));
+
+        for (;;) {
+            // Fast Path: evtl. hat ein Interrupt-Handler o.ä. sw_head schon
+            // vorangetrieben, seit wir zuletzt nachgesehen haben.
+            u32 avail = compute_avail(ring.head);
+            if (avail >= required_bytes) {
+                return true;
+            }
+
+            // Slow Path: selbst nachschauen (Seqno lesen, sw_head avancieren).
+            // Macht die Loop in sich geschlossen -- genau wie das alte
+            // MMIO-Polling -- nur bezogen auf DIESEN Ring/Context statt auf
+            // "wer auch immer gerade auf der physischen CS residiert".
+            avail = compute_avail(ring_poll_and_advance_head(ring, ctx));
+            Log::log_dbc("poll: sw_head: %u, avail: %u", ring.sw_head, avail);
+            if (avail >= required_bytes) {
+                return true;
+            }
+
+            if ((kernel::time::get_uptime_us() - start) >= timeout_us) {
+                return false;
+            }
+            kernel::time::sleep_us(1);
+        }
+    }*/
+
     void IntelEngine::hwsp_alloc() {
-        auto alloc = ggtt().alloc_persistent(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        auto alloc = ggtt().alloc_persistent(1, (1ULL << PtFlag::ReadWrite), CacheMode::Uncacheable, MOCS_UNCACHED);
         hwsp_cpu_addr_ = alloc.cpu_addr;
         hwsp_gfx_addr_ = alloc.gfx_addr;
         hwsp_phys_addr_ = alloc.phys_addr;
@@ -357,7 +414,7 @@ namespace gpu::intel::core {
             COMMON_SLICE_CHICKEN2
         };
         static_assert(sizeof(kRcsWhitelist) / sizeof(kRcsWhitelist[0]) <= FORCE_TO_NONPRIV_SLOT_COUNT,
-              "RCS whitelist exceeds the FORCE_TO_NONPRIV slots available");
+                      "RCS whitelist exceeds the FORCE_TO_NONPRIV slots available");
 
         struct WhitelistTable {
             const u32* mmio_offsets;
@@ -387,8 +444,8 @@ namespace gpu::intel::core {
 
         for (u32 slot = 0; slot < FORCE_TO_NONPRIV_SLOT_COUNT; ++slot) {
             const auto value = (slot < table.count)
-                ? FORCE_TO_NONPRIV::for_register(table.mmio_offsets[slot])
-                : FORCE_TO_NONPRIV::unused();
+                                   ? FORCE_TO_NONPRIV::for_register(table.mmio_offsets[slot])
+                                   : FORCE_TO_NONPRIV::unused();
 
             engine_reg_write(ENGINE_FORCE_TO_NONPRIV_OFF + slot * sizeof(u32), value);
 
@@ -408,8 +465,8 @@ namespace gpu::intel::core {
 
         for (u32 slot = 0; slot < FORCE_TO_NONPRIV_SLOT_COUNT; ++slot) {
             const u32 expected = (slot < table.count)
-                ? FORCE_TO_NONPRIV::for_register(table.mmio_offsets[slot]).raw
-                : FORCE_TO_NONPRIV_DEFAULT;
+                                     ? FORCE_TO_NONPRIV::for_register(table.mmio_offsets[slot]).raw
+                                     : FORCE_TO_NONPRIV_DEFAULT;
             const u32 actual = engine_reg_read_raw(ENGINE_FORCE_TO_NONPRIV_OFF + slot * sizeof(u32));
 
             if (actual != expected) {
@@ -422,42 +479,138 @@ namespace gpu::intel::core {
         return ok;
     }
 
-    bool IntelEngine::dispatch_batch(const gfx_addr_t batch_addr, const u64 batch_len, u32* out_seqno,
-                                      const IntelPpgtt* vm, EngineContext& ctx, const EngineContext* sibling) {
+    static void dbg_scan_rt(const u8* base, u32 stride, u32 w, u32 h, const char* tag) {
+        for (usize o = 0; o < (usize)stride * h; o += 64)
+            asm volatile("clflush (%0)" :: "r"(base + o) : "memory");
+        asm volatile("mfence" ::: "memory");
+
+        u32 hist[256] = {};
+        for (u32 y = 0; y < h; y++) {
+            auto* r = reinterpret_cast<const volatile u32*>(base + (usize)y * stride);
+            for (u32 x = 0; x < w; x++) hist[(r[x] >> 8) & 0xFF]++;
+        }
+        u32 stamp = 0;
+        for (u32 i = 1; i < 256; i++) if (hist[i] > hist[stamp]) stamp = i;
+
+        u32 bad = 0;
+        for (u32 y = 0; y < h; y++) {
+            auto* r = reinterpret_cast<const volatile u32*>(base + (usize)y * stride);
+            for (u32 x = 0; x < w; x += 16) {
+                const u32 n = (w - x < 16) ? (w - x) : 16;
+                for (u32 i = 0; i < n; i++)
+                    if (((r[x + i] >> 8) & 0xFF) != stamp) {
+                        bad++;
+                        break;
+                    }
+            }
+        }
+        Log::log_dbc("kscan[%s] stamp=%02x bad_lines=%u", tag, stamp, bad);
+    }
+
+    bool IntelEngine::dispatch_batch(
+        const gfx_addr_t batch_addr, const u64 batch_len, u32* out_seqno,
+        const IntelPpgtt* vm, EngineContext& ctx, const EngineContext* sibling
+    ) {
         (void)batch_len;
 
         if (!out_seqno) {
             return false;
         }
 
+        Ring* const saved_ring = active_dispatch_ring_;
+        active_dispatch_ring_ = (submission_mode_ == SubmissionMode::Execlist) ? &ctx.ring : &engine_ring_;
+
         auto* lrc_base = virt_as<u32>(ctx.lrc.cpu_addr);
         u32* lrc_ring = lrc_base + (LRC_RING_CONTEXT_START / sizeof(u32));
         lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_PDP0_LDW_OFF, static_cast<u32>(vm->pml4_phys_addr_bytes()));
-        lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_PDP0_UDW_OFF, static_cast<u32>(vm->pml4_phys_addr_bytes() >> 32));
+        lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_PDP0_UDW_OFF,
+                    static_cast<u32>(vm->pml4_phys_addr_bytes() >> 32));
 
-        Ring* const saved_ring = active_dispatch_ring_;
-        active_dispatch_ring_ = (submission_mode_ == SubmissionMode::Execlist) ? &ctx.ring : &engine_ring_;
+        if (ctx.has_run_once) {
+            constexpr u32 mask = (LRC_CTX_SR_CTL_RESTORE_INHIBIT_BIT | LRC_CTX_SR_CTL_INHIBIT_SYNC_CTX_SWITCH_BIT) << 16;
+            lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_CONTEXT_CONTROL_OFF,
+                        mask | LRC_CTX_SR_CTL_INHIBIT_SYNC_CTX_SWITCH_BIT);
+        }
+        if (type_ == EngineType::RCS && !ctx.has_run_once) {
+            u32 lri_buf[64];
+            u32* end = wa::emit_ctx_lri(lri_buf);
+            const auto dword_count = static_cast<usize>(end - lri_buf);
+
+            for (usize i = 0; i < dword_count; ++i) {
+                ring_write(*active_dispatch_ring_, lri_buf[i]);
+            }
+
+
+        }
+
+        if (!ring_wait_space(ctx, 512, 100000)) {
+            Log::error("intel-%s: ring_wait_space timed out", engine_type_to_string(type_));
+            active_dispatch_ring_ = saved_ring;
+            return false;
+        }
+
+        if (type_ == EngineType::RCS) {
+            // 2. Gen9 WA (gen8_emit_flush_rcs): Null-PIPE_CONTROL vor VF_CACHE_INVALIDATE
+            PIPE_CONTROL pre_vf_pc = PIPE_CONTROL::create();
+            pre_vf_pc.command_streamer_stall_enable = 1;
+            ring_write_cmd(pre_vf_pc);
+
+            PIPE_CONTROL inv_pc = PIPE_CONTROL::create();
+            inv_pc.command_streamer_stall_enable       = 1;
+            inv_pc.tlb_invalidate                      = 1;
+            inv_pc.instruction_cache_invalidate_enable = 1;
+            inv_pc.texture_cache_invalidation_enable   = 1;
+            inv_pc.vf_cache_invalidation_enable        = 1;
+            inv_pc.constant_cache_invalidation_enable  = 1;
+            inv_pc.state_cache_invalidation_enable     = 1;
+            inv_pc.post_sync_operation                 = PIPE_CONTROL::WRITE_IMMEDIATE_DATA;
+            inv_pc.destination_address_type            = (submission_mode_ == SubmissionMode::Execlist) ? 0 : 1;
+            inv_pc.store_data_index                    = 1;
+            inv_pc.address_lo                          = PPHWSP_SCRATCH_DWORD_INDEX;
+            inv_pc.address_hi                          = 0;
+            inv_pc.immediate_data                      = 0;
+            ring_write_cmd(inv_pc);
+        }
 
         const MI_BATCH_BUFFER_START start_cmd = MI_BATCH_BUFFER_START::create(gfx_raw(batch_addr));
         ring_write_cmd(start_cmd);
 
         *out_seqno = seqno_next();
 
+        const u32 postfix = active_dispatch_ring_->tail;
+
         emit_flush(*out_seqno);
 
-        submit_ring(ctx, sibling);
+        asm volatile("wbinvd" ::: "memory");
+
+        active_dispatch_ring_->inflight_push(*out_seqno, postfix);
+
+        if constexpr (dbg::LOG_BATCH) {
+            const u32* d = (const u32*)vm->gpu_to_virt(batch_addr);
+            u32 prim = 0, h = 2166136261u, end = 0;
+            for (u32 i = 0; i < 32 * 1024; i++) {
+                const u32 v = d[i];
+                h = (h ^ v) * 16777619u;
+                if ((v & 0xFFFF0000u) == 0x7B000000u) prim++;               // 3DPRIMITIVE
+                if ((v & 0xFFFF0000u) == 0x05000000u) { end = i; break; }   // MI_BATCH_BUFFER_END
+            }
+            Log::log_dbc("batch: seq=%u dws=%u hash=%08x prim=%u phys_via_pt=%p\n",
+                         *out_seqno, end + 1, h, prim, (const void*)d);
+        }
+
+        submit_ring(ctx, *out_seqno, sibling);
+
+        ctx.has_run_once = true;
 
         active_dispatch_ring_ = saved_ring;
-
-        Log::log_dbc("dispatch_batch: submitted seqno=%u mode=%s ctx=%u",
-                     *out_seqno, submission_mode_ == SubmissionMode::Execlist ? "execlist" : "legacy",
-                     ctx.sw_context_id);
 
         return true;
     }
 
-    void IntelEngine::lrc_write_ring_field(const EngineContext& ctx, usize dword_offset,
-                                            u32 engine_relative_mmio_off, u32 value) const {
+    void IntelEngine::lrc_write_ring_field(
+        const EngineContext& ctx, usize dword_offset,
+        u32 engine_relative_mmio_off, u32 value
+    ) const {
         auto* lrc = virt_as<u32>(ctx.lrc.cpu_addr);
         const usize base = LRC_RING_CONTEXT_START / sizeof(u32);
 
@@ -486,13 +639,17 @@ namespace gpu::intel::core {
         return true;
     }
 
-    bool IntelEngine::lrc_alloc_and_init(EngineContext& ctx, const usize lrc_size_bytes, const u32 sw_context_id) const {
+    bool IntelEngine::lrc_alloc_and_init(
+        EngineContext& ctx, const usize lrc_size_bytes, const u32 sw_context_id
+    ) const {
         ctx.sw_context_id = sw_context_id;
 
         const u32 lrc_pages = static_cast<u32>(lrc_size_bytes / LRC_PAGE_SIZE);
-        const auto alloc = ggtt().alloc_transient(lrc_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        const auto alloc = ggtt().
+            alloc_transient(lrc_pages, (1ULL << ReadWrite), CacheMode::Uncacheable, MOCS_UNCACHED);
         ctx.lrc.cpu_addr = alloc.cpu_addr;
         ctx.lrc.gfx_addr = alloc.gfx_addr;
+        ctx.lrc_pages = lrc_pages;
 
         if (virt_null(ctx.lrc.cpu_addr)) {
             Log::error("intel-%s: LRC allocation failed (%u pages)", engine_type_to_string(type_), lrc_pages);
@@ -532,18 +689,15 @@ namespace gpu::intel::core {
 
         u32 context_control_val = 0;
         if (type_ == EngineType::RCS) {
-            constexpr u32 inhibit_sync_context_switch_bit = 1 << 3;
-            constexpr u32 render_context_restore_inhibit_bit = 1 << 0;
-
-            constexpr u32 mask = 0xFFFF0000;
-            constexpr u32 bits = inhibit_sync_context_switch_bit | render_context_restore_inhibit_bit;
-            context_control_val = mask | bits;
+            context_control_val = LRC_CTX_SR_CTL_FIRST_SUBMIT_MASK_AND_VALUE;
         }
 
+        lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_BB_STATE_OFF,LRC_BB_STATE_ADDRESS_SPACE_PPGTT_BIT);
         lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_CONTEXT_CONTROL_OFF, context_control_val);
-        lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_RING_HEAD_OFF, 0);                       // RING_HEAD
-        lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_RING_TAIL_OFF, 0);                       // RING_TAIL
-        lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_RING_START_OFF, gfx_raw(ctx.ring.gfx_addr)); // RING_START -- this context's own ring, not engine_ring_
+        lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_RING_HEAD_OFF, 0); // RING_HEAD
+        lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_RING_TAIL_OFF, 0); // RING_TAIL
+        lrc_set_reg(lrc_ring, engine_mmio_offset_ + ENGINE_RING_START_OFF, gfx_raw(ctx.ring.gfx_addr));
+        // RING_START -- this context's own ring, not engine_ring_
         RING_BUFFER_CTL ctl{};
         ctl.ring_enable = 1;
         ctl.set_ring_size_bytes(ctx.ring.size);
@@ -623,7 +777,9 @@ namespace gpu::intel::core {
     void IntelEngine::lrc_submit(const EngineContext& ctx, const EngineContext* ctx1) const {
         CONTEXT_DESCRIPTOR element0{};
         element0.valid = 1;
-        element0.force_restore = 1;
+        if (!ctx.has_run_once) {
+            element0.force_restore = 1;
+        }
         element0.addressing_mode = CONTEXT_DESCRIPTOR::LEGACY_64BIT_PPGTT;
         element0.privilege_access = 1;
         element0.fault_handling = CONTEXT_DESCRIPTOR::FAULT_AND_HANG;
@@ -633,7 +789,9 @@ namespace gpu::intel::core {
         CONTEXT_DESCRIPTOR element1{}; // left invalid unless ctx1 is supplied
         if (ctx1 != nullptr) {
             element1.valid = 1;
-            element1.force_restore = 1;
+            if (!ctx1->has_run_once) {
+                element1.force_restore = 1;
+            }
             element1.addressing_mode = CONTEXT_DESCRIPTOR::LEGACY_64BIT_PPGTT;
             element1.privilege_access = 1;
             element1.fault_handling = CONTEXT_DESCRIPTOR::FAULT_AND_HANG;
@@ -664,11 +822,12 @@ namespace gpu::intel::core {
             }
         }
 
-
+        /*
         log_lrc_context_image(ctx);
         if (ctx1 != nullptr) {
             log_lrc_context_image(*ctx1);
         }
+        */
 
         // Per PRM-mandated submission order: Element 1 first, then Element 0.
         engine_reg_write_raw(ENGINE_EXECLIST_SUBMITPORT_OFF, static_cast<u32>(element1.raw >> 32));
@@ -971,5 +1130,4 @@ namespace gpu::intel::core {
         *out_seqno = sub.out_seqno;
         return true;
     }
-
 } // namespace gpu::intel::core

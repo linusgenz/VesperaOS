@@ -39,6 +39,8 @@
 #include "uapi/vespera/dev/drm.h"
 #include <vespera/sync/wait_queue.h>
 
+#include "gpu/intel/display/intel_display.h"
+
 namespace pci {
     struct pci_device;
 }
@@ -52,6 +54,7 @@ namespace gpu::intel::rcs {
 }
 
 namespace gpu::intel::core {
+    struct EngineContext;
     class IntelEngine;
     class LucFile;
 
@@ -101,7 +104,7 @@ namespace gpu::intel::core {
      * engine's bits (breaking the "neither engine owns the other" invariant
      * above) or risk clobbering them via a naive full-register write.
      */
-    class IntelGpuDevice final : public IDeviceInfo, public IRenderDriver, public CharDevice {
+    class IntelGpuDevice final : public IDeviceInfo, public CharDevice {
     public:
         /// Sentinel returned by allocate_irq_vector() on failure.
         static constexpr u8 INVALID_VECTOR = 0xFF;
@@ -132,25 +135,28 @@ namespace gpu::intel::core {
             return pci_id_;
         }
 
+        struct FuseTopology {
+            u32 slice_count;
+            u32 subslice_count;
+            u32 eu_count;
+            u32 mcr_selector;
+        };
+
+        [[nodiscard]] FuseTopology fuse_topology() const {
+            return fuse_topology_;
+        }
+
         [[nodiscard]] KernelDevice* get_kd() const {
             return kd_;
         }
 
+        [[nodiscard]] KernelDevice* get_render_kd() const {
+            return render_kd_;
+        }
+
+        bool init_private_pat() const;
         bool get_vendor(char* out, usize len) override;
         bool get_model(char* out, usize len) override;
-
-        bool fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) override;
-        bool blit_region(
-            const u32* pixels, u32 src_stride, u32 src_x, u32 src_y, u32 w, u32 h, u32 dst_x, u32 dst_y
-        ) override;
-
-        void present() override;
-
-        [[nodiscard]] u32 screen_width_px() const override;
-
-        [[nodiscard]] u32 screen_height_px() const override;
-
-        [[nodiscard]] u32 bytes_per_scanline() const override;
 
         void add_bcs(bcs::IntelBcs* engine) {
             bcs_ = engine;
@@ -230,6 +236,14 @@ namespace gpu::intel::core {
         /// until the next flip explicitly re-arms it.
         void de_pipe_a_disarm_vblank() const;
 
+        void note_submit(u32 engine_class, const EngineContext* ctx, u32 seqno);
+
+        void forget_submit_ctx(const EngineContext* ctx);
+
+        int count_pending_submits() const;
+
+        bool wait_seqno(u32 engine_class, const EngineContext* ctx, u32 target_seqno, i64 timeout_ns) const;
+
     private:
         /// LucFile::ioctl()/exec_submit()/syncobj_wait() need
         /// query_fuse_topology() and engine_for_class() below -- both are
@@ -251,13 +265,9 @@ namespace gpu::intel::core {
         /// register first the way the old per-engine init paths did.
         void master_int_ctl_enable() const;
 
-        struct FuseTopology {
-            u32 slice_count;
-            u32 subslice_count;
-            u32 eu_count;
-        };
-
         [[nodiscard]] FuseTopology query_fuse_topology() const;
+
+        FuseTopology fuse_topology_;
 
         /// Backs DRM_IOCTL_SYNCOBJ_WAIT (see LucFile::syncobj_wait()).
         /// Device-level, not per-LucFile: a syncobj created by one process
@@ -270,6 +280,14 @@ namespace gpu::intel::core {
         [[nodiscard]] IntelEngine* engine_for_class(u32 engine_class) const;
 
         void engine_signal_seqno(u32 engine_class);
+
+        struct LastSubmit {
+            const EngineContext* ctx = nullptr;
+            u32 seqno = 0;
+        };
+
+        mutable Spinlock last_submit_lock_;
+        LastSubmit last_submit_[LUCIFER_NUM_ENGINE_CLASSES]{};
 
         volatile INTEL_IGP_PCI_CONFIG* igp_cfg_;
         pci::pci_id pci_id_;
@@ -285,8 +303,10 @@ namespace gpu::intel::core {
 
         bcs::IntelBcs* bcs_ = nullptr;
         rcs::IntelRcs* rcs_ = nullptr;
+        display::IntelDisplay display_;
 
-        KernelDevice* kd_ = nullptr;
+        KernelDevice* kd_{nullptr};
+        KernelDevice* render_kd_{nullptr};
 
         u32 next_luc_file_id_{1u};
     };

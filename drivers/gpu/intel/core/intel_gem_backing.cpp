@@ -49,6 +49,20 @@ namespace gpu::intel::core {
         return phys_add(obj_->phys_addr, offset_in_bytes);
     }
 
+    CacheMode IntelGemBackingObject::get_cache_mode() const {
+        if (!obj_) {
+            return CacheMode::WriteBack;
+        }
+
+        switch (obj_->cpu_caching) {
+            case LUCIFER_GEM_CPU_CACHING_WC:
+                return CacheMode::WriteCombining;
+            case LUCIFER_GEM_CPU_CACHING_WB:
+            default:
+                return CacheMode::WriteBack;
+        }
+    }
+
     usize IntelGemBackingObject::get_size() const {
         return obj_ ? obj_->size : 0;
     }

@@ -82,10 +82,15 @@ namespace gpu::intel::bcs {
         hwsp_alloc();
         ring_alloc_and_init(RING_BUFFER_SIZE);
 
+        HWSTAM_REG stam{};
+        stam.raw = 0xFFFFFFFFu;
+        engine_reg_write(core::ENGINE_HWSTAM_OFF, stam);
+
         return true;
     }
 
     void IntelBcs::start_device(Resolution res) {
+        set_submission_mode(core::SubmissionMode::Execlist);
         fb_alloc(res, TileMode::Linear);
         fb_alloc_back();
         scratch_init();
@@ -408,7 +413,7 @@ namespace gpu::intel::bcs {
     // =========================================================================
 
     void IntelBcs::fb_alloc(const Resolution res, TileMode tile_mode) {
-        const u32 width = res.width;
+       /* const u32 width = res.width;
         const u32 height = res.height;
 
         fb_.width = width;
@@ -439,11 +444,11 @@ namespace gpu::intel::bcs {
         fb_.gfx_addr = alloc.gfx_addr;
         fb_.cpu_addr = alloc.cpu_addr;
 
-        memset(virt_ptr(fb_.cpu_addr), 0, total_size);
+        memset(virt_ptr(fb_.cpu_addr), 0, total_size);*/
     }
 
     void IntelBcs::fb_alloc_back() {
-        const usize total_size = static_cast<usize>(fb_.pitch) * fb_.height;
+       /* const usize total_size = static_cast<usize>(fb_.pitch) * fb_.height;
         const usize num_pages = (total_size + PAGE_SIZE - 1) / PAGE_SIZE;
 
         auto alloc = ggtt().alloc_persistent(num_pages, (1ULL << CacheDisabled), core::MOCS_UNCACHED);
@@ -457,11 +462,11 @@ namespace gpu::intel::bcs {
 
         memset(virt_ptr(fb_back_.cpu_addr), 0, total_size);
 
-        Log::info("intel-bcs: back-buffer gfx=0x%llx (%zu pages)", gfx_raw(fb_back_.gfx_addr), num_pages);
+        Log::info("intel-bcs: back-buffer gfx=0x%llx (%zu pages)", gfx_raw(fb_back_.gfx_addr), num_pages);*/
     }
 
     void IntelBcs::scratch_init() {
-        const usize row_bytes = static_cast<usize>(fb_.width) * BYTES_PER_PIXEL;
+        /*const usize row_bytes = static_cast<usize>(fb_.width) * BYTES_PER_PIXEL;
         const usize pitch = ((row_bytes + 63) / 64) * 64;
         const usize buf_size = pitch * fb_.height;
         const u32 num_pages = static_cast<u32>((buf_size + PAGE_SIZE - 1) / PAGE_SIZE);
@@ -488,7 +493,7 @@ namespace gpu::intel::bcs {
             fb_.width,
             fb_.height,
             scratch_.pitch
-        );
+        );*/
     }
 
     // https://kiwitree.net/~lina/intel-gfx-docs/prm/kbl/intel-gfx-prm-osrc-kbl-vol02c-commandreference-registers-part2_0.pdf
@@ -651,7 +656,7 @@ namespace gpu::intel::bcs {
 
     bool IntelBcs::execute_composite_gpu_surface(const GpuBltRequest* req) {
         gpu_health_check();
-        if (!ring_wait_space(RING_SPACE_FOR_BLIT, 1'000'000)) return false;
+       // if (!ring_wait_space(RING_SPACE_FOR_BLIT, 1'000'000)) return false;
 
         emit_xy_src_copy_blt(
             fb_back_.gfx_addr, fb_back_.pitch,
@@ -685,7 +690,7 @@ namespace gpu::intel::bcs {
         asm volatile("mfence" ::: "memory");
 
         gpu_health_check();
-        if (!ring_wait_space(RING_SPACE_FOR_BLIT, 1'000'000)) return false;
+        //if (!ring_wait_space(RING_SPACE_FOR_BLIT, 1'000'000)) return false;
 
         emit_xy_src_copy_blt(
             fb_back_.gfx_addr,
@@ -712,7 +717,7 @@ namespace gpu::intel::bcs {
         if (!validate_rect(rect)) return false;
 
         gpu_health_check();
-        if (!ring_wait_space(RING_SPACE_FOR_FILL, 1'000'000)) return false;
+      //  if (!ring_wait_space(RING_SPACE_FOR_FILL, 1'000'000)) return false;
 
         emit_xy_color_blt(
             fb_back_.gfx_addr, fb_back_.pitch, rect.x, rect.y, rect.x + rect.width, rect.y + rect.height, req->color
@@ -726,7 +731,7 @@ namespace gpu::intel::bcs {
     }
 
     void IntelBcs::execute_present() {
-        PLANE_SURF surf{};
+    /*    PLANE_SURF surf{};
         surf.set_address(static_cast<u32>(gfx_raw(fb_back_.gfx_addr)));
 
         device().de_pipe_a_arm_vblank_oneshot();
@@ -759,7 +764,7 @@ namespace gpu::intel::bcs {
         const u32 seqno = seqno_next();
         emit_flush(seqno);
         ring_flush();
-        panic("todo");
+        panic("todo");*/
        // seqno_wait(seqno, 500'000, completion_flag_);
     }
 

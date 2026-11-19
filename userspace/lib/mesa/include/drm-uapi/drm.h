@@ -43,6 +43,8 @@ typedef unsigned int drm_handle_t;
 
 #else /* One of the BSDs or GNU */
 
+#include <vespera/dev/drm.h>
+
 #include <stdint.h>
 #include <sys/types.h>
 #if defined(__GNU__)
@@ -879,126 +881,14 @@ struct drm_set_client_cap {
 	__u64 value;
 };
 
-#define DRM_RDWR O_RDWR
-#define DRM_CLOEXEC O_CLOEXEC
-struct drm_prime_handle {
-	__u32 handle;
-
-	/** Flags.. only applicable for handle->fd */
-	__u32 flags;
-
-	/** Returned dmabuf file descriptor */
-	__s32 fd;
-};
-
-struct drm_syncobj_create {
-	__u32 handle;
-#define DRM_SYNCOBJ_CREATE_SIGNALED (1 << 0)
-	__u32 flags;
-};
-
-struct drm_syncobj_destroy {
-	__u32 handle;
-	__u32 pad;
-};
 
 #define DRM_SYNCOBJ_FD_TO_HANDLE_FLAGS_IMPORT_SYNC_FILE (1 << 0)
 #define DRM_SYNCOBJ_HANDLE_TO_FD_FLAGS_EXPORT_SYNC_FILE (1 << 0)
-struct drm_syncobj_handle {
-	__u32 handle;
-	__u32 flags;
-
-	__s32 fd;
-	__u32 pad;
-};
-
-struct drm_syncobj_transfer {
-	__u32 src_handle;
-	__u32 dst_handle;
-	__u64 src_point;
-	__u64 dst_point;
-	__u32 flags;
-	__u32 pad;
-};
 
 #define DRM_SYNCOBJ_WAIT_FLAGS_WAIT_ALL (1 << 0)
 #define DRM_SYNCOBJ_WAIT_FLAGS_WAIT_FOR_SUBMIT (1 << 1)
 #define DRM_SYNCOBJ_WAIT_FLAGS_WAIT_AVAILABLE (1 << 2) /* wait for time point to become available */
 #define DRM_SYNCOBJ_WAIT_FLAGS_WAIT_DEADLINE (1 << 3) /* set fence deadline to deadline_nsec */
-struct drm_syncobj_wait {
-	__u64 handles;
-	/* absolute timeout */
-	__s64 timeout_nsec;
-	__u32 count_handles;
-	__u32 flags;
-	__u32 first_signaled; /* only valid when not waiting all */
-	__u32 pad;
-	/**
-	 * @deadline_nsec - fence deadline hint
-	 *
-	 * Deadline hint, in absolute CLOCK_MONOTONIC, to set on backing
-	 * fence(s) if the DRM_SYNCOBJ_WAIT_FLAGS_WAIT_DEADLINE flag is
-	 * set.
-	 */
-	__u64 deadline_nsec;
-};
-
-struct drm_syncobj_timeline_wait {
-	__u64 handles;
-	/* wait on specific timeline point for every handles*/
-	__u64 points;
-	/* absolute timeout */
-	__s64 timeout_nsec;
-	__u32 count_handles;
-	__u32 flags;
-	__u32 first_signaled; /* only valid when not waiting all */
-	__u32 pad;
-	/**
-	 * @deadline_nsec - fence deadline hint
-	 *
-	 * Deadline hint, in absolute CLOCK_MONOTONIC, to set on backing
-	 * fence(s) if the DRM_SYNCOBJ_WAIT_FLAGS_WAIT_DEADLINE flag is
-	 * set.
-	 */
-	__u64 deadline_nsec;
-};
-
-/**
- * struct drm_syncobj_eventfd
- * @handle: syncobj handle.
- * @flags: Zero to wait for the point to be signalled, or
- *         &DRM_SYNCOBJ_WAIT_FLAGS_WAIT_AVAILABLE to wait for a fence to be
- *         available for the point.
- * @point: syncobj timeline point (set to zero for binary syncobjs).
- * @fd: Existing eventfd to sent events to.
- * @pad: Must be zero.
- *
- * Register an eventfd to be signalled by a syncobj. The eventfd counter will
- * be incremented by one.
- */
-struct drm_syncobj_eventfd {
-	__u32 handle;
-	__u32 flags;
-	__u64 point;
-	__s32 fd;
-	__u32 pad;
-};
-
-
-struct drm_syncobj_array {
-	__u64 handles;
-	__u32 count_handles;
-	__u32 pad;
-};
-
-#define DRM_SYNCOBJ_QUERY_FLAGS_LAST_SUBMITTED (1 << 0) /* last available point on timeline syncobj */
-struct drm_syncobj_timeline_array {
-	__u64 handles;
-	__u64 points;
-	__u32 count_handles;
-	__u32 flags;
-};
-
 
 /* Query current scanout sequence number */
 struct drm_crtc_get_sequence {
@@ -1100,19 +990,6 @@ extern "C" {
 #define DRM_IOCTL_UNLOCK		DRM_IOW( 0x2b, struct drm_lock)
 #define DRM_IOCTL_FINISH		DRM_IOW( 0x2c, struct drm_lock)
 
-/**
- * DRM_IOCTL_PRIME_HANDLE_TO_FD - Convert a GEM handle to a DMA-BUF FD.
- *
- * User-space sets &drm_prime_handle.handle with the GEM handle to export and
- * &drm_prime_handle.flags, and gets back a DMA-BUF file descriptor in
- * &drm_prime_handle.fd.
- *
- * The export can fail for any driver-specific reason, e.g. because export is
- * not supported for this specific GEM handle (but might be for others).
- *
- * Support for exporting DMA-BUFs is advertised via &DRM_PRIME_CAP_EXPORT.
- */
-#define DRM_IOCTL_PRIME_HANDLE_TO_FD    DRM_IOWR(0x2d, struct drm_prime_handle)
 /**
  * DRM_IOCTL_PRIME_FD_TO_HANDLE - Convert a DMA-BUF FD to a GEM handle.
  *

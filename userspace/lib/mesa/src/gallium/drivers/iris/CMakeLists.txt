@@ -143,7 +143,8 @@ target_include_directories(mesa_iris PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_link_libraries(mesa_iris PRIVATE
+target_link_libraries(mesa_iris
+        PRIVATE
         ${IRIS_PER_HW_VER_LIBS}
         mesa_util
         mesa_gallium_aux

@@ -30,6 +30,7 @@
 
 #include "bcs/intel_bcs.h"
 #include "core/intel_gpu_device.h"
+#include "display/intel_display.h"
 #include "rcs/intel_rcs.h"
 
 namespace gpu::intel {

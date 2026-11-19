@@ -24,67 +24,12 @@
 #include <gpu/intel/regs/gt_interrupt_regs.h>
 #include <vespera/log.h>
 #include <vespera/graphics/display_types.h>
-#include "gen9_kernels.h"
-#include "gen9_vs_kernel_mvp.h"
 #include "gfx_pipeline_stats_regs.h"
-#include "mat4.h"
-#include "commands/cmd_3dprimitive.h"
-#include "commands/cmd_3dstate_binding_table.h"
-#include "commands/cmd_3dstate_blend_state_pointers.h"
-#include "commands/cmd_3dstate_clip.h"
-#include "commands/cmd_3dstate_constant_vs.h"
-#include "commands/cmd_3dstate_depth_buffer.h"
-#include "commands/cmd_3dstate_drawing_rectangle.h"
-#include "commands/cmd_3dstate_ds.h"
-#include "commands/cmd_3dstate_gs.h"
-#include "commands/cmd_3dstate_hs.h"
-#include "commands/cmd_3dstate_multisample.h"
-#include "commands/cmd_3dstate_ps.h"
-#include "commands/cmd_3dstate_ps_blend.h"
-#include "commands/cmd_3dstate_raster.h"
-#include "commands/cmd_3dstate_sample_mask.h"
-#include "commands/cmd_3dstate_sbe.h"
-#include "commands/cmd_3dstate_sf.h"
-#include "commands/cmd_3dstate_te.h"
-#include "commands/cmd_3dstate_urb.h"
-#include "commands/cmd_3dstate_vf_statistics.h"
-#include "commands/cmd_3dstate_vf_topology.h"
-#include "commands/cmd_3dstate_vs.h"
-#include "commands/cmd_3dstate_wm.h"
-#include "commands/cmd_3dstate_wm_depth_stencil.h"
-#include "commands/cmd_pipeline_select.h"
 #include "commands/cmd_pipe_control.h"
-#include "commands/cmd_push_constant_alloc.h"
-#include "commands/cmd_render_surface_state.h"
-#include "commands/cmd_scissor.h"
-#include "commands/cmd_state_base_address.h"
-#include "commands/cmd_vertex_buffers.h"
-#include "commands/cmd_vertex_elements.h"
-#include "commands/cmd_viewport.h"
 #include "drivers/mmio_post_write.h"
 #include "gpu/intel/bcs/blt_commands.h"
 #include "gpu/intel/core/mi_commands.h"
 #include "gpu/intel/core/mocs_init.h"
-#include "klib/string.h"
-#include "state/blend_state.h"
-#include "state/primitive_topology.h"
-#include "state/surface_format.h"
-#include "vespera/time.h"
-#include "vespera/mm/memory.h"
-
-struct ShaderOffsets {
-    u32 vs_offset;
-    u32 ps_offset;
-};
-
-namespace {
-    // Software-assigned Context ID for RCS's single execlist context (CONTEXT_DESCRIPTOR::sw_context_id,
-    // 11 bits, up to 2048 per VF — see execlist_regs.h). Only one RCS context exists right now, so any
-    // small nonzero value works; bump this into a proper per-context allocator once RCS supports more
-    // than one context.
-    constexpr u32 RCS_SW_CONTEXT_ID = 1;
-}
-
 
 namespace gpu::intel::rcs {
     IntelRcs::IntelRcs(core::IntelGpuDevice& device)
@@ -124,9 +69,9 @@ namespace gpu::intel::rcs {
             return false;
         }
 
-       set_submission_mode(core::SubmissionMode::Execlist);
+        set_submission_mode(core::SubmissionMode::Execlist);
 
-       Log::info("intel-rcs: ring + HWSP + LRC initialized (Execlist mode)");
+        Log::info("intel-rcs: ring + HWSP + LRC initialized (Execlist mode)");
 
         rcs_error_reporting_init();
 
@@ -135,69 +80,6 @@ namespace gpu::intel::rcs {
             Log::info("intel-rcs: pipeline select failed");
             return false;
         }*/
-
-        return true;
-
-        // LEGACY SETUP ↓
-
-        if (!state_base_address_setup()) {
-            Log::info("intel-rcs: STATE_BASE_ADDRESS setup failed");
-            return false;
-        }
-
-        setup_scissor_state(res);
-
-        if (!setup_viewport_state(0.0f, 0.0f, res)) {
-            Log::info("intel-rcs: setup viewport state failed");
-            return false;
-        }
-
-        setup_blend_state();
-
-        if (!vertex_buffer_setup()) {
-            Log::log_dbc("intel-rcs: vertex buffer setup failed");
-            return false;
-        }
-
-        ShaderOffsets offsets = upload_shaders();
-        Log::debug("offsets: %u %u", offsets.ps_offset, offsets.vs_offset);
-
-        if (!setup_shaders_and_pipeline(offsets)) {
-            Log::info("intel-rcs: VS/PS setup failed");
-            return false;
-        }
-
-        if (!setup_constant_buffer_allocations()) {
-            Log::info("intel-rcs: constant buffer allocations failed");
-            return false;
-        }
-
-        auto matrix = Mat4::identity();
-
-        if (!setup_constant_buffer(matrix)) {
-            Log::log_dbc("intel-rcs: constant buffer setup failed");
-            return false;
-        }
-
-        if (!render_target_setup(res)) {
-            Log::info("intel-rcs: render target setup failed");
-            return false;
-        }
-
-        debug_dump_error_regs("baseline, before draw");
-        debug_dump_render_target(res.width, res.height, res.width * 4);
-
-        if (!draw_triangle()) {
-            Log::info("intel-rcs: draw triangle failed");
-            debug_dump_error_regs("after failed draw_triangle");
-            dump_pipeline_stats("after draw fail");
-            return false;
-        }
-
-        debug_dump_error_regs("after draw_triangle");
-        debug_dump_render_target(res.width, res.height, res.width * 4);
-
-        dump_pipeline_stats("after draw");
 
         return true;
     }
@@ -274,26 +156,60 @@ namespace gpu::intel::rcs {
 
     void IntelRcs::on_gt_user_interrupt() {
         completion_flag_.set();
+        waiters.wake_all_irq();
     }
 
-    void IntelRcs::emit_flush(u32 seqno) {
-        PIPE_CONTROL flush_cmd = PIPE_CONTROL::create();
-        flush_cmd.render_target_cache_flush_enable = 1;
-        flush_cmd.depth_cache_flush_enable = 1;
-        flush_cmd.dc_flush_enable = 1;
-        ring_write_cmd(flush_cmd);
+    /*void IntelRcs::emit_flush(u32 seqno) {
+        PIPE_CONTROL null_cmd = PIPE_CONTROL::create();
+        ring_write_cmd(null_cmd);
 
-        PIPE_CONTROL seqno_cmd = PIPE_CONTROL::create();
-        seqno_cmd.pipe_control_flush_enable = 1;
-        seqno_cmd.command_streamer_stall_enable = 1;
-        seqno_cmd.post_sync_operation = PIPE_CONTROL::WRITE_IMMEDIATE_DATA;
-        seqno_cmd.destination_address_type = 0;
-        seqno_cmd.store_data_index = 1;
-        seqno_cmd.address_lo = core::PPHWSP_SEQNO_DWORD_INDEX;
-        seqno_cmd.address_hi = 0;
-        seqno_cmd.immediate_data = seqno;
-        seqno_cmd.notify_enable = 1;
-        ring_write_cmd(seqno_cmd);
+        PIPE_CONTROL cmd = PIPE_CONTROL::create();
+
+        // Cache Flush Flags (EMIT_FLUSH)
+        cmd.render_target_cache_flush_enable = 1;
+        cmd.depth_cache_flush_enable = 1;
+        cmd.dc_flush_enable = 1;           // Data Cache Flush
+        cmd.pipe_control_flush_enable = 1; // L3 Flush
+
+        // Invalidate Flags (EMIT_INVALIDATE)
+        cmd.state_cache_invalidation_enable = 1;
+        cmd.texture_cache_invalidation_enable = 1;
+        cmd.instruction_cache_invalidate_enable = 1;
+
+        cmd.command_streamer_stall_enable = 1;
+
+        // Post-Sync Operation: seqno in HWSP schreiben
+        cmd.post_sync_operation = PIPE_CONTROL::WRITE_IMMEDIATE_DATA;
+        cmd.destination_address_type = 0;
+        cmd.store_data_index = 1;
+        cmd.address_lo = core::PPHWSP_SEQNO_DWORD_INDEX;
+        cmd.address_hi = 0;
+        cmd.immediate_data = seqno;
+        cmd.notify_enable = 1;
+
+        ring_write_cmd(cmd);
+    }*/
+
+    void IntelRcs::emit_flush(u32 seqno) {
+        PIPE_CONTROL flush_pc = PIPE_CONTROL::create();
+        flush_pc.render_target_cache_flush_enable = 1;
+        flush_pc.depth_cache_flush_enable         = 1;
+        flush_pc.dc_flush_enable                  = 1;
+        flush_pc.tlb_invalidate                   = 1;
+        flush_pc.command_streamer_stall_enable    = 1;
+        ring_write_cmd(flush_pc);
+
+        PIPE_CONTROL seq_pc = PIPE_CONTROL::create();
+        seq_pc.pipe_control_flush_enable     = 1;
+        seq_pc.command_streamer_stall_enable = 1;
+        seq_pc.post_sync_operation           = PIPE_CONTROL::WRITE_IMMEDIATE_DATA;
+        seq_pc.destination_address_type      = 0;
+        seq_pc.store_data_index              = 1;
+        seq_pc.address_lo                    = core::PPHWSP_SEQNO_DWORD_INDEX;
+        seq_pc.address_hi                    = 0;
+        seq_pc.immediate_data                = seqno;
+        seq_pc.notify_enable                 = 1;
+        ring_write_cmd(seq_pc);
     }
 
     void IntelRcs::debug_dump_render_target(u32 width, u32 height, u32 pitch) const {

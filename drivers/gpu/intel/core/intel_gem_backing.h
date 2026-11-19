@@ -28,7 +28,7 @@
 #include <vespera/mm/vm_backing.h>
 
 namespace gpu::intel::core {
-    struct LucFile;
+    class LucFile;
     struct GemObject;
 
     /**
@@ -50,6 +50,7 @@ namespace gpu::intel::core {
         IntelGemBackingObject& operator=(const IntelGemBackingObject&) = delete;
 
         phys_addr_t get_page(usize offset_in_bytes) override;
+        [[nodiscard]] CacheMode get_cache_mode() const override;
         [[nodiscard]] usize get_size() const override;
 
         void add_mapping() override {}

@@ -215,52 +215,79 @@ namespace gpu::intel::core {
         );
     }
 
-    u32 GgttAllocator::index_alloc_persistent(const u32 num_pages) {
+    u32 GgttAllocator::index_alloc_persistent(const u32 num_pages, const u32 align_pages) {
         SpinlockGuardIrq guard(lock_);
 
-        if (persistent_next_ + num_pages > persistent_limit_) {
-            Log::log_dbc("ggtt: persistent zone exhausted! (need %u pages)", num_pages);
+        const u32 align = align_pages > 0 ? align_pages : 1;
+
+        const u32 aligned_next = (persistent_next_ + align - 1) / align * align;
+
+        if (aligned_next + num_pages > persistent_limit_) {
+            Log::log_dbc("ggtt: persistent zone exhausted! (need %u pages, align %u)", num_pages, align);
             return U32_MAX;
         }
 
-        const u32 index = persistent_next_;
-        persistent_next_ += num_pages;
+        const u32 index = aligned_next;
+        persistent_next_ = aligned_next + num_pages;
 
-        Log::log_dbc("ggtt: persistent alloc %u pages -> index %u", num_pages, index);
+        Log::log_dbc("ggtt: persistent alloc %u pages (align %u) -> index %u", num_pages, align, index);
         return index;
     }
 
-    u32 GgttAllocator::index_alloc_transient(const u32 num_pages) {
+    u32 GgttAllocator::index_alloc_transient(const u32 num_pages, const u32 align_pages) {
         SpinlockGuardIrq guard(lock_);
+        const u32 align = align_pages > 0 ? align_pages : 1;
 
         for (usize i = 0; i < free_list_count_; i++) {
             GgttBlock& block = free_list_[i];
 
-            if (block.in_use || block.num_pages < num_pages) {
-                continue;
-            }
+            if (block.in_use) continue;
 
-            const u32 alloc_index = block.start_index;
+            const u32 alloc_index = (block.start_index + align - 1) / align * align;
+            if (alloc_index < block.start_index) continue;
 
-            if (block.num_pages == num_pages) {
-                block.in_use = true;
-            } else {
-                if (free_list_count_ >= GGTT_MAX_FREE_BLOCKS) {
-                    Log::log_dbc(
-                        "ggtt: freelist full, wasting %u pages after index %u",
-                        block.num_pages - num_pages,
-                        alloc_index + num_pages
-                    );
+            const u32 padding = alloc_index - block.start_index;
+
+            if (block.num_pages < num_pages + padding) continue;
+
+            const u32 remainder_pages = block.num_pages - (num_pages + padding);
+            const u32 remainder_start = alloc_index + num_pages;
+
+            if (padding == 0) {
+                if (remainder_pages == 0) {
                     block.in_use = true;
-                    block.num_pages = num_pages;
                 } else {
-                    const u32 remainder_start = block.start_index + num_pages;
-                    const u32 remainder_pages = block.num_pages - num_pages;
+                    if (free_list_count_ >= GGTT_MAX_FREE_BLOCKS) {
+                        Log::log_dbc("ggtt: freelist full, wasting %u pages", remainder_pages);
+                        block.in_use = true;
+                        block.num_pages = num_pages;
+                    } else {
+                        block.start_index = alloc_index;
+                        block.num_pages = num_pages;
+                        block.in_use = true;
 
-                    block.start_index = alloc_index;
-                    block.num_pages = num_pages;
-                    block.in_use = true;
+                        free_list_[free_list_count_++] = GgttBlock{
+                            .start_index = remainder_start,
+                            .num_pages = remainder_pages,
+                            .in_use = false,
+                        };
+                    }
+                }
+            } else {
+                if (free_list_count_ + (remainder_pages > 0 ? 1 : 0) >= GGTT_MAX_FREE_BLOCKS) {
+                    Log::log_dbc("ggtt: freelist full, cannot split for alignment");
+                    continue;
+                }
 
+                block.num_pages = padding;
+
+                free_list_[free_list_count_++] = GgttBlock{
+                    .start_index = alloc_index,
+                    .num_pages = num_pages,
+                    .in_use = true,
+                };
+
+                if (remainder_pages > 0) {
                     free_list_[free_list_count_++] = GgttBlock{
                         .start_index = remainder_start,
                         .num_pages = remainder_pages,
@@ -384,16 +411,17 @@ namespace gpu::intel::core {
         return phys_to_virt(phys);
     }
 
-    GgttAllocation GgttAllocator::alloc_persistent(usize num_pages, u64 flags, u8 pat_index) {
+    GgttAllocation GgttAllocator::alloc_persistent_aligned(usize num_pages, u32 align_pages, u64 flags, CacheMode cache_mode, u8 pat_index) {
         const phys_addr_t phys = kernel::memory::request_pages_phys(num_pages);
         const virt_addr_t cpu = phys_to_virt(phys);
 
-        kernel::memory::map_range(cpu, phys, num_pages * PAGE_SIZE, flags | (1ULL << PtFlag::ReadWrite));
+        kernel::memory::map_range(cpu, phys, num_pages * PAGE_SIZE, flags | (1ULL << PtFlag::ReadWrite), cache_mode);
 
-        const u32 gtt_index = index_alloc_persistent(static_cast<u32>(num_pages));
+        const u32 gtt_index = index_alloc_persistent(static_cast<u32>(num_pages), align_pages);
 
         if (gtt_index == U32_MAX) {
             Log::log_dbc("ggtt: alloc_persistent: persistent zone exhausted");
+            kernel::memory::free_pages_phys(phys, num_pages);
             return {};
         }
 
@@ -402,13 +430,13 @@ namespace gpu::intel::core {
         return {cpu, make_gfx(static_cast<u64>(gtt_index) * PAGE_SIZE), phys};
     }
 
-    GgttAllocation GgttAllocator::alloc_transient(usize num_pages, u64 flags, u8 pat_index) {
+    GgttAllocation GgttAllocator::alloc_transient_aligned(usize num_pages, u32 align_pages, u64 flags, CacheMode cache_mode, u8 pat_index) {
         const phys_addr_t phys = kernel::memory::request_pages_phys(num_pages);
         const virt_addr_t cpu = phys_to_virt(phys);
 
-        kernel::memory::map_range(cpu, phys, num_pages * PAGE_SIZE, flags | (1ULL << PtFlag::ReadWrite));
+        kernel::memory::map_range(cpu, phys, num_pages * PAGE_SIZE, flags | (1ULL << PtFlag::ReadWrite), cache_mode);
 
-        const u32 gtt_index = index_alloc_transient(static_cast<u32>(num_pages));
+        const u32 gtt_index = index_alloc_transient(static_cast<u32>(num_pages), align_pages);
 
         if (gtt_index == U32_MAX) {
             Log::log_dbc("ggtt: alloc_transient: transient zone exhausted");

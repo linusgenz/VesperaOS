@@ -22,6 +22,7 @@
 
 #include "iris/iris_kmd_backend.h"
 
+#include <emmintrin.h>
 #include <sys/mman.h>
 
 #include "intel_debug_identifier.h"
@@ -169,8 +170,10 @@ lucifer_batch_submit(struct iris_batch* batch) {
 
     num_syncs = iris_batch_num_fences(batch) + 1 /* our own signal */;
     syncs = calloc(num_syncs, sizeof(*syncs));
-    if (!syncs)
+    if (!syncs) {
+        simple_mtx_unlock(bo_deps_lock);
         return -ENOMEM;
+    }
 
     unsigned i = 0;
     util_dynarray_foreach(&batch->exec_fences, struct iris_batch_fence, fence) {
@@ -194,13 +197,26 @@ lucifer_batch_submit(struct iris_batch* batch) {
         iris_dump_bo_list(batch);
     }
 
+    uint32_t* handles = calloc(batch->exec_count, sizeof(*handles));
+    if (!handles) {
+        free(syncs);
+        simple_mtx_unlock(bo_deps_lock);
+        return -ENOMEM;
+    }
+    for (int b = 0; b < batch->exec_count; b++)
+        handles[b] = batch->exec_bos[b]->gem_handle;
+
     struct lucifer_exec exec = {
         .vm_id      = iris_bufmgr_get_global_vm_id(bufmgr),
-        .engine     = batch->lucifer.engine_class,
+        /* class | (queue << 8): queue = iris batch name, so RENDER and COMPUTE
+         * (both on the RCS) get separate HW contexts in the kernel */
+        .engine     = batch->lucifer.engine_class | ((uint32_t)batch->name << 8),
         .batch_addr = batch->exec_bos[0]->address,
         .batch_len  = batch->primary_batch_size,
         .syncs      = (uintptr_t)syncs,
         .num_syncs  = num_syncs,
+        .handles     = (uintptr_t)handles,
+        .num_handles = (uint32_t)batch->exec_count,
     };
 
     ret = intel_ioctl(iris_bufmgr_get_fd(bufmgr), LUCIFER_IOCTL_EXEC, &exec);
@@ -212,6 +228,7 @@ lucifer_batch_submit(struct iris_batch* batch) {
     simple_mtx_unlock(bo_deps_lock);
 
     free(syncs);
+    free(handles);
 
     for (int b = 0; b < batch->exec_count; b++) {
         struct iris_bo* bo = batch->exec_bos[b];
@@ -264,7 +281,7 @@ lucifer_gem_vm_bind_op(struct iris_bo* bo, enum lucifer_vm_bind_op op, enum bo_a
         .flags      = flags,
     };
 
-    fprintf(stderr, "vm_bind: bo=%p size=%lu range=%lu addr=0x%lx\n", bo, bo->size, range, args.addr);
+   // fprintf(stderr, "vm_bind: bo=%p size=%lu range=%lu addr=0x%lx\n", bo, bo->size, range, args.addr);
 
     const int ret = intel_ioctl(iris_bufmgr_get_fd(bufmgr), LUCIFER_IOCTL_VM_BIND, &args);
     if (ret)

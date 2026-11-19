@@ -76,30 +76,19 @@ namespace gpu::intel::rcs {
         void debug_dump_error_regs(const char* label) const;
     private:
         bool select_pipeline(PIPELINE_SELECT::PipelineSelection mode);
-        bool state_base_address_setup();
-        bool setup_shaders_and_pipeline(const ShaderOffsets& offsets);
-        bool setup_constant_buffer_allocations();
-        bool setup_constant_buffer(const Mat4& mvp);
         u32 gt_user_irq_bit() const override;
         u32 gt_unmask_bits() const override;
         u32 gt_debug_irq_bitmask() const override;
         void on_gt_user_interrupt() override;
         void rcs_interrupts_enable() const;
         void emit_flush(u32 seqno) override;
-        ShaderOffsets upload_shaders();
-
-        bool vertex_buffer_setup();
 
         /**
      * @brief Sends 3DSTATE_DRAWING_RECTANGLE and dispatches a 3-vertex 3DPRIMITIVE.
      * @param width Framebuffer width in pixels (e.g. 1920)
      * @param height Framebuffer height in pixels (e.g. 1080)
      */
-        bool draw_triangle(u32 width = 1920, u32 height = 1080);
-        void setup_scissor_state(Resolution res);
-        bool setup_viewport_state(float x, float y, Resolution res);
-        void setup_blend_state();
-        bool render_target_setup(Resolution res);
+
         void debug_dump_render_target(u32 width, u32 height, u32 pitch) const;
         void rcs_error_reporting_init() const;
         virt_addr_t render_target_cpu_addr_{};

@@ -28,26 +28,27 @@
 #include <vespera/scheduling.h>
 #include <vespera/time.h>
 
+#include "intel_dbg.h"
+#include "intel_dmabuf.h"
 #include "intel_engine.h"
 #include "intel_gem_backing.h"
 #include "intel_gpu_device.h"
+#include "kscan.h"
 #include "../kernel/units/unit.h"
 #include "../regs/lrc_layout.h"
+#include "vespera/realm/handles.h"
 
 namespace gpu::intel::core {
     bool GemObject::dec_ref() {
-        refcount--;
-        if (refcount != 0) {
+        if (__atomic_sub_fetch(&refcount, 1, __ATOMIC_ACQ_REL) != 0) {
             return false;
         }
-
-        // purged objects already returned their pages in gem_madvise();
-        // nothing left to free here beyond the object itself.
         if (!is_userptr && !purged) {
             const usize page_count = (size + PAGE_SIZE - 1) / PAGE_SIZE;
-            kernel::memory::free_pages_phys(phys_addr, page_count);
+            if (!(dbg::EXP_BO_POOL && page_count <= 64 && dbg_pool::push(phys_addr, page_count))) {
+                kernel::memory::free_pages_phys(phys_addr, page_count);
+            }
         }
-
         delete this;
         return true;
     }
@@ -69,16 +70,25 @@ namespace gpu::intel::core {
         // only ever frees objects nothing else is using.
         for (auto*& obj : gem_slots_) {
             if (obj != nullptr) {
+                for (auto & engine_context : engine_contexts_) {
+                    if (obj->last_write_ctx == &engine_context) {
+                        obj->last_write_ctx = nullptr;
+                        obj->last_write_seqno = 0;
+                    }
+                }
                 obj->dec_ref();
                 obj = nullptr;
             }
         }
 
-        for (usize i = 0; i < LUCIFER_NUM_ENGINE_CLASSES; i++) {
+        for (usize i = 0; i < LUCIFER_NUM_CONTEXTS; i++) {
             const auto& ctx = engine_contexts_[i];
-            if (ctx.sw_context_id == 0) continue;
+            // sw_context_id == 0 is a valid id (file_id_ 0, idx 0), so the
+            // initialized flag is the only reliable marker.
+            if (!engine_contexts_initialized_[i]) continue;
 
-            if (const IntelEngine* engine = device_.engine_for_class(i)) {
+            if (const IntelEngine* engine = device_.engine_for_class(static_cast<u32>(i / LUCIFER_QUEUES_PER_CLASS))) {
+                device_.forget_submit_ctx(&ctx);
                 engine->lrc_free(ctx);
             }
         }
@@ -145,13 +155,18 @@ namespace gpu::intel::core {
         }
 
         const usize page_count = (args.size + PAGE_SIZE - 1) / PAGE_SIZE;
-        const phys_addr_t phys = kernel::memory::request_pages_phys(page_count);
+        phys_addr_t phys{};
+        const bool from_pool = dbg::EXP_BO_POOL && dbg_pool::pop(page_count, &phys);
+        if (!from_pool) phys = kernel::memory::request_pages_phys(page_count);
         if (phys_null(phys)) {
             Log::log_dbc("intel-gpu: GEM_CREATE failed (request_pages_phys)");
             return 0;
         }
 
-        memset(phys_to_virt(phys), 0, PAGE_SIZE * page_count);
+        u8* p = static_cast<u8*>(virt_ptr(phys_to_virt(phys)));
+        memset(p, 0, PAGE_SIZE * page_count);
+        for (usize o = 0; o < PAGE_SIZE * page_count; o += 64)
+            asm volatile("clflush (%0)" :: "r"(p + o) : "memory");
         asm volatile("mfence" ::: "memory");
 
         auto* obj = new GemObject{
@@ -165,7 +180,12 @@ namespace gpu::intel::core {
         };
         obj->inc_ref(); // the handle slot's own reference
 
-        return gem_slots_.insert(obj);
+        auto t = gem_slots_.insert(obj);
+
+        Log::log_dbc("gem-create: obj=%p handle_is=%u size=%llu t=%llu",
+             (void*)obj, t,
+             (unsigned long long)args.size, (unsigned long long)kernel::time::get_uptime_us());
+        return t;
     }
 
     u32 LucFile::gem_create_userptr(const lucifer_gem_userptr& args) {
@@ -297,8 +317,17 @@ namespace gpu::intel::core {
             return false;
         }
 
-        Log::log_dbc("exec: mapping BO gpu_addr=0x%llx phys=0x%llx offset=0x%llu", (args.addr),
-                     phys_raw(obj->phys_addr), args.obj_offset);
+        if (obj->size >= 0x3E800 && obj->size <= 0x40000) {
+            g_dbg_rt_phys = phys_raw(obj->phys_addr);
+            g_dbg_rt_gpu = args.addr;
+            Log::log_dbc("dbg: RT candidate phys=0x%llx size=0x%llx",
+                         (unsigned long long)g_dbg_rt_phys, (unsigned long long)obj->size);
+        }
+
+        Log::log_dbc("exec: mapping BO handle=%u obj=%p gpu_addr=0x%llx phys=0x%llx offset=0x%llu t=%llu",
+                     args.handle, (void*)obj, (args.addr),
+                     phys_raw(obj->phys_addr), args.obj_offset,
+                     (unsigned long long)kernel::time::get_uptime_us());
 
         phys_start = phys_add(obj->phys_addr, args.obj_offset);
 
@@ -319,22 +348,32 @@ namespace gpu::intel::core {
         return ok;
     }
 
-    EngineContext* LucFile::context_for_engine(IntelEngine* engine, const u32 engine_class) {
+    EngineContext* LucFile::context_for_engine(IntelEngine* engine, const u32 engine_enc) {
         SpinlockGuard guard(handle_lock_);
-        return context_for_engine_locked(engine, engine_class);
+        return context_for_engine_locked(engine, engine_enc);
     }
 
-    EngineContext* LucFile::context_for_engine_locked(IntelEngine* engine, const u32 engine_class) {
-        if (!engine || engine_class >= LUCIFER_NUM_ENGINE_CLASSES) {
+    /// `engine_enc` is the encoded engine value from lucifer_exec.engine /
+    /// LucSyncObj::engine: engine_class | (queue << 8). Every (class, queue)
+    /// pair gets its own LRC, so two iris batches that map to the same
+    /// hardware engine (RENDER + COMPUTE on gen9.5 RCS) no longer share
+    /// (and clobber) one HW context.
+    EngineContext* LucFile::context_for_engine_locked(IntelEngine* engine, const u32 engine_enc) {
+        const u32 engine_class = engine_class_of(engine_enc);
+        const u32 queue        = queue_of(engine_enc);
+        if (!engine || engine_class >= LUCIFER_NUM_ENGINE_CLASSES || queue >= LUCIFER_QUEUES_PER_CLASS) {
             return nullptr;
         }
 
-        EngineContext& ctx = engine_contexts_[engine_class];
-        if (engine_contexts_initialized_[engine_class]) {
+        const usize idx = static_cast<usize>(engine_class) * LUCIFER_QUEUES_PER_CLASS + queue;
+        EngineContext& ctx = engine_contexts_[idx];
+        if (engine_contexts_initialized_[idx]) {
             return &ctx;
         }
 
-        const u32 sw_context_id = (file_id_ << 4) | engine_class;
+        // idx < LUCIFER_NUM_CONTEXTS (6) -> fits into the low 4 bits, so ids
+        // stay unique per (file, class, queue).
+        const u32 sw_context_id = (file_id_ << 4) | static_cast<u32>(idx);
 
         // TODO(lucifer): LRC_SIZE_RCS vs LRC_SIZE_SMALL_ENGINE should come
         // from the engine itself (e.g. a virtual lrc_size_bytes() on
@@ -344,17 +383,17 @@ namespace gpu::intel::core {
         constexpr usize lrc_size_bytes = LRC_SIZE_RCS;
 
         if (!engine->ensure_execlist_mode_enabled()) {
-            Log::log_dbc("intel-gpu: context_for_engine failed (ensure_execlist_mode_enabled, engine_class=%u)",
-                         engine_class);
+            Log::log_dbc("intel-gpu: context_for_engine failed (ensure_execlist_mode_enabled, class=%u queue=%u)",
+                         engine_class, queue);
             return nullptr;
         }
 
         if (!engine->lrc_alloc_and_init(ctx, lrc_size_bytes, sw_context_id)) {
-            Log::log_dbc("intel-gpu: context_for_engine failed (lrc_alloc_and_init, engine_class=%u)", engine_class);
+            Log::log_dbc("intel-gpu: context_for_engine failed (lrc_alloc_and_init, class=%u queue=%u)", engine_class, queue);
             return nullptr;
         }
 
-        engine_contexts_initialized_[engine_class] = true;
+        engine_contexts_initialized_[idx] = true;
         return &ctx;
     }
 
@@ -365,13 +404,13 @@ namespace gpu::intel::core {
             return false;
         }
 
-        IntelEngine* engine = device_.engine_for_class(args.engine);
+        IntelEngine* engine = device_.engine_for_class(engine_class_of(args.engine));
         if (!engine) {
             Log::log_dbc("intel-gpu: EXEC failed (bad or unregistered engine=%u)", args.engine);
             return false;
         }
 
-        EngineContext* ctx = context_for_engine(engine, args.engine);
+        EngineContext* ctx = context_for_engine(engine, args.engine); // encoded: class | queue << 8
         if (!ctx) {
             Log::log_dbc("intel-gpu: EXEC failed (context_for_engine)");
             return false;
@@ -423,10 +462,6 @@ namespace gpu::intel::core {
             }
         }
 
-        Log::log_dbc("exec: userspace batch_addr=0x%llx (from ioctl)", args.batch_addr);
-
-        //vm->dump_batch_buffer(make_gfx(args.batch_addr), args.batch_len);
-
         u32 seqno = 0;
         if (!engine->submit_or_wait(make_gfx(args.batch_addr), args.batch_len, &seqno, vm, *ctx)) {
             Log::log_dbc("intel-gpu: EXEC failed (submit_or_wait)");
@@ -434,6 +469,27 @@ namespace gpu::intel::core {
         }
 
         args.out_seqno = seqno;
+        device_.note_submit(engine_class_of(args.engine), ctx, seqno);
+
+        if (args.num_handles != 0 && args.handles != 0) {
+            const auto* handles = reinterpret_cast<const u32*>(args.handles);
+            for (u32 i = 0; i < args.num_handles; ++i) {
+                GemObject* obj = gem_get_ref(handles[i]);
+                if (!obj) continue;
+                obj->last_write_ctx = ctx;
+                obj->last_write_seqno = seqno;
+                obj->last_engine_class = static_cast<u8>(engine_class_of(args.engine));
+
+                if (obj->size >= 0x3E800 && obj->size <= 0x40000 && !obj->is_userptr && !obj->purged) {
+                    const auto* rt = static_cast<const u8*>(
+                        virt_ptr(phys_to_virt(make_phys(phys_raw(obj->phys_addr)))));
+                    kscan::watch(rt, 1280, 320, 200,
+                                 engine->seqno_ptr_for_read(*ctx), seqno, "post-submit");
+                }
+
+                obj->dec_ref();
+            }
+        }
 
         for (u32 i = 0; i < args.num_syncs; ++i) {
             if (syncs[i].flags & LUCIFER_SYNC_FLAG_SIGNAL) {
@@ -441,7 +497,6 @@ namespace gpu::intel::core {
             }
         }
 
-        Log::log_dbc("returning to userspace from submit");
         return true;
     }
 
@@ -497,7 +552,7 @@ namespace gpu::intel::core {
         }
 
         EngineContext* ctx = engine ? context_for_engine_locked(engine, obj.engine) : nullptr;
-        return ctx && *engine->seqno_ptr_for_read(*ctx) >= static_cast<u32>(obj.target_seqno);
+        return ctx && static_cast<i32>(*engine->seqno_ptr_for_read(*ctx) - obj.target_seqno) >= 0;
     }
 
     int LucFile::syncobj_wait_poll_once(
@@ -509,7 +564,7 @@ namespace gpu::intel::core {
         u32 signaled_count = 0;
         for (u32 i = 0; i < count_handles; ++i) {
             const LucSyncObj& obj = *syncobj_slots_.get(handles[i]);
-            IntelEngine* engine = obj.has_fence ? device_.engine_for_class(obj.engine) : nullptr;
+            IntelEngine* engine = obj.has_fence ? device_.engine_for_class(engine_class_of(obj.engine)) : nullptr;
 
             if (obj.has_fence && engine && engine->is_banned()) {
                 Log::log_dbc("intel-gpu: SYNCOBJ_WAIT failed (handle=%u bound to banned engine=%u)",
@@ -585,7 +640,7 @@ namespace gpu::intel::core {
                 const LucSyncObj& obj = *syncobj_slots_.get(handles[i]);
                 if (!obj.has_fence) continue;
 
-                IntelEngine* engine = device_.engine_for_class(obj.engine);
+                IntelEngine* engine = device_.engine_for_class(engine_class_of(obj.engine));
                 if (!engine) continue;
 
                 bool already_have = false;
@@ -774,7 +829,48 @@ namespace gpu::intel::core {
         return new IntelGemBackingObject(this, handle);
     }
 
+
+    int LucFile::prime_handle_to_fd(drm_prime_handle& args) const {
+        constexpr u32 SUPPORTED_FLAGS = DRM_CLOEXEC | DRM_RDWR;
+        if ((args.flags & ~SUPPORTED_FLAGS) != 0) {
+            return -EINVAL;
+        }
+
+        GemObject* obj = gem_get_ref(args.handle);
+        if (obj == nullptr) {
+            return -ENOENT;
+        }
+        if (obj->is_userptr || obj->purged) {
+            obj->dec_ref();
+            return -EINVAL;
+        }
+
+        auto* dmabuf = new LucDmaBuf(obj, device_);
+        auto* backing = static_cast<kernel::vm::VmBackingObject*>(dmabuf);
+
+        Result<HandleId> res = kernel::realm::add_handle_to_current(
+            HANDLE_TYPE_DMABUF, backing, CAP_RW | CAP_DEVICE_ACCESS, /*transferable=*/true,
+            LucDmaBuf::handle_destroy, LucDmaBuf::handle_acquire);
+        if (res.is_err()) {
+            delete dmabuf;
+            return -EMFILE;
+        }
+
+        args.fd = res.unwrap(); // return as uint64 then in ioctl libc handler write into fd table and put into drm_handle struct into fd field
+        return 0;
+    }
+
+    // todo
+    bool LucFile::is_primary_only_ioctl(const u32 request) {
+        (void)request;
+        return false;
+    }
+
     int LucFile::ioctl(const u32 request, void* arg) {
+        if (node_kind_ == NodeKind::Render && is_primary_only_ioctl(request)) {
+            return -EACCES;
+        }
+
         if (request == LUCIFER_IOCTL_VERSION) {
             auto* ver = static_cast<lucifer_version*>(arg);
             if (!ver) {
@@ -962,6 +1058,12 @@ namespace gpu::intel::core {
             return syncobj_signal(handles, signal->count_handles) ? 0 : -1;
         }
 
+        if (request == DRM_IOCTL_PRIME_HANDLE_TO_FD) {
+            auto* prime = static_cast<drm_prime_handle*>(arg);
+            if (!prime) return -EINVAL;
+            return prime_handle_to_fd(*prime);
+        }
+
         /* TODO(lucifer): DRM_IOCTL_SYNCOBJ_HANDLE_TO_FD/FD_TO_HANDLE and
          * timeline-point variants (drm_syncobj_timeline_wait, TRANSFER,
          * eventfd) are declared in drm.h but not dispatched here yet */
@@ -1081,6 +1183,15 @@ namespace gpu::intel::core {
                     strncpy(out->name, device_.get_kd()->name, sizeof(out->name) - 1);
                     out->name[sizeof(out->name) - 1] = '\0';
                 }
+
+                out->render_name[0] = '\0';
+                if (device_.get_render_kd() && device_.get_render_kd()->name) {
+                    strncpy(out->render_name, device_.get_render_kd()->name, sizeof(out->render_name) - 1);
+                    out->render_name[sizeof(out->render_name) - 1] = '\0';
+                }
+
+                out->node_type = (node_kind_ == NodeKind::Render) ? LUCIFER_NODE_RENDER
+                                                                  : LUCIFER_NODE_PRIMARY;
                 break;
             }
             default: ;

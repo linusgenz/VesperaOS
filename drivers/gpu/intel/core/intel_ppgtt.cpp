@@ -92,7 +92,7 @@ namespace gpu::intel::core {
         // supposed to fault" rationale - our command streams don't rely on
         // overfetch, but read-only-present is still safer bring-up behavior than
         // leaving entries absent (absent -> page fault -> FAULT_AND_HANG).
-        auto scratch_page = ggtt_.alloc_transient(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        auto scratch_page = ggtt_.alloc_transient(1, (1ULL << PtFlag::ReadWrite), CacheMode::Uncacheable, MOCS_UNCACHED);
         if (virt_null(scratch_page.cpu_addr)) {
             Log::error("intel-ppgtt: scratch page allocation failed");
             return false;
@@ -106,7 +106,7 @@ namespace gpu::intel::core {
         // instead.
 
         // Scratch PT: every entry points at the scratch page.
-        auto scratch_pt = ggtt_.alloc_transient(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        auto scratch_pt = ggtt_.alloc_transient(1, (1ULL << PtFlag::ReadWrite), CacheMode::Uncacheable, MOCS_UNCACHED);
         if (virt_null(scratch_pt.cpu_addr)) {
             Log::error("intel-ppgtt: scratch PT allocation failed");
             return false;
@@ -123,7 +123,7 @@ namespace gpu::intel::core {
         }
 
         // Scratch PD: every entry points at the scratch PT.
-        auto scratch_pd = ggtt_.alloc_transient(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        auto scratch_pd = ggtt_.alloc_transient(1, (1ULL << PtFlag::ReadWrite), CacheMode::Uncacheable, MOCS_UNCACHED);
         if (virt_null(scratch_pd.cpu_addr)) {
             Log::error("intel-ppgtt: scratch PD allocation failed");
             return false;
@@ -140,7 +140,7 @@ namespace gpu::intel::core {
         }
 
         // Scratch PDPT: every entry points at the scratch PD.
-        auto scratch_pdpt = ggtt_.alloc_transient(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        auto scratch_pdpt = ggtt_.alloc_transient(1, (1ULL << PtFlag::ReadWrite), CacheMode::Uncacheable, MOCS_UNCACHED);
         if (virt_null(scratch_pdpt.cpu_addr)) {
             Log::error("intel-ppgtt: scratch PDPT allocation failed");
             return false;
@@ -160,7 +160,7 @@ namespace gpu::intel::core {
     }
 
     bool IntelPpgtt::alloc_root() {
-        auto pml4 = ggtt_.alloc_transient(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        auto pml4 = ggtt_.alloc_transient(1, (1ULL << PtFlag::ReadWrite), CacheMode::Uncacheable, MOCS_UNCACHED);
         if (virt_null(pml4.cpu_addr)) {
             Log::error("intel-ppgtt: PML4 allocation failed");
             return false;
@@ -206,7 +206,7 @@ namespace gpu::intel::core {
         u64 pdpt_phys_addr = pml4_entry & ~static_cast<u64>(0xFFF);
 
         if (pdpt_phys_addr == scratch_pdpt_phys_addr_) {
-            auto alloc = ggtt_.alloc_transient(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
+            auto alloc = ggtt_.alloc_transient(1, (1ULL << PtFlag::ReadWrite), CacheMode::Uncacheable, MOCS_UNCACHED);
             if (virt_null(alloc.cpu_addr)) {
                 Log::error("intel-ppgtt: PDPT allocation failed (pml4_i=%u)", pml4_i);
                 return nullptr;
@@ -236,7 +236,7 @@ namespace gpu::intel::core {
         u64 pd_phys_addr = pdpt_entry & ~static_cast<u64>(0xFFF);
 
         if (pd_phys_addr == scratch_pd_phys_addr_) {
-            auto alloc = ggtt_.alloc_transient(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
+            auto alloc = ggtt_.alloc_transient(1, (1ULL << PtFlag::ReadWrite), CacheMode::Uncacheable, MOCS_UNCACHED);
             if (virt_null(alloc.cpu_addr)) {
                 Log::error("intel-ppgtt: PD allocation failed (pml4_i=%u pdpt_i=%u)", pml4_i, pdpt_i);
                 return nullptr;
@@ -267,7 +267,7 @@ namespace gpu::intel::core {
         u64 pt_phys_addr = pd_entry & ~static_cast<u64>(0xFFF);
 
         if (pt_phys_addr == scratch_pt_phys_addr_) {
-            auto alloc = ggtt_.alloc_transient(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
+            auto alloc = ggtt_.alloc_transient(1, (1ULL << PtFlag::ReadWrite), CacheMode::Uncacheable, MOCS_UNCACHED);
             if (virt_null(alloc.cpu_addr)) {
                 Log::error("intel-ppgtt: PT allocation failed (pml4_i=%u pdpt_i=%u pd_i=%u)", pml4_i, pdpt_i, pd_i);
                 return nullptr;
@@ -327,6 +327,22 @@ namespace gpu::intel::core {
             pt[indexer.pt_i] = encode_leaf(page_phys, caching, writable);
         }
 
+        asm volatile("mfence" ::: "memory");
+        return true;
+    }
+
+    bool IntelPpgtt::clear_range(const gfx_addr_t gpu_addr, const usize size) {
+        if ((gfx_raw(gpu_addr) & 0xFFF) || (size & 0xFFF)) return false;
+        const usize page_count = size / PAGE_SIZE;
+        const gen_pte_t scratch_pte = encode_leaf(scratch_page_phys_addr_, PpgttCaching::NONE, false);
+
+        for (usize page = 0; page < page_count; page++) {
+            const PpgttIndexer idx(gfx_add(gpu_addr, page * PAGE_SIZE));
+            gen_pte_t* pt = ensure_pt(idx.pml4_i, idx.pdpt_i, idx.pd_i);
+            if (!pt) return false;
+            pt[idx.pt_i] = scratch_pte;
+        }
+        asm volatile("mfence" ::: "memory");
         return true;
     }
 

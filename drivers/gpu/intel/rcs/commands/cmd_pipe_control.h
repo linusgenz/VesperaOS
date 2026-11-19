@@ -94,8 +94,8 @@ union PIPE_CONTROL {
         // ====================================================================
         // DWord 2..3: Destination Address
         // ====================================================================
-        u64 reserved2_0 : 2;              ///< [1:0]  MBZ
-        u32 address_lo : 30;              ///< [31:2], Bit2 must be 0 per spec (nur QW-align relevant)
+        u32 reserved2_0 : 2;              ///< [1:0]  MBZ
+        u32 address_lo : 30;              ///< [31:2], Bit2 must be 0 per spec
         u32 address_hi;
 
         // ====================================================================
