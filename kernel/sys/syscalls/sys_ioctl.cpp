@@ -24,10 +24,9 @@
 #include <filesystem/vfs_handle.h>
 #include <tty/tty_device.h>
 #include <uapi/vespera/handles.h>
-#include <vespera/devices/char_device.h>
 
 #include "../handle_resolution.h"
-#include "../drivers/gpu/intel/core/intel_dmabuf.h"
+#include "vespera/mm/dmabuf.h"
 
 namespace syscalls::internal {
     i64 sys_ioctl(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
@@ -46,7 +45,7 @@ namespace syscalls::internal {
             case HANDLE_TYPE_FILE:
                 return -ENOTTY;
             case HANDLE_TYPE_DMABUF: {
-                auto* dmabuf = rh.resource_as<gpu::intel::core::LucDmaBuf>();
+                auto* dmabuf = rh.resource_as<kernel::vm::DmaBuf>();
                 if (!dmabuf) return -EBADH;
                 return dmabuf->ioctl(req, arg);
             }

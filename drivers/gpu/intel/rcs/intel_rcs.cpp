@@ -159,37 +159,6 @@ namespace gpu::intel::rcs {
         waiters.wake_all_irq();
     }
 
-    /*void IntelRcs::emit_flush(u32 seqno) {
-        PIPE_CONTROL null_cmd = PIPE_CONTROL::create();
-        ring_write_cmd(null_cmd);
-
-        PIPE_CONTROL cmd = PIPE_CONTROL::create();
-
-        // Cache Flush Flags (EMIT_FLUSH)
-        cmd.render_target_cache_flush_enable = 1;
-        cmd.depth_cache_flush_enable = 1;
-        cmd.dc_flush_enable = 1;           // Data Cache Flush
-        cmd.pipe_control_flush_enable = 1; // L3 Flush
-
-        // Invalidate Flags (EMIT_INVALIDATE)
-        cmd.state_cache_invalidation_enable = 1;
-        cmd.texture_cache_invalidation_enable = 1;
-        cmd.instruction_cache_invalidate_enable = 1;
-
-        cmd.command_streamer_stall_enable = 1;
-
-        // Post-Sync Operation: seqno in HWSP schreiben
-        cmd.post_sync_operation = PIPE_CONTROL::WRITE_IMMEDIATE_DATA;
-        cmd.destination_address_type = 0;
-        cmd.store_data_index = 1;
-        cmd.address_lo = core::PPHWSP_SEQNO_DWORD_INDEX;
-        cmd.address_hi = 0;
-        cmd.immediate_data = seqno;
-        cmd.notify_enable = 1;
-
-        ring_write_cmd(cmd);
-    }*/
-
     void IntelRcs::emit_flush(u32 seqno) {
         PIPE_CONTROL flush_pc = PIPE_CONTROL::create();
         flush_pc.render_target_cache_flush_enable = 1;

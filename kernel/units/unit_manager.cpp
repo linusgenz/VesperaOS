@@ -37,6 +37,7 @@
 
 #include "unit.h"
 #include "exec/elf.h"
+#include "vespera/mm/vm.h"
 
 Unit UnitManager::units_[MAX_UNITS];
 Spinlock UnitManager::global_lock_;
@@ -546,7 +547,7 @@ uptr setup_user_args_and_env(Unit* u, const char** argv, const char** envp, cons
 
 void UnitManager::release_resources(Unit* u) {
     u->detach_all_handles();
-    u->free_vma_list();
+    kernel::vm::unmap_all(u);
 
     if (!virt_null(u->context.stack)) {
         const usize pages = (u->context.stack_size + 0xFFF) / 0x1000;

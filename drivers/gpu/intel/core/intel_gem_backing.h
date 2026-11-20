@@ -43,7 +43,7 @@ namespace gpu::intel::core {
      */
     class IntelGemBackingObject final : public kernel::vm::VmBackingObject {
     public:
-        IntelGemBackingObject(const LucFile* file, u32 handle);
+        explicit IntelGemBackingObject(GemObject* adopted_obj);
         ~IntelGemBackingObject() override;
 
         IntelGemBackingObject(const IntelGemBackingObject&) = delete;
@@ -53,11 +53,19 @@ namespace gpu::intel::core {
         [[nodiscard]] CacheMode get_cache_mode() const override;
         [[nodiscard]] usize get_size() const override;
 
-        void add_mapping() override {}
-        void remove_mapping() override {}
+        void add_mapping() override {
+            __atomic_add_fetch(&refs_, 1, __ATOMIC_RELAXED);
+        }
+
+        void remove_mapping() override {
+            if (__atomic_sub_fetch(&refs_, 1, __ATOMIC_ACQ_REL) == 0) {
+                delete this;
+            }
+        }
 
     private:
         GemObject* obj_; ///< ref held for this object's lifetime
+        u32 refs_ = 0;
     };
 } // namespace gpu::intel::core
 

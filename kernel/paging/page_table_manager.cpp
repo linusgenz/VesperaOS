@@ -11,10 +11,10 @@ PageTableManager::PageTableManager(PageTable* pml4_address)
 }
 
 void PageTableManager::map_range(
-    const virt_addr_t virt_start, const phys_addr_t phys_start, const usize size, const u64 flags
+    const virt_addr_t virt_start, const phys_addr_t phys_start, const usize size, const u64 flags, CacheMode cache_mode
 ) const {
     for (usize offset = 0; offset < size; offset += PAGE_SIZE) {
-        map_memory(virt_add(virt_start, offset), phys_add(phys_start, offset), flags);
+        map_memory(virt_add(virt_start, offset), phys_add(phys_start, offset), flags, cache_mode);
     }
 }
 
@@ -22,7 +22,7 @@ static void invlpg(virt_addr_t addr) {
     asm volatile("invlpg (%0)" : : "r"(virt_raw(addr)) : "memory");
 }
 
-void PageTableManager::map_memory(virt_addr_t virt_addr, phys_addr_t phys_addr, u64 flags, bool present) const {
+void PageTableManager::map_memory(virt_addr_t virt_addr, phys_addr_t phys_addr, u64 flags, CacheMode cache_mode, bool present) const {
     SpinlockGuard guard(spinlock_);
     const PageMapIndexer indexer(virt_addr);
 
@@ -64,6 +64,15 @@ void PageTableManager::map_memory(virt_addr_t virt_addr, phys_addr_t phys_addr, 
     if (!pt) return;
 
     if (present) flags |= (1ULL << PtFlag::Present);
+
+    if (static_cast<u32>(cache_mode) & 1) flags |= (1ULL << PtFlag::PWT);
+    else flags &= ~(1ULL << PtFlag::PWT);
+
+    if (static_cast<u32>(cache_mode) & 2) flags |= (1ULL << PtFlag::PCD);
+    else flags &= ~(1ULL << PtFlag::PCD);
+
+    if (static_cast<u32>(cache_mode) & 4) flags |= (1ULL << PtFlag::PatOrPs);
+    else flags &= ~(1ULL << PtFlag::PatOrPs);
 
     PageDirectoryEntry new_pte{};
     new_pte.set_address(phys_addr);

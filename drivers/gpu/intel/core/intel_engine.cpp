@@ -32,7 +32,6 @@
 #include <gpu/intel/regs/ring_regs.h>
 #include <gpu/intel/regs/force_to_nonpriv_regs.h>
 
-#include "intel_dbg.h"
 #include "mi_commands.h"
 #include "intel_workarounds.h"
 #include "mocs_init.h"
@@ -584,19 +583,6 @@ namespace gpu::intel::core {
         asm volatile("wbinvd" ::: "memory");
 
         active_dispatch_ring_->inflight_push(*out_seqno, postfix);
-
-        if constexpr (dbg::LOG_BATCH) {
-            const u32* d = (const u32*)vm->gpu_to_virt(batch_addr);
-            u32 prim = 0, h = 2166136261u, end = 0;
-            for (u32 i = 0; i < 32 * 1024; i++) {
-                const u32 v = d[i];
-                h = (h ^ v) * 16777619u;
-                if ((v & 0xFFFF0000u) == 0x7B000000u) prim++;               // 3DPRIMITIVE
-                if ((v & 0xFFFF0000u) == 0x05000000u) { end = i; break; }   // MI_BATCH_BUFFER_END
-            }
-            Log::log_dbc("batch: seq=%u dws=%u hash=%08x prim=%u phys_via_pt=%p\n",
-                         *out_seqno, end + 1, h, prim, (const void*)d);
-        }
 
         submit_ring(ctx, *out_seqno, sibling);
 

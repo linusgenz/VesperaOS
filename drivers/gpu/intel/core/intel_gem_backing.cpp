@@ -26,18 +26,18 @@
 
 namespace gpu::intel::core {
 
-    IntelGemBackingObject::IntelGemBackingObject(const LucFile* file, const u32 handle)
-        : obj_(file->gem_get_ref(handle)) {
+    IntelGemBackingObject::IntelGemBackingObject(GemObject* adopted_obj)
+            : obj_(adopted_obj) {
     }
 
     IntelGemBackingObject::~IntelGemBackingObject() {
         if (obj_) {
-            obj_->dec_ref();
+            (void)obj_->dec_ref();
         }
     }
 
     phys_addr_t IntelGemBackingObject::get_page(const usize offset_in_bytes) {
-        if (!obj_ || obj_->is_userptr) {
+        if (!obj_ || obj_->is_userptr || obj_->purged) {
             return phys_addr_t{};
         }
 

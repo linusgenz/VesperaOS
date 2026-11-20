@@ -36,6 +36,8 @@
 #include <vespera/sys/mman.h>
 #include <vespera_errno.h>
 
+#include "vespera/mm/dmabuf.h"
+
 namespace kernel::vm {
     namespace {
         constexpr uptr MMAP_BASE = 0x0000'6000'0000'0000ULL;
@@ -60,7 +62,7 @@ namespace kernel::vm {
                 for (const kernel::units::VmArea* v = u->get_vma_list(); v; v = v->next) {
                     if (v->start == next_start) {
                         const uptr end = next_start + v->length;
-                        current = (end + PAGE_SIZE - 1) & ~uptr(PAGE_SIZE - 1);
+                        current = (end + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
                         break;
                     }
                 }
@@ -79,8 +81,8 @@ namespace kernel::vm {
         if (length == 0) return -EINVAL;
         if (!u || !u->is_user) return -EACCES;
 
-        addr = addr & ~uptr(PAGE_SIZE - 1);
-        length = (length + PAGE_SIZE - 1) & ~usize(PAGE_SIZE - 1);
+        addr = addr & ~(PAGE_SIZE - 1);
+        length = (length + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
         const usize npages = length / PAGE_SIZE;
 
         const uptr base = (addr != 0) ? addr : find_free_range(u, length);
@@ -117,7 +119,7 @@ namespace kernel::vm {
 
                 backing_obj = entry->device->chardev->get_backing_object(cf, offset);
             } else if (hdl_type == HANDLE_TYPE_DMABUF) {
-                backing_obj = static_cast<VmBackingObject*>(he->resource);
+                backing_obj = static_cast<DmaBuf*>(he->resource);
             } else {
                 return -EBADH;
             }
@@ -126,25 +128,25 @@ namespace kernel::vm {
                 return -EBADH;
             }
 
+            backing_obj->add_mapping();
+
             const usize backing_size = backing_obj->get_size();
-            const usize backing_page_aligned_size = (backing_size + PAGE_SIZE - 1) & ~usize(PAGE_SIZE - 1);
+            const usize backing_page_aligned_size = (backing_size + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
 
             if (hdl_type == HANDLE_TYPE_DEVICE) {
                 if (length > backing_page_aligned_size) {
+                    backing_obj->remove_mapping();
                     return -EINVAL;
                 }
-            } else {
-                if (offset + length > backing_page_aligned_size) {
-                    return -EINVAL;
-                }
+            } else if (offset > backing_page_aligned_size || length > backing_page_aligned_size - offset) {
+                backing_obj->remove_mapping();
+                return -EINVAL;
             }
-
-            backing_obj->add_mapping();
         }
 
         const CacheMode cache_mode = backing_obj
-            ? backing_obj->get_cache_mode()
-            : CacheMode::WriteBack;
+                                         ? backing_obj->get_cache_mode()
+                                         : CacheMode::WriteBack;
 
         const usize page_offset = (hdl_type == HANDLE_TYPE_DEVICE) ? 0 : offset;
         for (usize i = 0; i < npages; i++) {
@@ -170,7 +172,7 @@ namespace kernel::vm {
             ptm->map_memory(virt_from_raw(base + i * PAGE_SIZE), phys, pt_flags, cache_mode);
         }
 
-        auto* area = static_cast<kernel::units::VmArea*>(kernel::memory::malloc(sizeof(kernel::units::VmArea)));
+        auto* area = new kernel::units::VmArea{};
         if (!area) {
             for (usize i = 0; i < npages; i++) ptm->unmap_memory(virt_from_raw(base + i * PAGE_SIZE));
             if (backing_obj) {
@@ -249,12 +251,47 @@ namespace kernel::vm {
         return static_cast<i64>(addr);
     }
 
+    void unmap_all(Unit* u) {
+        if (!u) return;
+
+        PageTableManager* ptm = (u->parent && u->parent->address_space)
+            ? u->parent->address_space->page_table()
+            : nullptr;
+
+        for (kernel::units::VmArea* vma = u->get_vma_list(); vma; vma = vma->next) {
+            const bool is_anon = (vma->flags & MAP_ANONYMOUS) != 0;
+            const bool has_backing = !is_anon && vma->backing_obj != nullptr;
+
+            if (ptm && (is_anon || has_backing)) {
+                const uptr start = vma->start & ~(PAGE_SIZE - 1);
+                const uptr end = (vma->start + vma->length + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+
+                for (uptr a = start; a < end; a += PAGE_SIZE) {
+                    const virt_addr_t va = virt_from_raw(a);
+                    if (const phys_addr_t phys = ptm->get_physical_address_ignore_present(va); !phys_null(phys)) {
+                        ptm->unmap_memory(va);
+                        if (is_anon) {
+                            kernel::memory::free_page_phys(phys);
+                        }
+                    }
+                }
+            }
+
+            if (has_backing) {
+                vma->backing_obj->remove_mapping();
+                vma->backing_obj = nullptr;
+            }
+        }
+
+        u->free_vma_list();
+    }
+
     i64 munmap(Unit* u, const uptr addr, usize length) {
         if (!u || !u->is_user) return -EACCES;
         if (length == 0) return -EINVAL;
 
-        const uptr base = addr & ~uptr(PAGE_SIZE - 1);
-        const usize len = (length + PAGE_SIZE - 1) & ~usize(PAGE_SIZE - 1);
+        const uptr base = addr & ~(PAGE_SIZE - 1);
+        const usize len = (length + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
         const uptr end = base + len;
 
         PageTableManager* ptm = ptm_for(u);
@@ -267,7 +304,7 @@ namespace kernel::vm {
             const uptr vma_end = vma->start + vma->length;
 
             if (vma->start < base && vma_end > end) {
-                split_tail = static_cast<kernel::units::VmArea*>(kernel::memory::malloc(sizeof(kernel::units::VmArea)));
+                split_tail = new kernel::units::VmArea{};
 
                 if (!split_tail) {
                     return -ENOMEM;
@@ -293,7 +330,7 @@ namespace kernel::vm {
 
             for (uptr a = unmap_start; a < unmap_end; a += PAGE_SIZE) {
                 const virt_addr_t va = virt_from_raw(a);
-                if (const phys_addr_t phys = ptm->get_physical_address(va); !phys_null(phys)) {
+                if (const phys_addr_t phys = ptm->get_physical_address_ignore_present(va); !phys_null(phys)) {
                     ptm->unmap_memory(va);
 
                     if (vma->flags & MAP_ANONYMOUS) {
@@ -377,6 +414,10 @@ namespace kernel::vm {
             const uptr change_start = (vma_start > base) ? vma_start : base;
             const uptr change_end = (vma_end < end) ? vma_end : end;
 
+            const CacheMode cache_mode = vma->backing_obj
+                ? vma->backing_obj->get_cache_mode()
+                : CacheMode::WriteBack;
+
             // Remap mapped pages. PROT_NONE clears Present bit to keep phys mapping without access.
             // ignore_present lookup is required to locate existing PROT_NONE pages.
             const bool make_present = (prot != PROT_NONE);
@@ -385,13 +426,13 @@ namespace kernel::vm {
                 if (const phys_addr_t phys = ptm->get_physical_address_ignore_present(va); !phys_null(phys)) {
                     u64 pt_flags = (1ULL << UserSuper);
                     if (prot & PROT_WRITE) pt_flags |= (1ULL << ReadWrite);
-                    ptm->map_memory(va, phys, pt_flags, CacheMode::WriteBack, make_present);
+                    ptm->map_memory(va, phys, pt_flags, cache_mode, make_present);
                 }
             }
 
             // Create tail VMA [change_end, vma_end) with old prot if needed
             if (change_end < vma_end) {
-                auto* tail = static_cast<kernel::units::VmArea*>(kernel::memory::malloc(sizeof(kernel::units::VmArea)));
+                auto* tail = new kernel::units::VmArea{};
                 if (!tail) return -ENOMEM;
 
                 tail->start = change_end;
@@ -411,7 +452,7 @@ namespace kernel::vm {
 
             // Split head: insert middle VMA for new prot and shrink original VMA to leading remainder
             if (change_start > vma_start) {
-                auto* mid = static_cast<kernel::units::VmArea*>(kernel::memory::malloc(sizeof(kernel::units::VmArea)));
+                auto* mid = new kernel::units::VmArea{};
                 if (!mid) return -ENOMEM;
 
                 mid->start = change_start;

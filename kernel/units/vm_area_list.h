@@ -39,8 +39,8 @@ struct VmArea {
     u64      flags;
     uptr     file_off;
     HandleId handle;
-    vm::VmBackingObject* backing_obj;
-    VmArea*  next;
+    vm::VmBackingObject* backing_obj{nullptr};
+    VmArea*  next{nullptr};
 };
 
 // VmAreaList — intrusive singly-linked list of VmArea entries.

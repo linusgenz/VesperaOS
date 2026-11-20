@@ -27,43 +27,28 @@
 #include <vespera/mm/vm_backing.h>
 #include <vespera/types.h>
 
+#include "vespera/mm/dmabuf.h"
+
 namespace gpu::intel::core {
     class IntelGpuDevice;
     struct GemObject;
 
-    /// dma-buf: Handle-Resource, die ein GemObject über Prozess-/File-
-    /// Grenzen hinweg teilt. refs_ = Handles (Export + Transfers) + VMAs.
-    class LucDmaBuf final : public kernel::vm::VmBackingObject {
+    class LucDmaBuf final : public kernel::vm::DmaBuf {
     public:
-        /// Übernimmt die Referenz auf `adopted_obj` (vom Aufrufer per
-        /// gem_get_ref() genommen). Startet mit refs_ = 1 (das erste Handle).
         explicit LucDmaBuf(GemObject* adopted_obj, IntelGpuDevice& device);
         ~LucDmaBuf() override;
 
-        LucDmaBuf(const LucDmaBuf&) = delete;
-        LucDmaBuf& operator=(const LucDmaBuf&) = delete;
-
         phys_addr_t get_page(usize offset_in_bytes) override;
         [[nodiscard]] usize get_size() const override;
-        void add_mapping() override;
-        void remove_mapping() override;
+        [[nodiscard]] CacheMode get_cache_mode() const override;
 
-        [[nodiscard]] GemObject* gem_object() const { return obj_; } // für FD_TO_HANDLE
+        [[nodiscard]] GemObject* gem_object() const { return obj_; }
 
-        int ioctl(u32 request, void* arg);
-
-        /// Callbacks für HandleTable: `resource` ist ein VmBackingObject*.
-        static void handle_acquire(void* resource);
-        static void handle_destroy(void* resource);
+    protected:
+        int sync(u64 flags) override;
 
     private:
-        void ref();
-        void unref();
-        CacheMode get_cache_mode() const;
-
         GemObject* obj_;
-        u32 refs_ = 1;
-
         IntelGpuDevice& device_;
     };
 }

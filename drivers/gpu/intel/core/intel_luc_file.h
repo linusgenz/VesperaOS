@@ -141,12 +141,6 @@ namespace gpu::intel::core {
         [[nodiscard]] bool gem_mmap_offset(const lucifer_gem_mmap_offset& args, u64* out_offset);
         [[nodiscard]] u32 gem_handle_from_mmap_offset(u64 offset) const;
 
-        struct GemObjectInfo {
-            phys_addr_t phys_addr;
-            u64 size;
-        };
-        [[nodiscard]] bool query_gem_object(u32 handle, GemObjectInfo* out) const;
-
         bool vm_bind(const lucifer_vm_bind& args) const;
 
         [[nodiscard]] bool exec_submit(lucifer_exec& args);

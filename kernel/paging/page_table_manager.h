@@ -20,14 +20,14 @@ class PageTableManager {
      *        cleared while still recording the given physical_memory address
      *        in the entry.
      */
-    void map_memory(virt_addr_t virtual_memory, phys_addr_t physical_memory, u64 flags, bool present = true) const;
+    void map_memory(virt_addr_t virtual_memory, phys_addr_t physical_memory, u64 flags, CacheMode cache_mode = CacheMode::WriteBack, bool present = true) const;
     //  void map_kernel_page(void* phys_addr, u64 flags) const;
 
     void destroy_userspace() const;
 
     //    void set_user_flags(void* virtual_memory, usize size) const;
 
-    void map_range(virt_addr_t virt_start, phys_addr_t phys_start, usize size, u64 flags) const;
+    void map_range(virt_addr_t virt_start, phys_addr_t phys_start, usize size, u64 flags, CacheMode cache_mode = CacheMode::WriteBack) const;
 
     void unmap_range(virt_addr_t virt_start, usize size) const;
 
