@@ -298,13 +298,6 @@ namespace gpu::intel::core {
             return false;
         }
 
-        if (obj->size >= 0x3E800 && obj->size <= 0x40000) {
-            g_dbg_rt_phys = phys_raw(obj->phys_addr);
-            g_dbg_rt_gpu = args.addr;
-            Log::log_dbc("dbg: RT candidate phys=0x%llx size=0x%llx",
-                         (unsigned long long)g_dbg_rt_phys, (unsigned long long)obj->size);
-        }
-
         Log::log_dbc("exec: mapping BO handle=%u obj=%p gpu_addr=0x%llx phys=0x%llx offset=0x%llu t=%llu",
                      args.handle, (void*)obj, (args.addr),
                      phys_raw(obj->phys_addr), args.obj_offset,
@@ -356,20 +349,13 @@ namespace gpu::intel::core {
         // stay unique per (file, class, queue).
         const u32 sw_context_id = (file_id_ << 4) | static_cast<u32>(idx);
 
-        // TODO(lucifer): LRC_SIZE_RCS vs LRC_SIZE_SMALL_ENGINE should come
-        // from the engine itself (e.g. a virtual lrc_size_bytes() on
-        // IntelEngine) once BCS/VCS/VECS are all wired through here --
-        // hardcoding RCS's size for every class is a bring-up shortcut,
-        // not something safe to leave once engine_class != RENDER is real.
-        constexpr usize lrc_size_bytes = LRC_SIZE_RCS;
-
         if (!engine->ensure_execlist_mode_enabled()) {
             Log::log_dbc("intel-gpu: context_for_engine failed (ensure_execlist_mode_enabled, class=%u queue=%u)",
                          engine_class, queue);
             return nullptr;
         }
 
-        if (!engine->lrc_alloc_and_init(ctx, lrc_size_bytes, sw_context_id)) {
+        if (!engine->lrc_alloc_and_init(ctx, sw_context_id)) {
             Log::log_dbc("intel-gpu: context_for_engine failed (lrc_alloc_and_init, class=%u queue=%u)", engine_class,
                          queue);
             return nullptr;
@@ -660,7 +646,7 @@ namespace gpu::intel::core {
             }
 
             for (u32 j = 0; j < num_wait_engines; ++j) {
-                wait_engines[j]->waiters.add_wait(cur);
+                wait_engines[j]->waiters_.add_wait(cur);
             }
 
             if (!infinite) {
@@ -678,7 +664,7 @@ namespace gpu::intel::core {
             if (!infinite && kernel::time::get_uptime_ns() >= deadline_ns) {
                 bool any_lost_race = false;
                 for (u32 j = 0; j < num_wait_engines; ++j) {
-                    if (!wait_engines[j]->waiters.remove(cur)) {
+                    if (!wait_engines[j]->waiters_.remove(cur)) {
                         any_lost_race = true;
                     }
                 }
@@ -828,221 +814,10 @@ namespace gpu::intel::core {
         return false;
     }
 
-    int LucFile::ioctl(const u32 request, void* arg) {
-        if (node_kind_ == NodeKind::Render && is_primary_only_ioctl(request)) {
-            return -EACCES;
-        }
-
-        if (request == LUCIFER_IOCTL_VERSION) {
-            auto* ver = static_cast<lucifer_version*>(arg);
-            if (!ver) {
-                return -1;
-            }
-
-            ver->version_major = 1;
-            ver->version_minor = 0;
-            ver->version_patchlevel = 0;
-
-            strncpy(ver->name, "lucifer", sizeof(ver->name) - 1);
-            ver->name[sizeof(ver->name) - 1] = '\0';
-
-            strncpy(ver->date, "20260826", sizeof(ver->date) - 1);
-            ver->date[sizeof(ver->date) - 1] = '\0';
-
-            strncpy(ver->desc, "Lucifer DRM driver for Intel", sizeof(ver->desc) - 1);
-            ver->desc[sizeof(ver->desc) - 1] = '\0';
-
-            return 0;
-        }
-
-        if (request == LUCIFER_IOCTL_VM_CREATE) {
-            auto* create = static_cast<lucifer_vm_create*>(arg);
-            if (!create) {
-                return -1;
-            }
-
-            const u32 vm_id = create_vm();
-            if (vm_id == 0) {
-                return -1;
-            }
-
-            create->vm_id = vm_id;
-            return 0;
-        }
-
-        if (request == LUCIFER_IOCTL_VM_DESTROY) {
-            const auto* destroy = static_cast<lucifer_vm_destroy*>(arg);
-            if (!destroy) {
-                return -1;
-            }
-
-            return destroy_vm(destroy->vm_id) ? 0 : -1;
-        }
-
-        if (request == LUCIFER_IOCTL_GEM_CREATE) {
-            auto* create = static_cast<lucifer_gem_create*>(arg);
-            if (!create) {
-                return -1;
-            }
-
-            const u32 handle = gem_create(*create);
-            if (handle == 0) {
-                return -1;
-            }
-
-            create->handle = handle;
-            return 0;
-        }
-
-        if (request == LUCIFER_IOCTL_GEM_USERPTR) {
-            auto* userptr = static_cast<lucifer_gem_userptr*>(arg);
-            if (!userptr) {
-                return -1;
-            }
-
-            const u32 handle = gem_create_userptr(*userptr);
-            if (handle == 0) {
-                return -1;
-            }
-
-            userptr->handle = handle;
-            return 0;
-        }
-
-        if (request == LUCIFER_IOCTL_GEM_CLOSE) {
-            const auto* close = static_cast<lucifer_gem_close*>(arg);
-            if (!close) {
-                return -1;
-            }
-
-            return gem_close(close->handle) ? 0 : -1;
-        }
-
-        if (request == LUCIFER_IOCTL_GEM_MADVISE) {
-            auto* madvise = static_cast<lucifer_gem_madvise*>(arg);
-            if (!madvise) {
-                return -1;
-            }
-
-            bool retained = false;
-            if (!gem_madvise(*madvise, &retained)) {
-                return -1;
-            }
-
-            madvise->retained = retained ? 1 : 0;
-            return 0;
-        }
-
-        if (request == LUCIFER_IOCTL_VM_BIND) {
-            const auto* bind = static_cast<lucifer_vm_bind*>(arg);
-            if (!bind) {
-                return -1;
-            }
-
-            return vm_bind(*bind) ? 0 : -1;
-        }
-
-        if (request == LUCIFER_IOCTL_GEM_MMAP_OFFSET) {
-            auto* mmap_offset = static_cast<lucifer_gem_mmap_offset*>(arg);
-            if (!mmap_offset) {
-                return -1;
-            }
-
-            return gem_mmap_offset(*mmap_offset, &mmap_offset->offset) ? 0 : -1;
-        }
-
-        if (request == LUCIFER_IOCTL_EXEC) {
-            auto* exec = static_cast<lucifer_exec*>(arg);
-            if (!exec) {
-                return -1;
-            }
-
-            return exec_submit(*exec) ? 0 : -1;
-        }
-
-        if (request == DRM_IOCTL_SYNCOBJ_CREATE) {
-            auto* create = static_cast<drm_syncobj_create*>(arg);
-            if (!create) {
-                return -1;
-            }
-
-            const u32 handle = syncobj_create(*create);
-            if (handle == 0) {
-                return -1;
-            }
-
-            create->handle = handle;
-            return 0;
-        }
-
-        if (request == DRM_IOCTL_SYNCOBJ_DESTROY) {
-            const auto* destroy = static_cast<drm_syncobj_destroy*>(arg);
-            if (!destroy) {
-                return -1;
-            }
-
-            return syncobj_destroy(destroy->handle) ? 0 : -1;
-        }
-
-        if (request == DRM_IOCTL_SYNCOBJ_WAIT) {
-            auto* wait = static_cast<drm_syncobj_wait*>(arg);
-            if (!wait) {
-                return -1;
-            }
-
-            // wait->handles is a userspace u64 holding a pointer to a
-            // u32[count_handles] array, per generic DRM syncobj ABI --
-            // mirrors how gem_syncobj_create()-style callers in Mesa build
-            // this struct today.
-            const auto* handles = reinterpret_cast<const u32*>(wait->handles);
-
-            return syncobj_wait(handles, wait->count_handles, wait->flags,
-                                wait->deadline_nsec, &wait->first_signaled);
-        }
-
-        if (request == DRM_IOCTL_SYNCOBJ_RESET) {
-            const auto* reset = static_cast<drm_syncobj_array*>(arg);
-            if (!reset) {
-                return -1;
-            }
-
-            const auto* handles = reinterpret_cast<const u32*>(reset->handles);
-            return syncobj_reset(handles, reset->count_handles) ? 0 : -1;
-        }
-
-        if (request == DRM_IOCTL_SYNCOBJ_SIGNAL) {
-            const auto* signal = static_cast<drm_syncobj_array*>(arg);
-            if (!signal) {
-                return -1;
-            }
-
-            const auto* handles = reinterpret_cast<const u32*>(signal->handles);
-            return syncobj_signal(handles, signal->count_handles) ? 0 : -1;
-        }
-
-        if (request == DRM_IOCTL_PRIME_HANDLE_TO_FD) {
-            auto* prime = static_cast<drm_prime_handle*>(arg);
-            if (!prime) return -EINVAL;
-            return prime_handle_to_fd(*prime);
-        }
-
-        /* TODO(lucifer): DRM_IOCTL_SYNCOBJ_HANDLE_TO_FD/FD_TO_HANDLE and
-         * timeline-point variants (drm_syncobj_timeline_wait, TRANSFER,
-         * eventfd) are declared in drm.h but not dispatched here yet */
-
-        if (request != LUCIFER_IOCTL_QUERY) {
-            Log::debug("unknown DRM lucifer ioctl. request=%x", request);
-            return -1;
-        }
-
-        auto* query = static_cast<lucifer_query*>(arg);
-        if (!query) {
-            return -1;
-        }
-
+    int LucFile::ioctl_query(lucifer_query& query) const {
         u32 expected_size = 0;
 
-        switch (query->query) {
+        switch (query.query) {
             case LUCIFER_QUERY_CONFIG:
                 expected_size = sizeof(lucifer_query_config);
                 break;
@@ -1056,26 +831,26 @@ namespace gpu::intel::core {
                 expected_size = sizeof(lucifer_query_pci_info);
                 break;
             default:
-                return -1;
+                return -EINVAL;
         }
 
-        if (query->data == 0) {
-            query->size = expected_size;
+        if (query.data == 0) {
+            query.size = expected_size;
             return 0;
         }
 
-        if (query->size < expected_size) {
-            return -1;
+        if (query.size < expected_size) {
+            return -EINVAL;
         }
 
-        switch (query->query) {
+        switch (query.query) {
             case LUCIFER_QUERY_CONFIG: {
-                auto* out = reinterpret_cast<lucifer_query_config*>(query->data);
+                auto* out = reinterpret_cast<lucifer_query_config*>(query.data);
 
                 out->device_id = device_.pci_cfg()->device_id;
                 out->revision = device_.pci_cfg()->revision_id;
 
-                IntelGpuDevice::FuseTopology topo = device_.query_fuse_topology();
+                const auto topo = device_.fuse_topology();
                 if (topo.subslice_count >= 6) {
                     out->gt_level = 3; // GT3 / GT4
                 } else if (topo.subslice_count >= 3) {
@@ -1094,16 +869,16 @@ namespace gpu::intel::core {
                 break;
             }
             case LUCIFER_QUERY_TOPOLOGY: {
-                auto* out = reinterpret_cast<lucifer_query_topology*>(query->data);
+                auto* out = reinterpret_cast<lucifer_query_topology*>(query.data);
 
-                IntelGpuDevice::FuseTopology topo = device_.query_fuse_topology();
+                const auto topo = device_.fuse_topology();
 
                 out->slice_mask = (1u << topo.slice_count) - 1;
 
-                u32 subs_per_slice = (topo.slice_count > 0) ? (topo.subslice_count / topo.slice_count) : 0;
+                const u32 subs_per_slice = (topo.slice_count > 0) ? (topo.subslice_count / topo.slice_count) : 0;
                 out->subslice_mask = (1u << subs_per_slice) - 1;
 
-                u32 eus_per_sub = (topo.subslice_count > 0) ? (topo.eu_count / topo.subslice_count) : 0;
+                const u32 eus_per_sub = (topo.subslice_count > 0) ? (topo.eu_count / topo.subslice_count) : 0;
                 out->eu_mask = (1u << eus_per_sub) - 1;
 
                 if (topo.subslice_count >= 6) {
@@ -1116,7 +891,7 @@ namespace gpu::intel::core {
                 break;
             }
             case LUCIFER_QUERY_MEM_REGIONS: {
-                auto* out = reinterpret_cast<lucifer_query_mem_regions*>(query->data);
+                auto* out = reinterpret_cast<lucifer_query_mem_regions*>(query.data);
 
                 out->total_size = device_.ggtt().usable_size_bytes();
 
@@ -1127,7 +902,7 @@ namespace gpu::intel::core {
                 break;
             }
             case LUCIFER_QUERY_PCI_INFO: {
-                auto* out = reinterpret_cast<lucifer_query_pci_info*>(query->data);
+                auto* out = reinterpret_cast<lucifer_query_pci_info*>(query.data);
 
                 out->domain = device_.pci_id().domain;
                 out->bus = device_.pci_id().bus;
@@ -1157,11 +932,187 @@ namespace gpu::intel::core {
                                      : LUCIFER_NODE_PRIMARY;
                 break;
             }
-            default: ;
+            default:
+                return -EINVAL;
         }
 
-        query->size = expected_size;
-
+        query.size = expected_size;
         return 0;
+    }
+
+    int LucFile::ioctl(const u32 request, void* arg) {
+        if (node_kind_ == NodeKind::Render && is_primary_only_ioctl(request)) {
+            return -EACCES;
+        }
+
+        switch (request) {
+            case LUCIFER_IOCTL_VERSION: {
+                auto* ver = static_cast<lucifer_version*>(arg);
+                if (!ver) return -EINVAL;
+
+                ver->version_major = 1;
+                ver->version_minor = 0;
+                ver->version_patchlevel = 0;
+
+                strncpy(ver->name, "lucifer", sizeof(ver->name) - 1);
+                ver->name[sizeof(ver->name) - 1] = '\0';
+
+                strncpy(ver->date, "20260826", sizeof(ver->date) - 1);
+                ver->date[sizeof(ver->date) - 1] = '\0';
+
+                strncpy(ver->desc, "Lucifer DRM driver for Intel", sizeof(ver->desc) - 1);
+                ver->desc[sizeof(ver->desc) - 1] = '\0';
+
+                return 0;
+            }
+
+            case LUCIFER_IOCTL_VM_CREATE: {
+                auto* create = static_cast<lucifer_vm_create*>(arg);
+                if (!create) return -EINVAL;
+
+                const u32 vm_id = create_vm();
+                if (vm_id == 0) return -ENOMEM;
+
+                create->vm_id = vm_id;
+                return 0;
+            }
+
+            case LUCIFER_IOCTL_VM_DESTROY: {
+                const auto* destroy = static_cast<lucifer_vm_destroy*>(arg);
+                if (!destroy) return -EINVAL;
+
+                return destroy_vm(destroy->vm_id) ? 0 : -ENOENT;
+            }
+
+            case LUCIFER_IOCTL_GEM_CREATE: {
+                auto* create = static_cast<lucifer_gem_create*>(arg);
+                if (!create) return -EINVAL;
+
+                const u32 handle = gem_create(*create);
+                if (handle == 0) return -ENOMEM;
+
+                create->handle = handle;
+                return 0;
+            }
+
+            case LUCIFER_IOCTL_GEM_USERPTR: {
+                auto* userptr = static_cast<lucifer_gem_userptr*>(arg);
+                if (!userptr) return -EINVAL;
+
+                const u32 handle = gem_create_userptr(*userptr);
+                if (handle == 0) return -ENOMEM;
+
+                userptr->handle = handle;
+                return 0;
+            }
+
+            case LUCIFER_IOCTL_GEM_CLOSE: {
+                const auto* close = static_cast<lucifer_gem_close*>(arg);
+                if (!close) return -EINVAL;
+
+                return gem_close(close->handle) ? 0 : -ENOENT;
+            }
+
+            case LUCIFER_IOCTL_GEM_MADVISE: {
+                auto* madvise = static_cast<lucifer_gem_madvise*>(arg);
+                if (!madvise) return -EINVAL;
+
+                bool retained = false;
+                if (!gem_madvise(*madvise, &retained)) return -ENOENT;
+
+                madvise->retained = retained ? 1 : 0;
+                return 0;
+            }
+
+            case LUCIFER_IOCTL_VM_BIND: {
+                const auto* bind = static_cast<lucifer_vm_bind*>(arg);
+                if (!bind) return -EINVAL;
+
+                return vm_bind(*bind) ? 0 : -EINVAL;
+            }
+
+            case LUCIFER_IOCTL_GEM_MMAP_OFFSET: {
+                auto* mmap_offset = static_cast<lucifer_gem_mmap_offset*>(arg);
+                if (!mmap_offset) return -EINVAL;
+
+                return gem_mmap_offset(*mmap_offset, &mmap_offset->offset) ? 0 : -ENOENT;
+            }
+
+            case LUCIFER_IOCTL_EXEC: {
+                auto* exec = static_cast<lucifer_exec*>(arg);
+                if (!exec) return -EINVAL;
+
+                return exec_submit(*exec) ? 0 : -EINVAL;
+            }
+
+            case DRM_IOCTL_SYNCOBJ_CREATE: {
+                auto* create = static_cast<drm_syncobj_create*>(arg);
+                if (!create) return -EINVAL;
+
+                const u32 handle = syncobj_create(*create);
+                if (handle == 0) return -ENOMEM;
+
+                create->handle = handle;
+                return 0;
+            }
+
+            case DRM_IOCTL_SYNCOBJ_DESTROY: {
+                const auto* destroy = static_cast<drm_syncobj_destroy*>(arg);
+                if (!destroy) return -EINVAL;
+
+                return syncobj_destroy(destroy->handle) ? 0 : -ENOENT;
+            }
+
+            case DRM_IOCTL_SYNCOBJ_WAIT: {
+                auto* wait = static_cast<drm_syncobj_wait*>(arg);
+                if (!wait) return -EINVAL;
+
+                // wait->handles is a userspace u64 holding a pointer to a
+                // u32[count_handles] array, per generic DRM syncobj ABI --
+                // mirrors how gem_syncobj_create()-style callers in Mesa build
+                // this struct today.
+                const auto* handles = reinterpret_cast<const u32*>(wait->handles);
+                return syncobj_wait(handles, wait->count_handles, wait->flags,
+                                    wait->deadline_nsec, &wait->first_signaled);
+            }
+
+            case DRM_IOCTL_SYNCOBJ_RESET: {
+                const auto* reset = static_cast<drm_syncobj_array*>(arg);
+                if (!reset || !reset->handles) return -EINVAL;
+
+                const auto* handles = reinterpret_cast<const u32*>(reset->handles);
+                return syncobj_reset(handles, reset->count_handles) ? 0 : -ENOENT;
+            }
+
+            case DRM_IOCTL_SYNCOBJ_SIGNAL: {
+                const auto* signal = static_cast<drm_syncobj_array*>(arg);
+                if (!signal || !signal->handles) return -EINVAL;
+
+                const auto* handles = reinterpret_cast<const u32*>(signal->handles);
+                return syncobj_signal(handles, signal->count_handles) ? 0 : -ENOENT;
+            }
+
+            case DRM_IOCTL_PRIME_HANDLE_TO_FD: {
+                auto* prime = static_cast<drm_prime_handle*>(arg);
+                if (!prime) return -EINVAL;
+
+                return prime_handle_to_fd(*prime);
+            }
+
+            case LUCIFER_IOCTL_QUERY: {
+                auto* query = static_cast<lucifer_query*>(arg);
+                if (!query) return -EINVAL;
+
+                return ioctl_query(*query);
+            }
+
+            /* TODO(lucifer): DRM_IOCTL_SYNCOBJ_HANDLE_TO_FD/FD_TO_HANDLE and
+             * timeline-point variants (drm_syncobj_timeline_wait, TRANSFER,
+             * eventfd) are declared in drm.h but not dispatched here yet */
+
+            default:
+                Log::debug("unknown DRM lucifer ioctl. request=%x", request);
+                return -ENOTTY;
+        }
     }
 } // namespace gpu::intel::core

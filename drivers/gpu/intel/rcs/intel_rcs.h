@@ -22,12 +22,8 @@
 #ifndef VESPERAOS_INTEL_RCS_H
 #define VESPERAOS_INTEL_RCS_H
 
-#include "commands/cmd_pipeline_select.h"
 #include <gpu/intel/core/intel_engine.h>
 #include <gpu/intel/bcs/intel_bcs.h>
-#include <vespera/graphics/display_types.h>
-
-struct ShaderOffsets;
 
 namespace gpu::intel::rcs {
     // RCS MMIO range: 0x2000-0x27FF (PRM Vol 6, "Render Engine Command
@@ -54,7 +50,6 @@ namespace gpu::intel::rcs {
         void dump_pipeline_stats(const char* label) const;
         void debug_dump_error_regs(const char* label) const;
     private:
-        bool select_pipeline(PIPELINE_SELECT::PipelineSelection mode);
         u32 gt_user_irq_bit() const override;
         u32 gt_unmask_bits() const override;
         u32 gt_debug_irq_bitmask() const override;
@@ -62,10 +57,12 @@ namespace gpu::intel::rcs {
         void rcs_interrupts_enable() const;
         void emit_flush(u32 seqno) override;
 
+        [[nodiscard]] usize lrc_size_bytes() const override { return core::LRC_SIZE_RCS; }
+
         void rcs_error_reporting_init() const;
 
         AtomicFlag completion_flag_{};
     };
-} // namespace blt
+} // namespace gpu::intel::rcs
 
 #endif  // VESPERAOS_INTEL_RCS_H

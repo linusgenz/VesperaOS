@@ -35,52 +35,49 @@
 #include "../regs/execlist_regs.h"
 
 namespace gpu::intel::core {
-    inline volatile u64 g_dbg_rt_phys = 0;
-    inline volatile u64 g_dbg_rt_gpu = 0;
+    inline constexpr u32 ENGINE_RING_TAIL_OFF = 0x30;
+    inline constexpr u32 ENGINE_RING_HEAD_OFF = 0x34;
+    inline constexpr u32 ENGINE_RING_START_OFF = 0x38;
+    inline constexpr u32 ENGINE_RING_CTL_OFF = 0x3C;
+    inline constexpr u32 ENGINE_HWS_PGA_OFF = 0x80;
+    inline constexpr u32 ENGINE_HWSTAM_OFF = 0x98;
 
-    constexpr u32 ENGINE_RING_TAIL_OFF = 0x30;
-    constexpr u32 ENGINE_RING_HEAD_OFF = 0x34;
-    constexpr u32 ENGINE_RING_START_OFF = 0x38;
-    constexpr u32 ENGINE_RING_CTL_OFF = 0x3C;
-    constexpr u32 ENGINE_HWS_PGA_OFF = 0x80;
-    constexpr u32 ENGINE_HWSTAM_OFF = 0x98;
-
-    constexpr u32 ENGINE_GFX_MODE_OFF = 0x29C;
-    constexpr u32 GFX_MODE_EXECLIST_ENABLE_BIT = 1u << 15; ///< paired with the same bit in the write mask (upper word)
-    constexpr u32 GFX_MODE_EXECLIST_ENABLE_MASK_AND_VALUE =
+    inline constexpr u32 ENGINE_GFX_MODE_OFF = 0x29C;
+    inline constexpr u32 GFX_MODE_EXECLIST_ENABLE_BIT = 1u << 15; ///< paired with the same bit in the write mask (upper word)
+    inline constexpr u32 GFX_MODE_EXECLIST_ENABLE_MASK_AND_VALUE =
         (GFX_MODE_EXECLIST_ENABLE_BIT << 16) | GFX_MODE_EXECLIST_ENABLE_BIT;
 
-    constexpr u32 ENGINE_EXECLIST_SUBMITPORT_OFF = 0x230;
-    constexpr u32 ENGINE_EXECLIST_STATUS_OFF = 0x234;
+    inline constexpr u32 ENGINE_EXECLIST_SUBMITPORT_OFF = 0x230;
+    inline constexpr u32 ENGINE_EXECLIST_STATUS_OFF = 0x234;
 
-    constexpr u32 HWSP_SEQNO_OFFSET_DWORDS = 4;
-    constexpr u32 HWSP_SEQNO_OFFSET = HWSP_SEQNO_OFFSET_DWORDS + 16;
+    inline constexpr u32 HWSP_SEQNO_OFFSET_DWORDS = 4;
+    inline constexpr u32 HWSP_SEQNO_OFFSET = HWSP_SEQNO_OFFSET_DWORDS + 16;
 
-    constexpr u32 PPHWSP_SEQNO_DWORD_INDEX = 34;
-    constexpr u32 PPHWSP_SCRATCH_DWORD_INDEX = 36;
+    inline constexpr u32 PPHWSP_SEQNO_DWORD_INDEX = 34;
+    inline constexpr u32 PPHWSP_SCRATCH_DWORD_INDEX = 36;
 
-    constexpr u32 ENGINE_RING_IPEIR_OFF = 0x64;        ///< Instruction Parser Error Identification
-    constexpr u32 ENGINE_RING_IPEHR_OFF = 0x68;        ///< Instruction Parser Error Header (the actual bad DWord0)
-    constexpr u32 ENGINE_RING_INSTDONE_OFF = 0x6C;     ///< Per-unit "still executing" bits
-    constexpr u32 ENGINE_RING_INSTPS_OFF = 0x70;       ///< Sub-op instruction pointer (RCS pipeline state)
-    constexpr u32 ENGINE_RING_ACTHD_OFF = 0x74;        ///< Active Head Pointer -- where the CS is *actually* executing
-    constexpr u32 ENGINE_RING_ACTHD_UDW_OFF = 0x5c;    ///< Active Head Pointer (udw)
-    constexpr u32 ENGINE_RING_DMA_FADD_OFF = 0x78;     ///< Faulting DMA address (low32)
-    constexpr u32 ENGINE_RING_DMA_FADD_UDW_OFF = 0x60; ///< Faulting DMA address (udw)
-    constexpr u32 ENGINE_RING_CMD_BUF_CCTL_OFF = 0x84;
+    inline constexpr u32 ENGINE_RING_IPEIR_OFF = 0x64;        ///< Instruction Parser Error Identification
+    inline constexpr u32 ENGINE_RING_IPEHR_OFF = 0x68;        ///< Instruction Parser Error Header (the actual bad DWord0)
+    inline constexpr u32 ENGINE_RING_INSTDONE_OFF = 0x6C;     ///< Per-unit "still executing" bits
+    inline constexpr u32 ENGINE_RING_INSTPS_OFF = 0x70;       ///< Sub-op instruction pointer (RCS pipeline state)
+    inline constexpr u32 ENGINE_RING_ACTHD_OFF = 0x74;        ///< Active Head Pointer -- where the CS is *actually* executing
+    inline constexpr u32 ENGINE_RING_ACTHD_UDW_OFF = 0x5c;    ///< Active Head Pointer (udw)
+    inline constexpr u32 ENGINE_RING_DMA_FADD_OFF = 0x78;     ///< Faulting DMA address (low32)
+    inline constexpr u32 ENGINE_RING_DMA_FADD_UDW_OFF = 0x60; ///< Faulting DMA address (udw)
+    inline constexpr u32 ENGINE_RING_CMD_BUF_CCTL_OFF = 0x84;
 
-    constexpr u32 ENGINE_RING_BBADDR_DIFF_OFF = 0x154;
-    constexpr u32 ENGINE_RING_BB_START_OFF = 0x150;
-    constexpr u32 ENGINE_RING_BB_START_UDW_OFF = 0x170;
-    constexpr u32 ENGINE_RING_BBADDR_OFF = 0x140;
-    constexpr u32 ENGINE_RING_BBADDR_UDW_OFF = 0x168;
+    inline constexpr u32 ENGINE_RING_BBADDR_DIFF_OFF = 0x154;
+    inline constexpr u32 ENGINE_RING_BB_START_OFF = 0x150;
+    inline constexpr u32 ENGINE_RING_BB_START_UDW_OFF = 0x170;
+    inline constexpr u32 ENGINE_RING_BBADDR_OFF = 0x140;
+    inline constexpr u32 ENGINE_RING_BBADDR_UDW_OFF = 0x168;
 
     // CSB lives at the start of the PPHWSP, as an array of 8-byte entries
     // (DWord0 = context ID, DWord1 = status). EXECLIST_STATUS's Write/Current
     // Pointer fields index into this array. 6 entries is the documented Gen9
     // CSB depth.
-    constexpr u32 CSB_NUM_ENTRIES = 6;
-    constexpr u32 CSB_ENTRY_DWORDS = 2;
+    inline constexpr u32 CSB_NUM_ENTRIES = 6;
+    inline constexpr u32 CSB_ENTRY_DWORDS = 2;
 
     /// How this engine hands its ring contents to hardware.
     /// - LegacyRing: classic RING_BUFFER_TAIL MMIO write (no LRC involved).
@@ -105,7 +102,7 @@ namespace gpu::intel::core {
             u32 seqno;
             u32 postfix;
         };
-        static constexpr u32 MAX_INFLIGHT = 256;
+        static inline constexpr u32 MAX_INFLIGHT = 256;
         Entry inflight[MAX_INFLIGHT]{};
         u32 inflight_head{0u};
         u32 inflight_tail{0u};
@@ -120,7 +117,7 @@ namespace gpu::intel::core {
             inflight_tail = (inflight_tail + 1) & (MAX_INFLIGHT - 1);
         }
 
-        static constexpr u32 CACHELINE_BYTES = 64u;
+        static inline constexpr u32 CACHELINE_BYTES = 64u;
         [[nodiscard]] u32 free_space() const {
             return (head - tail - CACHELINE_BYTES) & (size - 1);
         }
@@ -371,7 +368,6 @@ namespace gpu::intel::core {
         /// instead, which pads the context's own ring and drives the
         /// execlist port rather than RING_BUFFER_TAIL.
         void ring_flush();
-       // [[nodiscard]] bool ring_wait_space(Ring& ring, const EngineContext* ctx, u32 required_bytes, u32 timeout_us) const;
 
         bool ring_wait_space(const EngineContext& ctx, Ring& ring, u32 required_bytes, u32 timeout_us) const;
 
@@ -412,7 +408,7 @@ namespace gpu::intel::core {
         /// scheduler does. `sibling` is the *other* currently-active slot's context (or nullptr if
         /// the other slot is idle), so the resulting hardware submission carries both live
         /// elements rather than only the one just (re)dispatched.
-        void submit_ring(EngineContext& ctx, u32 seqno, const EngineContext* sibling = nullptr);
+        void submit_ring(EngineContext& ctx, const EngineContext* sibling = nullptr);
 
         void hwsp_alloc();
         u32 seqno_next();
@@ -448,7 +444,7 @@ namespace gpu::intel::core {
         ///        unique per context sharing this engine -- see LucFile's context/handle allocation.
         ///
         /// @see CONTEXT_DESCRIPTOR::lrca
-        [[nodiscard]] bool lrc_alloc_and_init(EngineContext& ctx, usize lrc_size_bytes, u32 sw_context_id) const;
+        [[nodiscard]] bool lrc_alloc_and_init(EngineContext& ctx, u32 sw_context_id) const;
         void lrc_free(const EngineContext& ctx) const;
 
         /// Rewrites just the Ring Tail DWord inside `ctx`'s already-initialized LRC, then submits
@@ -466,6 +462,7 @@ namespace gpu::intel::core {
         void lrc_update_tail(const EngineContext& ctx, u32 tail_bytes) const;
         void ring_retire(const EngineContext& ctx, Ring& ring) const;
 
+        [[nodiscard]] virtual usize lrc_size_bytes() const { return LRC_SIZE_SMALL_ENGINE; }
 
         /// Legacy-mode ring.
         Ring engine_ring_;
@@ -490,13 +487,17 @@ namespace gpu::intel::core {
 
         bool execlist_mode_enabled_ = false;
 
-        WaitQueue waiters;
+        WaitQueue waiters_;
 
-        static constexpr u32 SEQNO_BIT5_MASK = 1u << 5;
+        static inline constexpr u32 SEQNO_BIT5_MASK = 1u << 5;
 
     private:
 
         void on_gt_context_switch();
+
+        [[nodiscard]] EXECLIST_STATUS read_execlist_status() const {
+            return EXECLIST_STATUS{.raw = engine_reg_read64(ENGINE_EXECLIST_STATUS_OFF)};
+        }
 
         /// Actually writes ctx into a specific HW slot (0 or 1) and performs
         /// the lrc_submit()/dispatch bookkeeping. Must be called with

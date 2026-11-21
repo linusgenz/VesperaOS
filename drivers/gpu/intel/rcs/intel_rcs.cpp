@@ -89,7 +89,7 @@ namespace gpu::intel::rcs {
         rcs_imr.bits.l3_counter = 0;
         rcs_imr.bits.wait_sem = 0;
         imr.raw = rcs_imr.raw;
-        MMIO_POST_WRITE(rcs_imr);
+        MMIO_POST_WRITE(imr);
     }
 
     void IntelRcs::rcs_error_reporting_init() const {
@@ -147,7 +147,7 @@ namespace gpu::intel::rcs {
 
     void IntelRcs::on_gt_user_interrupt() {
         completion_flag_.set();
-        waiters.wake_all_irq();
+        waiters_.wake_all_irq();
     }
 
     void IntelRcs::emit_flush(u32 seqno) {

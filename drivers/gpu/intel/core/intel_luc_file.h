@@ -135,6 +135,8 @@ namespace gpu::intel::core {
 
         [[nodiscard]] static bool is_primary_only_ioctl(u32 request);
 
+        [[nodiscard]] int ioctl_query(lucifer_query& query) const;
+
         [[nodiscard]] int prime_handle_to_fd(drm_prime_handle& args) const;
 
         IntelGpuDevice& device_;

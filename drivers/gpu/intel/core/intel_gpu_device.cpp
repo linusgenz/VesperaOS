@@ -148,7 +148,7 @@ namespace gpu::intel::core {
 
         DevFs::register_device(render_kd_);
 
-        kernel::time::sleep_ms(3000);
+        kernel::time::sleep_ms(2000);
 
         DisplayManager::set_primary(DisplayBackend{&display_, kd_});
         return true;

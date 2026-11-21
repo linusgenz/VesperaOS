@@ -23,20 +23,16 @@
 
 #include <pci/pci_id.h>
 #include <vespera/interrupts.h>
-#include <vespera/mm/addr.h>
 #include <vespera/mm/vm_backing.h>
 #include <vespera_errno.h>
 
 #include "ggtt_allocator.h"
 #include <gpu/intel/regs/pci_config_regs.h>
 
-#include "intel_ppgtt.h"
 #include "vespera/devices/char_device.h"
 #include "vespera/devices/device_info.h"
 #include "vespera/devices/kernel_device.h"
 
-#include "uapi/vespera/dev/lucifer_drm.h"
-#include "uapi/vespera/dev/drm.h"
 #include <vespera/sync/wait_queue.h>
 
 #include "intel_engine_types.h"
@@ -220,10 +216,7 @@ namespace gpu::intel::core {
         bool wait_seqno(u32 engine_class, const EngineContext* ctx, u32 target_seqno, i64 timeout_ns) const;
 
     private:
-        /// LucFile::ioctl()/exec_submit()/syncobj_wait() need
-        /// query_fuse_topology() and engine_for_class() below -- both are
-        /// still device-level (shared hardware state), just no longer
-        /// public API surface for anyone else.
+        /// exec_submit()/syncobj_wait() need engine_for_class()
         friend class LucFile;
 
         /// The single MSI/MSI-X handler installed for this device's GT0 +
