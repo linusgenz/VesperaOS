@@ -547,7 +547,6 @@ uptr setup_user_args_and_env(Unit* u, const char** argv, const char** envp, cons
 
 void UnitManager::release_resources(Unit* u) {
     u->detach_all_handles();
-    kernel::vm::unmap_all(u);
 
     if (!virt_null(u->context.stack)) {
         const usize pages = (u->context.stack_size + 0xFFF) / 0x1000;

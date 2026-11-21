@@ -112,11 +112,11 @@ class TtyDevice final : public CharDevice {
     isize write(CharFile*, const void* buffer, usize count) override {
         if (count == 0 || !buffer) return -EINVAL;
         if (!tty) return count;
-        const auto buf = static_cast<const char*>(buffer);
+        /*const auto buf = static_cast<const char*>(buffer);
         for (usize i = 0; i < count; i++) {
             kernel::tty::tty_process_output(tty, buf[i]);
         }
-        tty->term->flush();
+        tty->term->flush();*/
         return static_cast<int>(count);
     }
 

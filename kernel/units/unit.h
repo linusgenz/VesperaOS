@@ -29,7 +29,6 @@
 
 #include "execution_context.h"
 #include "unit_handle_set.h"
-#include "vm_area_list.h"
 #include "vespera/sync/wait_queue.h"
 
 #define MAX_UNIT_HANDLE_SLOTS 64
@@ -110,9 +109,6 @@ class Unit {
     ExecutionContext context{};
     SleepContext sleep_context{};
 
-    u64 heap_start{};
-    u64 heap_end{};
-
     UnitId joiner_id{0};
     bool joined_no_wait;
     WaitQueue wait_queue;
@@ -135,22 +131,6 @@ class Unit {
     Unit(const Unit&) = delete;
     Unit& operator=(const Unit&) = delete;
 
-    void add_vma(kernel::units::VmArea* vma) {
-        vm_areas_.add(vma);
-    }
-    [[nodiscard]] kernel::units::VmArea* find_vma(uptr addr, usize len) const {
-        return vm_areas_.find(addr, len);
-    }
-    bool remove_vma(uptr addr, usize len) {
-        return vm_areas_.remove(addr, len);
-    }
-    void free_vma_list() {
-        vm_areas_.free_all();
-    }
-    [[nodiscard]] kernel::units::VmArea* get_vma_list() const {
-        return vm_areas_.head();
-    }
-
     [[nodiscard]] i64 attach_handle(HandleId h) {
         return handle_set_.attach(h);
     }
@@ -168,7 +148,6 @@ class Unit {
     }
 
    private:
-    kernel::units::VmAreaList vm_areas_;
     kernel::units::UnitHandleSet handle_set_;
 };
 

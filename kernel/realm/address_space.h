@@ -28,6 +28,7 @@
 #include <vespera/types.h>
 
 #include "../paging/page_table_manager.h"
+#include "vm_area_list.h"
 
 namespace kernel::realm {
 
@@ -54,12 +55,26 @@ namespace kernel::realm {
         [[nodiscard]] PageTableManager* page_table() const { return page_table_; }
         [[nodiscard]] UserStackAllocator& stack_alloc() { return stack_alloc_; }
 
+        [[nodiscard]] kernel::units::VmAreaList& vma_list() { return vm_areas_; }
+        [[nodiscard]] Spinlock& vm_lock() { return vm_lock_; }
+
+        [[nodiscard]] uptr heap_start() const { return heap_start_; }
+        [[nodiscard]] uptr heap_end() const { return heap_end_; }
+        void set_heap_start(uptr v) { heap_start_ = v; }
+        void set_heap_end(uptr v) { heap_end_ = v; }
+
     private:
         void map_trampoline(phys_addr_t trampoline_page) const;
+        void release_vm_areas();
 
         phys_addr_t pml4_phys_{};
         PageTableManager* page_table_{nullptr};
         UserStackAllocator stack_alloc_{};
+
+        kernel::units::VmAreaList vm_areas_;
+        Spinlock vm_lock_;
+        uptr heap_start_{0};
+        uptr heap_end_{0};
     };
 
 } // namespace kernel::realm

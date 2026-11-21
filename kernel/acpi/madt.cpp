@@ -30,7 +30,6 @@
 extern volatile u8* g_local_apic_addr;
 
 namespace kernel::acpi::madt {
-
     namespace {
         cpu_core g_cpu_cores[MAX_CPU_CORES];
         u32 g_cpu_count = 0;
@@ -41,7 +40,7 @@ namespace kernel::acpi::madt {
 
         interrupt_override g_overrides[MAX_OVERRIDES];
         u32 g_override_count = 0;
-    }  // namespace
+    } // namespace
 
     void parse(MADT_HEADER* madt) {
         if (madt->flags & 0x1) {
@@ -49,7 +48,12 @@ namespace kernel::acpi::madt {
         }
 
         const virt_addr_t virt_lapic = phys_to_virt(make_phys(madt->lapic_address));
-        kernel::memory::map_memory(virt_lapic, make_phys(madt->lapic_address), (1ULL << PtFlag::CacheDisabled) | (1ULL << PtFlag::ReadWrite));
+        kernel::memory::map_memory(
+            virt_lapic,
+            make_phys(madt->lapic_address),
+            (1ULL << PtFlag::ReadWrite),
+            CacheMode::Uncacheable
+        );
         g_local_apic_addr = static_cast<volatile u8*>(virt_ptr(virt_lapic));
 
         auto* entry_ptr = reinterpret_cast<u8*>(madt) + sizeof(MADT_HEADER);
@@ -148,23 +152,28 @@ namespace kernel::acpi::madt {
     u32 cpu_count() {
         return g_cpu_count;
     }
+
     cpu_core* cpu_cores() {
         return g_cpu_cores;
     }
+
     u32 bsp_apic_id() {
         return g_bsp_apic_id;
     }
+
     io_apic* ioapics() {
         return g_ioapics;
     }
+
     u32 ioapic_count() {
         return g_ioapic_count;
     }
+
     interrupt_override* overrides() {
         return g_overrides;
     }
+
     u32 override_count() {
         return g_override_count;
     }
-
-}  // namespace kernel::acpi::madt
+} // namespace kernel::acpi::madt

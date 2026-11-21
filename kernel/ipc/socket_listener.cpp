@@ -26,6 +26,7 @@
 
 #include "klib/result.h"
 #include "klib/string.h"
+#include "uapi/vespera/poll.h"
 #include "vespera/mm/memory.h"
 
 Result<SocketListener*> SocketListener::bind(const char* path) {
@@ -176,4 +177,12 @@ void SocketListener::destroy(void* res) {
 
     l->unbind();
     delete l;
+}
+
+int SocketListener::poll() const {
+    SpinlockGuard g(lock_);
+    int mask = 0;
+    if (!backlog_.empty()) mask |= POLLIN;
+    if (unbound_) mask |= POLLHUP;
+    return mask;
 }

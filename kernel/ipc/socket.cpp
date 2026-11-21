@@ -282,7 +282,7 @@ isize SocketEndpoint::recvmsg(msghdr* msg, const unsigned flags, const RealmId r
     if (!dst) return -ESRCH;
 
     usize out_off = 0;
-    unsigned char* out_data = msg->msg_control ? CMSG_DATA(reinterpret_cast<cmsghdr*>(msg->msg_control)) : nullptr;
+    unsigned char* out_data = msg->msg_control ? CMSG_DATA(static_cast<cmsghdr*>(msg->msg_control)) : nullptr;
     usize out_cap = msg->msg_control ? (msg->msg_controllen > CMSG_ALIGN(sizeof(cmsghdr))
                                           ? msg->msg_controllen - CMSG_ALIGN(sizeof(cmsghdr)) : 0)
                                       : 0;
@@ -321,7 +321,7 @@ isize SocketEndpoint::recvmsg(msghdr* msg, const unsigned flags, const RealmId r
     }
 
     if (msg->msg_control && transferred > 0) {
-        auto* cmsg = reinterpret_cast<cmsghdr*>(msg->msg_control);
+        auto* cmsg = static_cast<cmsghdr*>(msg->msg_control);
         cmsg->cmsg_len = static_cast<socklen_t>(CMSG_LEN(transferred * sizeof(HandleId)));
         cmsg->cmsg_level = SOL_SOCKET;
         cmsg->cmsg_type = SCM_RIGHTS;

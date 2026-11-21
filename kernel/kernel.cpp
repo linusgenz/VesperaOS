@@ -39,6 +39,7 @@
 #include "./cpu/cpu.h"
 #include "exec/elf.h"
 #include "kversion.h"
+#include "realm/address_space.h"
 #include "scheduling/per_cpu.h"
 #include "vespera/scheduling.h"
 
@@ -195,7 +196,8 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
 
     if (Unit* shell_unit =
         UnitManager::create(shell_realm->id, reinterpret_cast<unit_entry_t>(result.entry_point), nullptr, &uc)) {
-        shell_unit->heap_start = shell_unit->heap_end = shell_realm->tls_region_next + TLS_REGION_SIZE;
+        shell_realm->address_space->set_heap_start(shell_realm->tls_region_next + TLS_REGION_SIZE);
+        shell_realm->address_space->set_heap_end(shell_realm->tls_region_next + TLS_REGION_SIZE);
     }
 
     kernel::SystemManager::set_system_initialized();

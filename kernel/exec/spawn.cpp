@@ -34,6 +34,7 @@
 #include <vespera/unit_config.h>
 
 #include "elf.h"
+#include "realm/address_space.h"
 #include "vespera/log.h"
 
 namespace kernel::exec {
@@ -194,7 +195,8 @@ namespace kernel::exec {
             return Error::Fault;
         }
 
-        u->heap_start = u->heap_end = r->tls_region_next + TLS_REGION_SIZE;
+        r->address_space->set_heap_start(r->tls_region_next + TLS_REGION_SIZE);
+        r->address_space->set_heap_end(r->tls_region_next + TLS_REGION_SIZE);
 
         asm volatile("mfence" ::: "memory");
 

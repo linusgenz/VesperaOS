@@ -44,39 +44,34 @@ namespace kernel::vm {
         constexpr uptr MMAP_END = 0x0000'7FFF'FF00'0000ULL;
         constexpr uptr USER_HEAP_MAX = 0x0000'7FFE'0000'0000ULL;
 
-        uptr find_free_range(const Unit* u, const usize length) {
+        uptr find_free_range(kernel::realm::AddressSpace* as, const usize length) {
             uptr current = MMAP_BASE;
 
-            while (true) {
-                uptr next_start = MMAP_END;
-
-                for (const kernel::units::VmArea* v = u->get_vma_list(); v; v = v->next) {
-                    if (v->start >= current && v->start < next_start) next_start = v->start;
-                }
-
-                if (current + length <= next_start) {
-                    return (current + length <= MMAP_END) ? current : 0;
-                }
-
-                // Advance past the blocking VMA
-                for (const kernel::units::VmArea* v = u->get_vma_list(); v; v = v->next) {
-                    if (v->start == next_start) {
-                        const uptr end = next_start + v->length;
-                        current = (end + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+            while (current + length <= MMAP_END) {
+                bool overlap = false;
+                for (const kernel::units::VmArea* v = as->vma_list().head(); v; v = v->next) {
+                    const uptr v_start = v->start;
+                    const uptr v_end = (v->start + v->length + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+                    if (v_end > current && v_start < current + length) {
+                        current = v_end;
+                        overlap = true;
                         break;
                     }
                 }
-
-                if (current >= MMAP_END) return 0;
+                if (!overlap) return current;
             }
+            return 0;
         }
 
         PageTableManager* ptm_for(const Unit* u) {
             return u->parent->address_space->page_table();
         }
+
+        kernel::realm::AddressSpace* as_for(const Unit* u) {
+            return u->parent->address_space;
+        }
     } // namespace
 
-    // TODO BRING UP OF INTEL GPU DRIVER, GEM OBJECTS GET LEAKED; THEY NEVER GET FREED. TODO FIX THIS
     i64 mmap(Unit* u, uptr addr, usize length, const u64 prot, const u64 flags, const u64 handle, const u64 offset) {
         if (length == 0) return -EINVAL;
         if (!u || !u->is_user) return -EACCES;
@@ -85,20 +80,15 @@ namespace kernel::vm {
         length = (length + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
         const usize npages = length / PAGE_SIZE;
 
-        const uptr base = (addr != 0) ? addr : find_free_range(u, length);
-        if (base == 0) return -ENOMEM;
+        auto* as = as_for(u);
+        PageTableManager* ptm = as->page_table();
 
-        PageTableManager* ptm = ptm_for(u);
         kernel::vm::VmBackingObject* backing_obj = nullptr;
-
         u64 hdl_type = 0;
 
         if (!(flags & MAP_ANONYMOUS)) {
             HandleEntry* he = u->parent->handle_table->lookup(handle);
-            if (!he) {
-                return -EBADH;
-            }
-
+            if (!he) return -EBADH;
             hdl_type = he->type;
 
             if (hdl_type == HANDLE_TYPE_SHM) {
@@ -113,9 +103,7 @@ namespace kernel::vm {
 
                 CharFile* cf = DevFs::get_char_file(vfs_handle->context);
                 const auto* entry = static_cast<DevfsEntry*>(vfs_handle->node->internal_data);
-                if (!cf || !entry || !entry->device || !entry->device->chardev) {
-                    return -EBADH;
-                }
+                if (!cf || !entry || !entry->device || !entry->device->chardev) return -EBADH;
 
                 backing_obj = entry->device->chardev->get_backing_object(cf, offset);
             } else if (hdl_type == HANDLE_TYPE_DMABUF) {
@@ -124,9 +112,7 @@ namespace kernel::vm {
                 return -EBADH;
             }
 
-            if (!backing_obj) {
-                return -EBADH;
-            }
+            if (!backing_obj) return -EBADH;
 
             backing_obj->add_mapping();
 
@@ -144,26 +130,50 @@ namespace kernel::vm {
             }
         }
 
-        const CacheMode cache_mode = backing_obj
-                                         ? backing_obj->get_cache_mode()
-                                         : CacheMode::WriteBack;
+        SpinlockGuard guard(as->vm_lock());
 
+        uptr base = 0;
+        if (addr != 0) {
+            if (flags & MAP_FIXED) {
+                base = addr;
+                // TODO: implement correct MAP_FIXED
+            } else {
+                bool addr_free = true;
+                for (const kernel::units::VmArea* v = as->vma_list().head(); v; v = v->next) {
+                    const uptr v_end = (v->start + v->length + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+                    if (v_end > addr && v->start < addr + length) {
+                        addr_free = false;
+                        break;
+                    }
+                }
+                base = addr_free ? addr : find_free_range(as, length);
+            }
+        } else {
+            base = find_free_range(as, length);
+        }
+
+        if (base == 0) {
+            if (backing_obj) backing_obj->remove_mapping();
+            return -ENOMEM;
+        }
+
+        const CacheMode cache_mode = backing_obj ? backing_obj->get_cache_mode() : CacheMode::WriteBack;
         const usize page_offset = (hdl_type == HANDLE_TYPE_DEVICE) ? 0 : offset;
+
         for (usize i = 0; i < npages; i++) {
             phys_addr_t phys;
             if (flags & MAP_ANONYMOUS) {
                 phys = kernel::memory::request_page_phys();
+                if (!phys_null(phys)) {
+                    memset(phys_to_virt(phys), 0, PAGE_SIZE);
+                }
             } else {
                 phys = backing_obj->get_page(page_offset + i * PAGE_SIZE);
             }
 
             if (phys_null(phys)) {
-                for (usize j = 0; j < i; j++) {
-                    ptm->unmap_memory(virt_from_raw(base + j * PAGE_SIZE));
-                }
-                if (backing_obj) {
-                    backing_obj->remove_mapping();
-                }
+                for (usize j = 0; j < i; j++) ptm->unmap_memory(virt_from_raw(base + j * PAGE_SIZE));
+                if (backing_obj) backing_obj->remove_mapping();
                 return -ENOMEM;
             }
 
@@ -175,9 +185,7 @@ namespace kernel::vm {
         auto* area = new kernel::units::VmArea{};
         if (!area) {
             for (usize i = 0; i < npages; i++) ptm->unmap_memory(virt_from_raw(base + i * PAGE_SIZE));
-            if (backing_obj) {
-                backing_obj->remove_mapping();
-            }
+            if (backing_obj) backing_obj->remove_mapping();
             return -ENOMEM;
         }
 
@@ -188,22 +196,26 @@ namespace kernel::vm {
         area->file_off = offset;
         area->handle = handle;
         area->backing_obj = backing_obj;
-        u->add_vma(area);
+        as->vma_list().add(area);
 
         return static_cast<i64>(base);
     }
 
     i64 brk(Unit* u, const uptr addr) {
         if (!u || !u->is_user) return -EACCES;
-        if (u->heap_start == 0) return -EINVAL;
-        if (addr == 0) return static_cast<i64>(u->heap_end);
-        if (addr < u->heap_start) return static_cast<i64>(u->heap_end);
+
+        auto* as = as_for(u);
+        SpinlockGuard guard(as->vm_lock());
+
+        if (as->heap_start() == 0) return -EINVAL;
+        if (addr == 0) return static_cast<i64>(as->heap_end());
+        if (addr < as->heap_start()) return static_cast<i64>(as->heap_end());
         if (addr > USER_HEAP_MAX) return -ENOMEM;
 
-        PageTableManager* ptm = ptm_for(u);
+        PageTableManager* ptm = as->page_table();
 
-        if (addr > u->heap_end) {
-            const uptr start = (u->heap_end + 0xFFF) & ~0xFFFULL;
+        if (addr > as->heap_end()) {
+            const uptr start = (as->heap_end() + 0xFFF) & ~0xFFFULL;
             const uptr end = (addr + 0xFFF) & ~0xFFFULL;
 
             for (uptr a = start; a < end; a += PAGE_SIZE) {
@@ -211,27 +223,33 @@ namespace kernel::vm {
                 if (phys_null(phys)) return -ENOMEM;
                 memset(phys_to_virt(phys), 0, PAGE_SIZE);
                 ptm->map_memory(
-                    virt_from_raw(a),
-                    phys,
+                    virt_from_raw(a), phys,
                     (1ULL << PtFlag::Present) | (1ULL << PtFlag::ReadWrite) | (1ULL << PtFlag::UserSuper)
                 );
             }
 
-            if (kernel::units::VmArea* existing = u->find_vma(u->heap_end, 0)) {
+            kernel::units::VmArea* existing = nullptr;
+            for (auto* v = as->vma_list().head(); v; v = v->next) {
+                if (v->start == as->heap_end()) {
+                    existing = v;
+                    break;
+                }
+            }
+            if (existing) {
                 existing->length = addr - existing->start;
             } else {
                 auto* new_vma = new kernel::units::VmArea();
-                new_vma->start = u->heap_end;
-                new_vma->length = addr - u->heap_end;
+                new_vma->start = as->heap_end();
+                new_vma->length = addr - as->heap_end();
                 new_vma->prot = 0;
                 new_vma->flags = 0;
                 new_vma->file_off = 0;
                 new_vma->handle = 0;
-                u->add_vma(new_vma);
+                as->vma_list().add(new_vma);
             }
         } else {
             const uptr start = (addr + 0xFFF) & ~0xFFFULL;
-            const uptr end = (u->heap_end + 0xFFF) & ~0xFFFULL;
+            const uptr end = (as->heap_end() + 0xFFF) & ~0xFFFULL;
 
             for (uptr a = start; a < end; a += PAGE_SIZE) {
                 const virt_addr_t vaddr = virt_from_raw(a);
@@ -241,49 +259,14 @@ namespace kernel::vm {
                 }
             }
 
-            if (kernel::units::VmArea* vma = u->find_vma(addr, 0)) {
+            if (kernel::units::VmArea* vma = as->vma_list().find(addr, 0)) {
                 vma->length = addr - vma->start;
-                if (vma->length == 0) u->remove_vma(vma->start, 0);
+                if (vma->length == 0) as->vma_list().remove(vma->start, 0);
             }
         }
 
-        u->heap_end = addr;
+        as->set_heap_end(addr);
         return static_cast<i64>(addr);
-    }
-
-    void unmap_all(Unit* u) {
-        if (!u) return;
-
-        PageTableManager* ptm = (u->parent && u->parent->address_space)
-            ? u->parent->address_space->page_table()
-            : nullptr;
-
-        for (kernel::units::VmArea* vma = u->get_vma_list(); vma; vma = vma->next) {
-            const bool is_anon = (vma->flags & MAP_ANONYMOUS) != 0;
-            const bool has_backing = !is_anon && vma->backing_obj != nullptr;
-
-            if (ptm && (is_anon || has_backing)) {
-                const uptr start = vma->start & ~(PAGE_SIZE - 1);
-                const uptr end = (vma->start + vma->length + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
-
-                for (uptr a = start; a < end; a += PAGE_SIZE) {
-                    const virt_addr_t va = virt_from_raw(a);
-                    if (const phys_addr_t phys = ptm->get_physical_address_ignore_present(va); !phys_null(phys)) {
-                        ptm->unmap_memory(va);
-                        if (is_anon) {
-                            kernel::memory::free_page_phys(phys);
-                        }
-                    }
-                }
-            }
-
-            if (has_backing) {
-                vma->backing_obj->remove_mapping();
-                vma->backing_obj = nullptr;
-            }
-        }
-
-        u->free_vma_list();
     }
 
     i64 munmap(Unit* u, const uptr addr, usize length) {
@@ -294,28 +277,28 @@ namespace kernel::vm {
         const usize len = (length + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
         const uptr end = base + len;
 
-        PageTableManager* ptm = ptm_for(u);
+        auto* as = as_for(u);
+        SpinlockGuard guard(as->vm_lock());
+
+        PageTableManager* ptm = as->page_table();
 
         kernel::units::VmArea* split_tail = nullptr;
         kernel::units::VmArea* vma_to_split = nullptr;
 
-        kernel::units::VmArea* vma = u->get_vma_list();
+        kernel::units::VmArea* vma = as->vma_list().head();
         while (vma) {
             const uptr vma_end = vma->start + vma->length;
 
             if (vma->start < base && vma_end > end) {
                 split_tail = new kernel::units::VmArea{};
-
-                if (!split_tail) {
-                    return -ENOMEM;
-                }
+                if (!split_tail) return -ENOMEM;
                 vma_to_split = vma;
                 break;
             }
             vma = vma->next;
         }
 
-        vma = u->get_vma_list();
+        vma = as->vma_list().head();
         while (vma) {
             kernel::units::VmArea* const next_vma = vma->next;
             const uptr vma_end = vma->start + vma->length;
@@ -343,7 +326,7 @@ namespace kernel::vm {
                 if (!(vma->flags & MAP_ANONYMOUS) && vma->backing_obj) {
                     vma->backing_obj->remove_mapping();
                 }
-                u->remove_vma(vma->start, vma->length);
+                as->vma_list().remove(vma->start, vma->length);
             } else if (vma == vma_to_split) {
                 split_tail->start = end;
                 split_tail->length = vma_end - end;
@@ -357,7 +340,7 @@ namespace kernel::vm {
                     vma->backing_obj->add_mapping();
                 }
 
-                u->add_vma(split_tail);
+                as->vma_list().add(split_tail);
                 vma->length = base - vma->start;
             } else if (vma->start >= base) {
                 const usize diff = end - vma->start;
@@ -382,14 +365,17 @@ namespace kernel::vm {
         const usize len = (length + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
         const uptr end = base + len;
 
-        PageTableManager* ptm = ptm_for(u);
+        auto* as = as_for(u);
+        SpinlockGuard guard(as->vm_lock());
+
+        PageTableManager* ptm = as->page_table();
 
         // Pass 1: Ensure full VMA coverage (holes return -ENOMEM)
         {
             uptr covered = base;
             while (covered < end) {
                 kernel::units::VmArea* hit = nullptr;
-                for (kernel::units::VmArea* it = u->get_vma_list(); it; it = it->next) {
+                for (kernel::units::VmArea* it = as->vma_list().head(); it; it = it->next) {
                     if (it->start <= covered && it->start + it->length > covered) {
                         hit = it;
                         break;
@@ -400,7 +386,7 @@ namespace kernel::vm {
             }
         }
 
-        kernel::units::VmArea* vma = u->get_vma_list();
+        kernel::units::VmArea* vma = as->vma_list().head();
         while (vma) {
             kernel::units::VmArea* const next_vma = vma->next;
             const uptr vma_start = vma->start;
@@ -415,8 +401,8 @@ namespace kernel::vm {
             const uptr change_end = (vma_end < end) ? vma_end : end;
 
             const CacheMode cache_mode = vma->backing_obj
-                ? vma->backing_obj->get_cache_mode()
-                : CacheMode::WriteBack;
+                                             ? vma->backing_obj->get_cache_mode()
+                                             : CacheMode::WriteBack;
 
             // Remap mapped pages. PROT_NONE clears Present bit to keep phys mapping without access.
             // ignore_present lookup is required to locate existing PROT_NONE pages.
@@ -447,7 +433,7 @@ namespace kernel::vm {
                     vma->backing_obj->add_mapping();
                 }
 
-                u->add_vma(tail);
+                as->vma_list().add(tail);
             }
 
             // Split head: insert middle VMA for new prot and shrink original VMA to leading remainder
@@ -467,7 +453,7 @@ namespace kernel::vm {
                     vma->backing_obj->add_mapping();
                 }
 
-                u->add_vma(mid);
+                as->vma_list().add(mid);
 
                 vma->length = change_start - vma_start;
             } else {
