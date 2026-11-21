@@ -164,8 +164,8 @@ namespace gpu::intel {
 
        // bcs_->start_device(resolution);
 
-        device_->add_rcs(rcs_);
-        device_->add_bcs(bcs_);
+        device_->register_engine(LUCIFER_ENGINE_CLASS_RENDER, rcs_);
+        device_->register_engine(LUCIFER_ENGINE_CLASS_COPY, bcs_);
 
      //   const DisplayBackend be{device_, device_->get_kd()};
      //   DisplayManager::set_primary(be);

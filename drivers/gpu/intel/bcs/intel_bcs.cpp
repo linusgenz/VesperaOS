@@ -48,10 +48,7 @@ namespace gpu::intel::bcs {
     IntelBcs::IntelBcs(core::IntelGpuDevice& device)
         : IntelEngine(EngineType::BCS,
                       device, BCS_RING_BASE,
-                      core::ForceWakeDomain{
-                          FORCEWAKE_BLITTER, FORCEWAKE_ACK_BLITTER, FORCEWAKE_BLITTER_ENABLE, core::FORCEWAKE_ACK_BIT,
-                          FORCEWAKE_BLITTER_TIMEOUT
-                      }
+                      core::BLITTER_FORCEWAKE_DOMAIN
           )
           , bcs_regs_(reinterpret_cast<volatile BCS_REGS*>(engine_regs())) {
     }

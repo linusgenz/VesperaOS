@@ -92,7 +92,6 @@ namespace gpu::intel::core {
 
         [[nodiscard]] bool exec_submit(lucifer_exec& args);
 
-        static constexpr usize LUCIFER_NUM_ENGINE_CLASSES = 2;
         static constexpr usize LUCIFER_QUEUES_PER_CLASS   = 3; // HACK: iris_batch_name
         static constexpr usize LUCIFER_NUM_CONTEXTS =
             LUCIFER_NUM_ENGINE_CLASSES * LUCIFER_QUEUES_PER_CLASS;

@@ -27,24 +27,14 @@
 #include <gpu/intel/bcs/intel_bcs.h>
 #include <vespera/graphics/display_types.h>
 
-struct Mat4;
 struct ShaderOffsets;
 
 namespace gpu::intel::rcs {
     // RCS MMIO range: 0x2000-0x27FF (PRM Vol 6, "Render Engine Command
     // Streamer (RCS)"). Passed as this engine's MMIO offset to IntelEngine.
-    constexpr u32 RCS_ENGINE_OFFSET = 0x2000;
+    inline constexpr u32 RCS_ENGINE_OFFSET = 0x2000;
 
-    // ForceWake — Render domain (Gen9 splits ForceWake per engine; this is a
-    // *different* request/ack register pair than BCS's FORCEWAKE_BLITTER in
-    // intel_bcs.h — confirmed against the public Gen9 register layout:
-    // FORCEWAKE_RENDER_GEN9 / FORCEWAKE_ACK_RENDER_GEN9).
-    constexpr u32 FORCEWAKE_RENDER = 0xA278;
-    constexpr u32 FORCEWAKE_ACK_RENDER = 0x0D84;
-    constexpr u32 FORCEWAKE_RENDER_ENABLE = 0x00010001;
-    constexpr u32 FORCEWAKE_RENDER_TIMEOUT = 1000;
-
-    constexpr u32 RCS_RING_BUFFER_SIZE = 16u * 1024u;
+    inline constexpr u32 RCS_RING_BUFFER_SIZE = 16u * 1024u;
 
     /**
      * @brief Render Command Streamer engine.

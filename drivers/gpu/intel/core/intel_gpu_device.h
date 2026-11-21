@@ -39,18 +39,12 @@
 #include "uapi/vespera/dev/drm.h"
 #include <vespera/sync/wait_queue.h>
 
+#include "intel_engine_types.h"
+#include "intel_forcewake.h"
 #include "gpu/intel/display/intel_display.h"
 
 namespace pci {
     struct pci_device;
-}
-
-namespace gpu::intel::bcs {
-    class IntelBcs;
-}
-
-namespace gpu::intel::rcs {
-    class IntelRcs;
 }
 
 namespace gpu::intel::core {
@@ -58,31 +52,14 @@ namespace gpu::intel::core {
     class IntelEngine;
     class LucFile;
 
-    constexpr u64 GTTMMADR_ADDR_MASK = ~0xFULL;
-    constexpr usize BAR0_SIZE = 16ull * 1024 * 1024;
+    inline constexpr u64 GTTMMADR_ADDR_MASK = ~0xFULL;
+    inline constexpr usize BAR0_SIZE = 16ull * 1024 * 1024;
 
     /// Number of GT0-registered engines this device can dispatch interrupts
     /// to. Fixed-size array rather than a dynamic container — the engine set
     /// is known at compile time (RCS, BCS today; VCS/VECS later) and this
     /// path runs from interrupt context, where allocation is off-limits.
-    constexpr usize MAX_GT_IRQ_ENGINES = 4;
-
-    /**
-     * @brief Descriptor for one Gen9 ForceWake power domain.
-     *
-     * Gen9 splits ForceWake per engine — Render, Blitter, and Media each have
-     * their own request+ack MMIO register pair (see FORCEWAKE_RENDER in
-     * intel_rcs.h, FORCEWAKE_BLITTER in intel_bcs.h). IntelGpuDevice itself
-     * has no opinion on which domains exist or what their offsets are — it
-     * just drives whichever descriptor the calling IntelEngine hands it.
-     */
-    struct ForceWakeDomain {
-        u32 request_reg;  ///< MMIO offset of the request register
-        u32 ack_reg;      ///< MMIO offset of the ack register
-        u32 enable_value; ///< value to write to the request register
-        u32 ack_bit;      ///< bit to poll for in the ack register
-        u32 timeout_us;
-    };
+    inline constexpr usize MAX_GT_IRQ_ENGINES = 4;
 
     /**
      * @brief Everything shared by every command-streamer engine on one
@@ -158,12 +135,10 @@ namespace gpu::intel::core {
         bool get_vendor(char* out, usize len) override;
         bool get_model(char* out, usize len) override;
 
-        void add_bcs(bcs::IntelBcs* engine) {
-            bcs_ = engine;
-        }
-
-        void add_rcs(rcs::IntelRcs* engine) {
-            rcs_ = engine;
+        void register_engine(const u32 engine_class, IntelEngine* engine) {
+            if (engine_class < LUCIFER_NUM_ENGINE_CLASSES) {
+                engines_[engine_class] = engine;
+            }
         }
 
         /// Creates a LucFile and hangs it off cf->driver_private -- every
@@ -274,7 +249,6 @@ namespace gpu::intel::core {
         /// can reference a seqno on an engine another process is also
         /// submitting to, so the wakeup has to reach every waiter
         /// regardless of which file it's parked under.
-        static constexpr usize LUCIFER_NUM_ENGINE_CLASSES = 2; // RENDER, COPY
         WaitQueue engine_waiters_[LUCIFER_NUM_ENGINE_CLASSES];
 
         [[nodiscard]] IntelEngine* engine_for_class(u32 engine_class) const;
@@ -282,27 +256,26 @@ namespace gpu::intel::core {
         void engine_signal_seqno(u32 engine_class);
 
         struct LastSubmit {
-            const EngineContext* ctx = nullptr;
-            u32 seqno = 0;
+            const EngineContext* ctx{nullptr};
+            u32 seqno{0u};
         };
 
         mutable Spinlock last_submit_lock_;
         LastSubmit last_submit_[LUCIFER_NUM_ENGINE_CLASSES]{};
 
-        volatile INTEL_IGP_PCI_CONFIG* igp_cfg_;
+        volatile INTEL_IGP_PCI_CONFIG* igp_cfg_{nullptr};
         pci::pci_id pci_id_;
-        volatile u8* mmio_base_ = nullptr;
+        volatile u8* mmio_base_{nullptr};
         GgttAllocator ggtt_alloc_;
         u8 irq_vector_ = INVALID_VECTOR;
 
-        IntelEngine* gt_irq_engines_[MAX_GT_IRQ_ENGINES] = {};
-        usize gt_irq_engine_count_ = 0;
+        IntelEngine* gt_irq_engines_[MAX_GT_IRQ_ENGINES]{};
+        usize gt_irq_engine_count_{0};
 
-        DePipeAHandler de_pipe_a_handler_ = nullptr;
-        void* de_pipe_a_handler_ctx_ = nullptr;
+        DePipeAHandler de_pipe_a_handler_{nullptr};
+        void* de_pipe_a_handler_ctx_{nullptr};
 
-        bcs::IntelBcs* bcs_ = nullptr;
-        rcs::IntelRcs* rcs_ = nullptr;
+        IntelEngine* engines_[LUCIFER_NUM_ENGINE_CLASSES]{};
         display::IntelDisplay display_;
 
         KernelDevice* kd_{nullptr};

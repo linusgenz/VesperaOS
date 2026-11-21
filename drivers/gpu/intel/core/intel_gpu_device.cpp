@@ -186,15 +186,7 @@ namespace gpu::intel::core {
             .mcr_selector   = 0
         };
 
-        const ForceWakeDomain render_fw{
-            rcs::FORCEWAKE_RENDER,
-            rcs::FORCEWAKE_ACK_RENDER,
-            rcs::FORCEWAKE_RENDER_ENABLE,
-            FORCEWAKE_ACK_BIT,
-            rcs::FORCEWAKE_RENDER_TIMEOUT
-        };
-
-        if (const bool fw_ok = force_wake_enable(render_fw); !fw_ok) {
+        if (!force_wake_enable(RENDER_FORCEWAKE_DOMAIN)) {
             Log::warning("intel-gpu: ForceWake failed before reading FUSE2 registers, using default values!");
             return topo;
         }
@@ -392,6 +384,9 @@ namespace gpu::intel::core {
                 GT0_IIR_REG decoded{};
                 decoded.raw = pending;
 
+                IntelEngine* rcs = self->engine_for_class(LUCIFER_ENGINE_CLASS_RENDER);
+                IntelEngine* bcs = self->engine_for_class(LUCIFER_ENGINE_CLASS_COPY);
+
                 // master_error/timeout are fatal for the engine's current
                 // batch -- the seqno this engine is working towards will
                 // never retire, so mark it banned here. This is the single
@@ -402,30 +397,30 @@ namespace gpu::intel::core {
                 // hanging forever on a fence that can't signal.
                 if (decoded.bits.rcs.master_error) {
                     Log::warning("intel-gpu: GT0 IIR RCS master_error pending");
-                   // self->rcs_->debug_dump_error_regs("master error");
-                    //self->rcs_->dump_error_state("master error");
-                    self->rcs_->mark_banned();
+                   // rcs->debug_dump_error_regs("master error");
+                    //rcs->dump_error_state("master error");
+                    rcs->mark_banned();
                 }
                 if (decoded.bits.rcs.page_fault) {
                     Log::warning("intel-gpu: GT0 IIR RCS page_fault pending");
                 }
                 if (decoded.bits.rcs.timeout) {
                     Log::warning("intel-gpu: GT0 IIR RCS timeout pending");
-                    self->rcs_->mark_banned();
+                    rcs->mark_banned();
                 }
                 if (decoded.bits.rcs.invalid_tile) {
                     Log::warning("intel-gpu: GT0 IIR RCS invalid_tile pending");
                 }
                 if (decoded.bits.rcs.ctx_switch) {
-                    self->rcs_->on_gt_context_switch();
+                    rcs->on_gt_context_switch();
                 }
                 if (decoded.bits.bcs.master_error) {
                     Log::warning("intel-gpu: GT0 IIR BCS master_error pending");
-                    self->bcs_->mark_banned();
+                    bcs->mark_banned();
                 }
                 if (decoded.bits.bcs.timeout) {
                     Log::warning("intel-gpu: GT0 IIR BCS timeout pending");
-                    self->bcs_->mark_banned();
+                    bcs->mark_banned();
                 }
 
                 for (usize i = 0; i < self->gt_irq_engine_count_; i++) {
@@ -458,11 +453,7 @@ namespace gpu::intel::core {
     constexpr u32 PAT_INDEX_H = 0x40E4;
 
     bool IntelGpuDevice::init_private_pat() const {
-        const ForceWakeDomain render_fw{
-            rcs::FORCEWAKE_RENDER, rcs::FORCEWAKE_ACK_RENDER,
-            rcs::FORCEWAKE_RENDER_ENABLE, FORCEWAKE_ACK_BIT, rcs::FORCEWAKE_RENDER_TIMEOUT
-        };
-        if (!force_wake_enable(render_fw)) return false;
+        if (!force_wake_enable(RENDER_FORCEWAKE_DOMAIN)) return false;
 
         auto rd = [&](u32 off) { return *reinterpret_cast<volatile u32*>(mmio_base_ + off); };
         auto wr = [&](u32 off, u32 v) { *reinterpret_cast<volatile u32*>(mmio_base_ + off) = v; };
@@ -492,14 +483,10 @@ namespace gpu::intel::core {
     }
 
     IntelEngine* IntelGpuDevice::engine_for_class(const u32 engine_class) const {
-        switch (engine_class) {
-            case LUCIFER_ENGINE_CLASS_RENDER:
-                return rcs_;
-            case LUCIFER_ENGINE_CLASS_COPY:
-                return bcs_;
-            default:
-                return nullptr;
+        if (engine_class >= LUCIFER_NUM_ENGINE_CLASSES) {
+            return nullptr;
         }
+        return engines_[engine_class];
     }
 
     void IntelGpuDevice::engine_signal_seqno(const u32 engine_class) {

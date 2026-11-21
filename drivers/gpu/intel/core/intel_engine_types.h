@@ -23,6 +23,8 @@
 #ifndef VESPERAOS_INTEL_ENGINE_TYPES_H
 #define VESPERAOS_INTEL_ENGINE_TYPES_H
 
+inline constexpr usize LUCIFER_NUM_ENGINE_CLASSES = 2;
+
 enum class EngineType : u8 {
     RCS,   ///< Render Command Streamer
     BCS,   ///< Blitter Command Streamer

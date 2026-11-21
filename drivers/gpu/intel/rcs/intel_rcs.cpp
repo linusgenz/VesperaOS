@@ -35,10 +35,7 @@ namespace gpu::intel::rcs {
     IntelRcs::IntelRcs(core::IntelGpuDevice& device)
         : IntelEngine(
             EngineType::RCS, device, RCS_ENGINE_OFFSET,
-            core::ForceWakeDomain{
-                FORCEWAKE_RENDER, FORCEWAKE_ACK_RENDER, FORCEWAKE_RENDER_ENABLE, core::FORCEWAKE_ACK_BIT,
-                FORCEWAKE_RENDER_TIMEOUT
-            }
+            core::RENDER_FORCEWAKE_DOMAIN
         ) {
     }
 

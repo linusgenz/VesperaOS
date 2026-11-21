@@ -43,10 +43,7 @@ namespace gpu::intel::bcs {
     // ForceWake — Blitter domain (RCS has its own FORCEWAKE_RENDER pair, see
     // intel_rcs.h; the ack bit itself is shared, see intel_forcewake.h).
     // =========================================================================
-    constexpr u32 FORCEWAKE_BLITTER = 0xA188;
-    constexpr u32 FORCEWAKE_ACK_BLITTER = 0x130044;
-    constexpr u32 FORCEWAKE_BLITTER_ENABLE = 0x00010001;
-    constexpr u32 FORCEWAKE_BLITTER_TIMEOUT = 1000;
+
 
     // =========================================================================
     // BCS Ring Buffer Registers (byte offsets from BCS_RING_BASE)

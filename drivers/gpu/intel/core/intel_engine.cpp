@@ -23,11 +23,8 @@
 #include <klib/string.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
-#include <vespera/scheduling.h>
 #include <vespera/time.h>
-#include "../kernel/units/unit.h"
 
-#include <gpu/intel/bcs/blt_commands.h>
 #include <gpu/intel/regs/gt_reset_regs.h>
 #include <gpu/intel/regs/ring_regs.h>
 #include <gpu/intel/regs/force_to_nonpriv_regs.h>
