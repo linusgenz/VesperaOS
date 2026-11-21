@@ -106,15 +106,9 @@ void iris_lucifer_destroy_batch(struct iris_batch *batch)
       return;
 
    struct iris_bufmgr *bufmgr = batch->screen->bufmgr;
-   int fd = iris_bufmgr_get_fd(bufmgr);
    struct iris_syncobj *syncobj = iris_batch_get_signal_syncobj(batch);
 
-   struct drm_syncobj_wait wait = {
-      .handles = (uintptr_t)&syncobj->handle,
-      .count_handles = 1,
-      .timeout_nsec = INT64_MAX,
-   };
-   intel_ioctl(fd, DRM_IOCTL_SYNCOBJ_WAIT, &wait);
+   iris_wait_syncobj(bufmgr, syncobj, INT64_MAX);
 }
 
 bool iris_lucifer_replace_batch(struct iris_batch *batch)
