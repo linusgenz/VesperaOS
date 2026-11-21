@@ -27,20 +27,9 @@
 
 namespace gpu::intel::core {
 
-    class IntelGpuDevice;
-
-    /// Programs all 64 GFX_MOCS registers (0xC800-0xC8FC) to well-defined values, once, at GT
-    /// init time - before any engine allocates a GGTT/PPGTT PTE that references a MOCS index.
-    class MocsTable {
-    public:
-        explicit MocsTable(IntelGpuDevice& device) : device_(device) {
-        }
-
-        void init() const;
-
-    private:
-        IntelGpuDevice& device_;
-    };
+    /// Programs all 64 GFX_MOCS registers (0xC800-0xC8FC) and the 32
+    /// LNCFCMOCS registers (0xB020-0xB09C) to well-defined values.
+    void init_mocs_table(volatile u8* mmio_base);
 
 }  // namespace gpu::intel::core
 

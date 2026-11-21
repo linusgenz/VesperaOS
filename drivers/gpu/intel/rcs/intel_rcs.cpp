@@ -48,7 +48,7 @@ namespace gpu::intel::rcs {
         if (!engine_reset()) return false;
         Log::debug("RCS reset successful");
 
-        core::MocsTable(device()).init();
+        core::init_mocs_table(device().mmio_base());
 
         hwsp_alloc();
         ring_alloc_and_init(RCS_RING_BUFFER_SIZE);

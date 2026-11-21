@@ -35,8 +35,6 @@
 #include "intel_ppgtt.h"
 #include "drivers/mmio_post_write.h"
 #include "filesystem/devfs.h"
-#include "gpu/intel/rcs/intel_rcs.h"
-#include "gpu/intel/bcs/intel_bcs.h"
 #include "gpu/intel/regs/fuse_regs.h"
 #include "intel_node_kind.h"
 #include "vespera/graphics/display_manager.h"
@@ -214,8 +212,10 @@ namespace gpu::intel::core {
             topo.eu_count = topo.subslice_count * EUS_PER_SUBSLICE;
 
             const u32 subslice_enable_mask = (~subslice_disable_mask) & 0xFu;
-            const u32 first_slice    = slice_mask           ? static_cast<u32>(__builtin_ctz(slice_mask))           : 0u;
-            const u32 first_subslice = subslice_enable_mask ? static_cast<u32>(__builtin_ctz(subslice_enable_mask)) : 0u;
+            const u32 first_slice = slice_mask ? static_cast<u32>(__builtin_ctz(slice_mask)) : 0u;
+            const u32 first_subslice = subslice_enable_mask
+                                           ? static_cast<u32>(__builtin_ctz(subslice_enable_mask))
+                                           : 0u;
             topo.mcr_selector = (first_slice << 24) | (first_subslice << 21);
         }
 
@@ -397,7 +397,7 @@ namespace gpu::intel::core {
                 // hanging forever on a fence that can't signal.
                 if (decoded.bits.rcs.master_error) {
                     Log::warning("intel-gpu: GT0 IIR RCS master_error pending");
-                   // rcs->debug_dump_error_regs("master error");
+                    // rcs->debug_dump_error_regs("master error");
                     //rcs->dump_error_state("master error");
                     rcs->mark_banned();
                 }
@@ -541,23 +541,8 @@ namespace gpu::intel::core {
         const u32 engine_class, const EngineContext* ctx, const u32 target_seqno, const i64 timeout_ns
     ) const {
         if (!ctx) return true;
-
-        IntelEngine* engine = engine_for_class(engine_class);
-        if (!engine) return false;
-        if (engine->is_banned()) return false;
-
-        const bool infinite = timeout_ns < 0;
-        const u64 deadline_ns = infinite ? 0 : kernel::time::get_uptime_ns() + static_cast<u64>(timeout_ns);
-
-        while (true) {
-            const u32 done = __atomic_load_n(engine->seqno_ptr_for_read(*ctx), __ATOMIC_ACQUIRE);
-            if (static_cast<i32>(done - target_seqno) >= 0) return true;
-
-            if (engine->is_banned()) return false;
-            if (!infinite && kernel::time::get_uptime_ns() >= deadline_ns) return false;
-
-            kernel::time::sleep_us(500);
-        }
+        const IntelEngine* engine = engine_for_class(engine_class);
+        return engine ? engine->wait_seqno(*ctx, target_seqno, timeout_ns) : false;
     }
 
     int IntelGpuDevice::open(CharFile** out_cf) {

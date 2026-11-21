@@ -89,7 +89,7 @@ namespace gpu::intel::core {
                         Log::error("intel-rcs: engine workarounds restore after reset failed");
                     }
 
-                    MocsTable(device()).init();
+                    init_mocs_table(device_.mmio_base());
                 }
 
                 return true;
@@ -322,6 +322,23 @@ namespace gpu::intel::core {
         }
         auto* hwsp = virt_as<u32>(hwsp_cpu_addr_);
         return &hwsp[HWSP_SEQNO_OFFSET_DWORDS];
+    }
+
+    bool IntelEngine::wait_seqno(const EngineContext& ctx, const u32 target_seqno, const i64 timeout_ns) const {
+        if (is_banned()) return false;
+
+        const bool infinite = timeout_ns < 0;
+        const u64 deadline_ns = infinite ? 0 : kernel::time::get_uptime_ns() + static_cast<u64>(timeout_ns);
+
+        while (true) {
+            const u32 done = __atomic_load_n(seqno_ptr_for_read(ctx), __ATOMIC_ACQUIRE);
+            if (static_cast<i32>(done - target_seqno) >= 0) return true;
+
+            if (is_banned()) return false;
+            if (!infinite && kernel::time::get_uptime_ns() >= deadline_ns) return false;
+
+            kernel::time::sleep_us(500);
+        }
     }
 
     namespace {

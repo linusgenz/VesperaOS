@@ -31,7 +31,7 @@
 namespace gpu::intel::core {
     namespace {
         constexpr u32 kGfxMocsBase = 0xC800;
-        constexpr u32 kLncfcMocsBase = 0xB020; // GEN9_LNCFCMOCS(0), bitte verifizieren
+        constexpr u32 kLncfcMocsBase = 0xB020;
         constexpr u32 kEntries = 64;
         constexpr u32 kL3Regs = kEntries / 2;
 
@@ -47,22 +47,22 @@ namespace gpu::intel::core {
 
         constexpr Entry entry_for(const u32 idx) {
             switch (idx) {
-                case 0:  return kUncached;        // I915_MOCS_UNCACHED / Mesa uncached
-                case 1:  return kPte;             // I915_MOCS_PTE (MUSS 0x38 sein, NICHT 0x30!)
-                case 2:  return kWbLlcEllc;       // I915_MOCS_CACHED / Mesa WB
-                case 3:  return {0x05, 0x10};     // UC LLC
-                case 4:  return {0x07, 0x30};     // WB LLC, age 0
-                case 5:  return {0x37, 0x10};     // WB LLC, L3 UC
-                case 62: return {0x37, 0x10};
-                case 63: return {0x37, 0x10};
-                default: return kPte;             // 0x38 (LLC+eLLC via PTE)
+                case 0: return kUncached;    // I915_MOCS_UNCACHED / Mesa uncached
+                case 1: return kPte;         // I915_MOCS_PTE
+                case 2: return kWbLlcEllc;   // I915_MOCS_CACHED / Mesa WB
+                case 3: return {0x05, 0x10}; // UC LLC
+                case 4: return {0x07, 0x30}; // WB LLC, age 0
+                case 5:
+                case 62:
+                case 63: return {0x37, 0x10}; // WB LLC, L3 UC
+                default: return kPte; // 0x38 (LLC+eLLC via PTE)
             }
         }
     }
 
-    void MocsTable::init() const {
-        auto wr = [&](u32 off, u32 v) { *reinterpret_cast<volatile u32*>(device_.mmio_base() + off) = v; };
-        auto rd = [&](u32 off) { return *reinterpret_cast<volatile u32*>(device_.mmio_base() + off); };
+    void init_mocs_table(volatile u8* mmio_base) {
+        auto wr = [&](const u32 off, const u32 v) { *reinterpret_cast<volatile u32*>(mmio_base + off) = v; };
+        auto rd = [&](const u32 off) { return *reinterpret_cast<volatile u32*>(mmio_base + off); };
 
         u32 bad = 0;
 

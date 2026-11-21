@@ -254,6 +254,7 @@ namespace gpu::intel::core {
         [[nodiscard]] bool engine_whitelist_apply() const;
 
         [[nodiscard]] const u32* seqno_ptr_for_read(const EngineContext& ctx) const;
+        [[nodiscard]] bool wait_seqno(const EngineContext& ctx, u32 target_seqno, i64 timeout_ns) const;
 
         void mark_banned() { banned_.set(); }
         [[nodiscard]] bool is_banned() const { return banned_.load(); }
