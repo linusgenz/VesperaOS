@@ -37,30 +37,11 @@ namespace gpu::intel::core {
     }
 
     phys_addr_t IntelGemBackingObject::get_page(const usize offset_in_bytes) {
-        if (!obj_ || obj_->is_userptr || obj_->purged) {
-            return phys_addr_t{};
-        }
-
-        if (offset_in_bytes >= obj_->size) {
-            return phys_addr_t{};
-        }
-
-        // GEM_CREATE's backing is contiguous → no page table walk
-        return phys_add(obj_->phys_addr, offset_in_bytes);
+        return obj_ ? obj_->page_phys_at(offset_in_bytes) : phys_addr_t{};
     }
 
     CacheMode IntelGemBackingObject::get_cache_mode() const {
-        if (!obj_) {
-            return CacheMode::WriteBack;
-        }
-
-        switch (obj_->cpu_caching) {
-            case LUCIFER_GEM_CPU_CACHING_WC:
-                return CacheMode::WriteCombining;
-            case LUCIFER_GEM_CPU_CACHING_WB:
-            default:
-                return CacheMode::WriteBack;
-        }
+        return obj_ ? obj_->cache_mode() : CacheMode::WriteBack;
     }
 
     usize IntelGemBackingObject::get_size() const {

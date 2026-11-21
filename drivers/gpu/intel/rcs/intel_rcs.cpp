@@ -27,9 +27,9 @@
 #include "gfx_pipeline_stats_regs.h"
 #include "commands/cmd_pipe_control.h"
 #include "drivers/mmio_post_write.h"
-#include "gpu/intel/bcs/blt_commands.h"
-#include "gpu/intel/core/mi_commands.h"
+#include "gpu/intel/core/intel_forcewake.h"
 #include "gpu/intel/core/mocs_init.h"
+#include "gpu/intel/regs/error_regs.h"
 
 namespace gpu::intel::rcs {
     IntelRcs::IntelRcs(core::IntelGpuDevice& device)
@@ -42,7 +42,7 @@ namespace gpu::intel::rcs {
         ) {
     }
 
-    bool IntelRcs::init_device(Resolution res) {
+    bool IntelRcs::init_device() {
         if (!engine_force_wake_enable()) {
             Log::info("intel-rcs: ForceWake timeout");
             return false;
@@ -74,12 +74,6 @@ namespace gpu::intel::rcs {
         Log::info("intel-rcs: ring + HWSP + LRC initialized (Execlist mode)");
 
         rcs_error_reporting_init();
-
-        /*if (!select_pipeline(PIPELINE_SELECT::PIPELINE_3D)) {
-        //    log_lrc_context_image();
-            Log::info("intel-rcs: pipeline select failed");
-            return false;
-        }*/
 
         return true;
     }
@@ -136,7 +130,7 @@ namespace gpu::intel::rcs {
                   esr_raw, esr->rcs_error_bits.instruction_error, esr->rcs_error_bits.privilege_violation);
 
         if (eir_raw != 0 || (esr_raw & 0xFFFFu) != 0) {
-            Log::warning("intel-rcs: HARDWARE ERROR DETECTED (EIR or ESR non-zero) — see values above");
+            Log::warning("intel-rcs: HARDWARE ERROR DETECTED (EIR or ESR non-zero) - see values above");
         }
     }
 
@@ -179,94 +173,6 @@ namespace gpu::intel::rcs {
         seq_pc.immediate_data                = seqno;
         seq_pc.notify_enable                 = 1;
         ring_write_cmd(seq_pc);
-    }
-
-    void IntelRcs::debug_dump_render_target(u32 width, u32 height, u32 pitch) const {
-        auto* pixels = static_cast<volatile u32*>(virt_ptr(render_target_cpu_addr_));
-
-        const u32 stride_pixels = pitch / 4;
-        const u32 cx = width / 2;
-        const u32 cy = height / 2;
-
-        auto sample = [&](const char* label, u32 x, u32 y) {
-            const u32 val = pixels[y * stride_pixels + x];
-            Log::info("intel-rcs: RT pixel [%s] (%u,%u) = 0x%08x", label, x, y, val);
-        };
-
-        Log::info("=== RENDER TARGET READBACK (%ux%u, pitch %u) ===", width, height, pitch);
-        sample("center", cx, cy);
-        sample("top-left", 0, 0);
-        sample("top-right", width - 1, 0);
-        sample("bottom-left", 0, height - 1);
-        sample("bottom-right", width - 1, height - 1);
-
-        u32 min_x = width, max_x = 0;
-        u32 min_y = height, max_y = 0;
-        u64 nonzero_count = 0;
-
-        static constexpr u32 MAX_EXAMPLES = 5;
-        struct Example {
-            u32 x, y, val;
-        };
-        Example examples[MAX_EXAMPLES]{};
-        u32 example_count = 0;
-
-        for (u32 y = 0; y < height; y++) {
-            const u32 row_base = y * stride_pixels;
-            for (u32 x = 0; x < width; x++) {
-                const u32 val = pixels[row_base + x];
-                if (val == 0) continue;
-
-                nonzero_count++;
-                if (x < min_x) min_x = x;
-                if (x > max_x) max_x = x;
-                if (y < min_y) min_y = y;
-                if (y > max_y) max_y = y;
-
-                if (example_count < MAX_EXAMPLES) {
-                    examples[example_count++] = {x, y, val};
-                }
-            }
-        }
-
-        if (nonzero_count == 0) {
-            Log::warning("intel-rcs: RT full-screen scan found NO non-zero pixels (%ux%u)", width, height);
-            return;
-        }
-
-        Log::info(
-            "intel-rcs: RT full-screen scan: %llu non-zero pixels, bounding box (%u,%u)-(%u,%u) [%ux%u]",
-            nonzero_count, min_x, min_y, max_x, max_y, max_x - min_x + 1, max_y - min_y + 1
-        );
-
-        for (u32 i = 0; i < example_count; i++) {
-            Log::info(
-                "intel-rcs: RT scan example[%u] (%u,%u) = 0x%08x", i, examples[i].x, examples[i].y, examples[i].val
-            );
-        }
-
-        const u32 bbox_cx = (min_x + max_x) / 2;
-        const u32 bbox_cy = (min_y + max_y) / 2;
-        const u32 dx = bbox_cx > cx ? bbox_cx - cx : cx - bbox_cx;
-        const u32 dy = bbox_cy > cy ? bbox_cy - cy : cy - bbox_cy;
-
-        if (dx > width / 10 || dy > height / 10) {
-            Log::warning(
-                "intel-rcs: RT non-zero bounding box center (%u,%u) is far from screen center (%u,%u) — "
-                "check viewport/scissor/NDC mapping",
-                bbox_cx, bbox_cy, cx, cy
-            );
-        }
-    }
-
-    bool IntelRcs::present_to_screen(Resolution res) const {
-        if (!bcs_) return false;
-        Log::log_dbc("presenting to screen");
-
-        const u32 pitch = res.width * 4;
-        bcs_->composite_gpu_surface(render_target_gfx_addr_, pitch, res.width, res.height);
-        bcs_->present();
-        return true;
     }
 
     void IntelRcs::dump_pipeline_stats(const char* label) const {

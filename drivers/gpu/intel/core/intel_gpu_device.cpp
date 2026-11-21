@@ -402,7 +402,7 @@ namespace gpu::intel::core {
                 // hanging forever on a fence that can't signal.
                 if (decoded.bits.rcs.master_error) {
                     Log::warning("intel-gpu: GT0 IIR RCS master_error pending");
-                    self->rcs_->debug_dump_error_regs("master error");
+                   // self->rcs_->debug_dump_error_regs("master error");
                     //self->rcs_->dump_error_state("master error");
                     self->rcs_->mark_banned();
                 }

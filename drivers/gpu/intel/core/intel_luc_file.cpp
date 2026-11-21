@@ -37,18 +37,6 @@
 #include "vespera/realm/handles.h"
 
 namespace gpu::intel::core {
-    bool GemObject::dec_ref() {
-        if (__atomic_sub_fetch(&refcount, 1, __ATOMIC_ACQ_REL) != 0) {
-            return false;
-        }
-        if (!is_userptr && !purged) {
-            const usize page_count = (size + PAGE_SIZE - 1) / PAGE_SIZE;
-            kernel::memory::free_pages_phys(phys_addr, page_count);
-        }
-        delete this;
-        return true;
-    }
-
     LucFile::~LucFile() {
         // 1. Syncobjs: no other table here depends on them, and nothing
         // downstream needs them intact. SlotTable<T>'s iterator visits
@@ -67,9 +55,8 @@ namespace gpu::intel::core {
         for (auto*& obj : gem_slots_) {
             if (obj != nullptr) {
                 for (auto& engine_context : engine_contexts_) {
-                    if (obj->last_write_ctx == &engine_context) {
-                        obj->last_write_ctx = nullptr;
-                        obj->last_write_seqno = 0;
+                    if (obj->last_write.ctx == &engine_context) {
+                        obj->last_write = GemFenceRef{};
                     }
                 }
                 obj->dec_ref();
@@ -471,9 +458,11 @@ namespace gpu::intel::core {
             for (u32 i = 0; i < args.num_handles; ++i) {
                 GemObject* obj = gem_get_ref(handles[i]);
                 if (!obj) continue;
-                obj->last_write_ctx = ctx;
-                obj->last_write_seqno = seqno;
-                obj->last_engine_class = static_cast<u8>(engine_class_of(args.engine));
+                obj->last_write = GemFenceRef{
+                    .ctx          = ctx,
+                    .seqno        = seqno,
+                    .engine_class = static_cast<u8>(engine_class_of(args.engine)),
+                };
                 obj->dec_ref();
             }
         }

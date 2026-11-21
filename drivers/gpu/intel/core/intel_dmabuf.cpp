@@ -21,7 +21,9 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "intel_dmabuf.h"
-#include "intel_luc_file.h"
+
+#include "intel_gem_object.h"
+#include "intel_gpu_device.h"
 #include "uapi/vespera/dev/dma-buf.h"
 
 namespace gpu::intel::core {
@@ -33,26 +35,13 @@ namespace gpu::intel::core {
     }
 
     phys_addr_t LucDmaBuf::get_page(const usize offset_in_bytes) {
-        if (!obj_ || obj_->is_userptr || obj_->purged || offset_in_bytes >= obj_->size) {
-            return phys_addr_t{};
-        }
-        return phys_add(obj_->phys_addr, offset_in_bytes); // contiguous
+        return obj_ ? obj_->page_phys_at(offset_in_bytes) : phys_addr_t{};
     }
 
     usize LucDmaBuf::get_size() const { return obj_ ? obj_->size : 0; }
 
     CacheMode LucDmaBuf::get_cache_mode() const {
-        if (!obj_) {
-            return CacheMode::WriteBack;
-        }
-
-        switch (obj_->cpu_caching) {
-            case LUCIFER_GEM_CPU_CACHING_WC:
-                return CacheMode::WriteCombining;
-            case LUCIFER_GEM_CPU_CACHING_WB:
-            default:
-                return CacheMode::WriteBack;
-        }
+        return obj_ ? obj_->cache_mode() : CacheMode::WriteBack;
     }
 
     int LucDmaBuf::sync(const u64 flags) {
@@ -62,7 +51,7 @@ namespace gpu::intel::core {
 
         constexpr i64 TIMEOUT_NS = 10'000'000'000ll;
 
-        if (!device_.wait_seqno(obj_->last_engine_class, obj_->last_write_ctx, obj_->last_write_seqno, TIMEOUT_NS)) {
+        if (!device_.wait_seqno(obj_->last_write.engine_class, obj_->last_write.ctx, obj_->last_write.seqno, TIMEOUT_NS)) {
             return -ETIME;
         }
 

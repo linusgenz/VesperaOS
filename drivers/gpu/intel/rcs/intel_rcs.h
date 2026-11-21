@@ -50,16 +50,7 @@ namespace gpu::intel::rcs {
      * @brief Render Command Streamer engine.
      *
      * Peer of IntelBcs — both inherit IntelEngine and borrow the same
-     * IntelGpuDevice for MMIO base and GGTT, so RCS gets real GPU-memory
-     * allocation (via ggtt()/hwsp_alloc()/ring_alloc_and_init()) from the
-     * same call it always should have.
-     *
-     * Current state — Milestone 1 only: ForceWake + a legacy ring buffer +
-     * HWSP, enough to verify the Render engine responds to MMIO and can hold
-     * a ring buffer, before Execlists (GFX_MODE, LRCA, Context Descriptor,
-     * ELSP) are wired up. No PPGTT, no 3DSTATE, no submission helper yet —
-     * those are the next steps once this is confirmed working on real
-     * Kaby Lake hardware.
+     * IntelGpuDevice for MMIO base and GGTT
      */
     class IntelRcs final : public core::IntelEngine {
     public:
@@ -68,10 +59,8 @@ namespace gpu::intel::rcs {
         IntelRcs(const IntelRcs&) = delete;
         IntelRcs& operator=(const IntelRcs&) = delete;
 
-        bool init_device(Resolution res);
+        bool init_device();
 
-        void set_bcs(bcs::IntelBcs* bcs) { bcs_ = bcs; }
-        bool present_to_screen(Resolution res) const;
         void dump_pipeline_stats(const char* label) const;
         void debug_dump_error_regs(const char* label) const;
     private:
@@ -83,26 +72,9 @@ namespace gpu::intel::rcs {
         void rcs_interrupts_enable() const;
         void emit_flush(u32 seqno) override;
 
-        /**
-     * @brief Sends 3DSTATE_DRAWING_RECTANGLE and dispatches a 3-vertex 3DPRIMITIVE.
-     * @param width Framebuffer width in pixels (e.g. 1920)
-     * @param height Framebuffer height in pixels (e.g. 1080)
-     */
-
-        void debug_dump_render_target(u32 width, u32 height, u32 pitch) const;
         void rcs_error_reporting_init() const;
-        virt_addr_t render_target_cpu_addr_{};
-        gfx_addr_t render_target_gfx_addr_{};
-
-        virt_addr_t state_base_cpu_addr_{};
-        gfx_addr_t state_base_gfx_addr_{};
-
-        virt_addr_t vertex_buffer_cpu_addr_{};
-        gfx_addr_t vertex_buffer_gfx_addr_{};
 
         AtomicFlag completion_flag_{};
-
-        bcs::IntelBcs* bcs_ = nullptr;
     };
 } // namespace blt
 

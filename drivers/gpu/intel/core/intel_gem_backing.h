@@ -28,18 +28,17 @@
 #include <vespera/mm/vm_backing.h>
 
 namespace gpu::intel::core {
-    class LucFile;
     struct GemObject;
 
     /**
-     * Holds its own ref on the underlying GemObject (see
-     * intel_luc_file.h), taken at construction and dropped in the
-     * destructor. That ref is what keeps the object's pages alive if the
-     * owning LucFile's GEM_CLOSE (or the whole file's release()) runs
-     * while this mapping is still around -- add_mapping()/remove_mapping()
-     * are still no-ops today (nothing here needs a *second* refcount on
-     * top of the GemObject's own), but the constructor/destructor pair
-     * now does real ref-holding instead of just remembering a handle.
+     * VmBackingObject adapter for mmap()'d GEM buffers.
+     * Adopts a pre-acquired GemObject reference (see intel_gem_object.h) at
+     * construction and releases it in the destructor. Lifetime of the backing
+     * object itself is driven by VM mappings via add_mapping()/remove_mapping()
+     * (atomic refs_); once the last mapping is torn down, remove_mapping()
+     * deletes this object, which drops the GemObject ref. This keeps the
+     * underlying pages alive even if GEM_CLOSE or LucFile destruction runs
+     * while a mapping is still active.
      */
     class IntelGemBackingObject final : public kernel::vm::VmBackingObject {
     public:
