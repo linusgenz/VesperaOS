@@ -5,10 +5,8 @@
 #include <arch/x86_64/gdt.h>
 #include <cpu/cpu_manager.h>
 #include <klib/string.h>
-#include <realm/address_space.h>
 #include <units/unit.h>
 #include <vespera/log.h>
-#include <vespera/realm/realm_manager.h>
 #include <vespera/realm/realm_types.h>
 #include <vespera/time.h>
 #include <vespera/unit/unit_manager.h>
@@ -16,6 +14,7 @@
 
 #include "per_cpu.h"
 #include "vespera/mm/memory.h"
+#include "../arch/x86_64/interrupts/interrupts_internal.h"
 
 GsData g_per_cpu[kernel::acpi::madt::MAX_CPU_CORES];
 
@@ -184,11 +183,19 @@ namespace kernel::scheduling::cpu_scheduler {
         unit->state = UnitState::Ready;
         unit->next = nullptr;
         cpu->ready_queue.push(unit);
+
+        bool need_ipi = false;
         if (cpu->scheduler_enabled && cpu->current_unit == cpu->idle_unit) {
             cpu->need_resched = true;
+            need_ipi = (cpu_id != cpu_manager::get_current_cpu_id());
         }
 
         cpu->lock.unlock_irqrestore(flags);
+
+        if (need_ipi) {
+            const u32 target_apic_id = cpu_manager::get_apic_id(cpu_id);
+            arch::x86_64::interrupts::apic::send_ipi(target_apic_id, IRQ_YIELD);
+        }
     }
 
     void remove_unit_from_cpu(Unit* unit, const u8 cpu_id) {
@@ -234,6 +241,7 @@ namespace kernel::scheduling::cpu_scheduler {
         if (next == prev && !terminated && !blocked) {
             prev->state = UnitState::Running;
             cpu->ticks_remaining = cpu->quantum_ticks;
+            cpu->need_resched = false;
             cpu->lock.unlock_irqrestore(flags);
             return;
         }
@@ -241,6 +249,7 @@ namespace kernel::scheduling::cpu_scheduler {
         next->state = UnitState::Running;
         cpu->current_unit = next;
         cpu->ticks_remaining = cpu->quantum_ticks;
+        cpu->need_resched = false;
 
         time::sleep_timer::set_quantum_deadline(
             cpu_id, time::get_uptime_ns() + arch::x86_64::interrupts::apic::QUANTUM_NS

@@ -34,6 +34,8 @@ namespace kernel::time::sleep_timer {
             // Absolute uptime (ns) of the earliest sleeping unit in the
             // blocked queue.  0 means "no sleeping units pending".
             u64 next_sleep_wakeup_ns = 0;
+
+            u64 armed_deadline_ns = 0;
         };
 
         CpuTimerState g_state[kernel::acpi::madt::MAX_CPU_CORES];
@@ -46,11 +48,20 @@ namespace kernel::time::sleep_timer {
         arch::x86_64::interrupts::apic::arm_oneshot_ns(arch::x86_64::interrupts::apic::QUANTUM_NS);
     }
 
+    static void arm_if_earlier(const u8 cpu_id, const u64 deadline_ns) {
+        auto& st = g_state[cpu_id];
+        if (st.armed_deadline_ns != 0 && st.armed_deadline_ns <= deadline_ns) return;
+        const u64 now = get_uptime_ns();
+        const u64 delay = deadline_ns > now ? deadline_ns - now : arch::x86_64::interrupts::apic::APIC_MIN_DELAY_NS;
+        st.armed_deadline_ns = now + delay;
+        arch::x86_64::interrupts::apic::arm_oneshot_ns(delay);
+    }
+
     void notify_sleep(const u8 cpu_id, const u64 wakeup_ns) {
         auto& st = g_state[cpu_id];
-        if (st.next_sleep_wakeup_ns == 0 || wakeup_ns < st.next_sleep_wakeup_ns) {
+        if (st.next_sleep_wakeup_ns == 0 || wakeup_ns < st.next_sleep_wakeup_ns)
             st.next_sleep_wakeup_ns = wakeup_ns;
-        }
+        arm_if_earlier(cpu_id, wakeup_ns);
     }
 
     void update_min_wakeup(const u8 cpu_id, const u64 new_min_ns) {
@@ -63,7 +74,7 @@ namespace kernel::time::sleep_timer {
 
     void arm_next_event(const u8 cpu_id) {
         const u64 now = kernel::time::get_uptime_ns();
-        const auto& st = g_state[cpu_id];
+        auto& st = g_state[cpu_id];
 
         u64 next_ns = (st.quantum_deadline_ns > now)
                           ? st.quantum_deadline_ns
@@ -79,6 +90,7 @@ namespace kernel::time::sleep_timer {
 
         const u64 delay_ns = (next_ns > now) ? (next_ns - now) : arch::x86_64::interrupts::apic::APIC_MIN_DELAY_NS;
 
+        st.armed_deadline_ns = now + delay_ns;
         arch::x86_64::interrupts::apic::arm_oneshot_ns(delay_ns);
     }
 } // namespace kernel::time::sleep_timer

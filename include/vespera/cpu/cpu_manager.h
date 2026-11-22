@@ -58,6 +58,7 @@ namespace cpu_manager {
     void init_core(const CpuInfo* cpu);
 
     [[nodiscard]] u8 get_current_cpu_id();
+    [[nodiscard]] u8 get_apic_id(u8 cpu_id);
     [[nodiscard]] u8 get_online_cpu_count();
     [[nodiscard]] u8 get_total_cpu_count();
     [[nodiscard]] CpuInfo* get_cpu_info(u32 apic_id);

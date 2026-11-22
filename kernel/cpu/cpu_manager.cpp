@@ -153,6 +153,18 @@ namespace cpu_manager {
         return 0;  // Default BSP
     }
 
+    u8 get_apic_id(u8 cpu_id) {
+        if (!is_initialized) return 0;
+
+        for (u8 i = 0; i < total_cpus; i++) {
+            if (cpu_infos[i].cpu_id == cpu_id) {
+                return cpu_infos[i].apic_id;
+            }
+        }
+
+        return 0;
+    }
+
     u8 get_online_cpu_count() {
         return online_cpus;
     }

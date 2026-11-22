@@ -60,10 +60,29 @@ namespace kernel::time {
             current->sleep_context.wakeup_ns = target_ns;
             current->sleep_context.interrupted = false;
 
-            sleep_timer::notify_sleep(static_cast<u8>(cpu_id), target_ns);
+            u64 flags{};
+            asm volatile(
+                "pushfq\n\t"
+                "popq %0\n\t"
+                "cli"
+                : "=r"(flags)
+                :
+                : "memory"
+            );
 
+            sleep_timer::notify_sleep(static_cast<u8>(cpu_id), target_ns);
             kernel::scheduling::add_blocked_unit(current, cpu_id);
-            kernel::scheduling::yield();
+
+            asm volatile(
+                "pushq %0\n\t"
+                "popfq"
+                :
+                : "r"(flags)
+                : "memory", "cc"
+            );
+
+            if (current->state == UnitState::Blocked)
+                scheduling::yield();
 
             return !current->sleep_context.interrupted;
         }
@@ -101,11 +120,11 @@ namespace kernel::time {
     }
 
     void sleep_ms(const u64 ms) {
-        sleep_until_ms((get_uptime_ns() / 1'000'000ULL) + ms);
+        sleep_until_ns(get_uptime_ns() + ms * 1'000'000ULL);
     }
 
     void sleep_us(const u64 us) {
-        sleep_until_us((get_uptime_ns() / 1'000ULL) + us);
+        sleep_until_ns(get_uptime_ns() + us * 1'000ULL);
     }
 
     bool sleep_ns(const u64 ns) {
