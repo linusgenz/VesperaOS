@@ -115,6 +115,15 @@ namespace gpu::intel::core {
             u32 mcr_selector;
         };
 
+        struct GtFrequencyLimits {
+            u32 min_mhz = 0;         ///< RPN - minimum GT frequency.
+            u32 guaranteed_mhz = 0;  ///< RP1 - maximum guaranteed (non-turbo) GT frequency.
+            u32 max_mhz = 0;         ///< RP0 - maximum (turbo) GT frequency.
+            u32 effective_max_mhz = 0;  ///< Effective max GT frequency capped by RP_STATE_LIMITS.
+            bool is_capped = false;  ///< True if RP_STATE_LIMITS restricts RP0.
+            bool valid = false;      ///< False if MCHBAR mapping or read failed.
+        };
+
         [[nodiscard]] FuseTopology fuse_topology() const {
             return fuse_topology_;
         }
@@ -215,6 +224,8 @@ namespace gpu::intel::core {
 
         bool wait_seqno(u32 engine_class, const EngineContext* ctx, u32 target_seqno, i64 timeout_ns) const;
 
+        u32 current_gt_freq_mhz() const;
+
     private:
         /// exec_submit()/syncobj_wait() need engine_for_class()
         friend class LucFile;
@@ -234,8 +245,10 @@ namespace gpu::intel::core {
         void master_int_ctl_enable() const;
 
         [[nodiscard]] FuseTopology query_fuse_topology() const;
+        [[nodiscard]] GtFrequencyLimits query_gt_frequency_limits();
 
         FuseTopology fuse_topology_;
+        GtFrequencyLimits gt_freq_limits_{};
 
         /// Backs DRM_IOCTL_SYNCOBJ_WAIT (see LucFile::syncobj_wait()).
         /// Device-level, not per-LucFile: a syncobj created by one process
@@ -257,6 +270,7 @@ namespace gpu::intel::core {
         LastSubmit last_submit_[LUCIFER_NUM_ENGINE_CLASSES]{};
 
         volatile INTEL_IGP_PCI_CONFIG* igp_cfg_{nullptr};
+        volatile u8* mchbar_base_{nullptr};
         pci::pci_id pci_id_;
         volatile u8* mmio_base_{nullptr};
         GgttAllocator ggtt_alloc_;

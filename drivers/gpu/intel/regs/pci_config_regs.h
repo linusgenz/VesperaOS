@@ -234,6 +234,32 @@ struct GmadrInfo {
 };
 
 /**
+ * @brief MCHBAR Base Address register (PCI config offset 0x48, Device 0:0:0).
+ *
+ * @note This register only holds the *physical base address* of the
+ *       MCHBAR MMIO window — it is not itself one of the MCHBAR
+ *       registers. The actual MCHBAR register set (RP state limits,
+ *       RP state capabilities, memory controller registers, etc.) is
+ *       accessed via MMIO at @ref base_address() + <register offset>.
+ *       See regs/mchbar_regs.h for the MMIO register layouts.
+ */
+union MCHBAR_BASE_0_0_0_PCI {
+    struct {
+        u64 enable      : 1;   ///< [0]     MCHBAR Enable (1 = enabled)
+        u64 reserved    : 14;  ///< [14:1]  Hardwired 0 (32 KB Alignment)
+        u64 base_addr   : 24;  ///< [38:15] Physical base address [38:15]
+        u64 reserved_hi : 25;  ///< [63:39] MBZ
+    } __attribute__((packed));
+    u64 raw;
+
+    [[nodiscard]] u64 base_address() const {
+        return raw & 0x0000007FFFFF8000ull; // Bits [38:15] maskieren
+    }
+};
+static_assert(sizeof(MCHBAR_BASE_0_0_0_PCI) == 8, "MCHBAR must be 64 bits");
+inline constexpr u8 MCHBAR_PCI_OFFSET = 0x48;
+
+/**
  * @brief PCI Configuration Space layout for Intel Gen9/9.5 iGPU (Device 0:2:0).
  *
  * Covers the full 256-byte config space as documented in:

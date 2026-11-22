@@ -37,6 +37,9 @@
 #include "filesystem/devfs.h"
 #include "gpu/intel/regs/fuse_regs.h"
 #include "intel_node_kind.h"
+#include "gpu/intel/regs/gt_power_regs.h"
+#include "gpu/intel/regs/mchbar_regs.h"
+#include "pci/pci_host_bridge.h"
 #include "vespera/graphics/display_manager.h"
 
 // TODO: allocate_irq_vector dont lazy init
@@ -107,6 +110,16 @@ namespace gpu::intel::core {
         }
 
         fuse_topology_ = query_fuse_topology();
+        gt_freq_limits_ = query_gt_frequency_limits();
+
+        Log::debug("intel-gpu: GT freq limits: min=%u MHz, guaranteed=%u MHz, max=%u MHz, effective_max=%u MHz (capped=%s)",
+           gt_freq_limits_.min_mhz,
+           gt_freq_limits_.guaranteed_mhz,
+           gt_freq_limits_.max_mhz,
+           gt_freq_limits_.effective_max_mhz,
+           gt_freq_limits_.is_capped ? "yes" : "no");
+
+        Log::debug("intel-gpu: GT current freq: %u Mhz", current_gt_freq_mhz());
 
         wa::enable_all_mmio_workarounds(mmio_base(), fuse_topology_.mcr_selector);
 
@@ -221,6 +234,76 @@ namespace gpu::intel::core {
 
         return topo;
     }
+
+    IntelGpuDevice::GtFrequencyLimits IntelGpuDevice::query_gt_frequency_limits() {
+        GtFrequencyLimits limits{};
+
+        const volatile pci::INTEL_HB_PCI_CONFIG* hb_cfg = pci::get_host_bridge(pci_id_.domain);
+        if (!hb_cfg) {
+            Log::error("intel-gpu: host bridge config space not available for MCHBAR lookup");
+            return limits;
+        }
+
+        MCHBAR_BASE_0_0_0_PCI mchbar_reg{};
+        mchbar_reg.raw = hb_cfg->mchbar;
+
+        if (!mchbar_reg.enable) {
+            Log::warning("intel-gpu: MCHBAR not enabled by firmware, cannot read GT frequency caps");
+            return limits;
+        }
+
+        const phys_addr_t mchbar_phys = make_phys(mchbar_reg.base_address());
+
+        if (!mchbar_base_) {
+            constexpr usize MCHBAR_WINDOW_SIZE = 0x8000;
+
+            kernel::memory::map_range(
+                phys_to_virt(mchbar_phys),
+                mchbar_phys,
+                MCHBAR_WINDOW_SIZE,
+                (1ULL << PtFlag::ReadWrite),
+                CacheMode::Uncacheable
+            );
+
+            mchbar_base_ = static_cast<volatile u8*>(virt_ptr(phys_to_virt(mchbar_phys)));
+        }
+
+        regs::RP_STATE_CAP_MCHBAR cap{};
+        cap.raw = *reinterpret_cast<volatile u32*>(mchbar_base_ + regs::RP_STATE_CAP_MCHBAR_OFFSET);
+
+        if (cap.raw == 0x00000000u || cap.raw == 0xFFFFFFFFu) {
+            Log::warning("intel-gpu: RP_STATE_CAP read returned sentinel value, MCHBAR mapping may be wrong");
+            return limits;
+        }
+
+        limits.min_mhz = cap.min_freq_mhz();
+        limits.guaranteed_mhz = cap.guaranteed_freq_mhz();
+        limits.max_mhz = cap.max_freq_mhz();
+
+        regs::RP_STATE_LIMITS_MCHBAR sw_lim{};
+        sw_lim.raw = *reinterpret_cast<volatile u32*>(mchbar_base_ + regs::RP_STATE_LIMITS_MCHBAR_OFFSET);
+
+
+        if (sw_lim.raw != 0xFFFFFFFFu && sw_lim.has_limit() && sw_lim.limit_freq_mhz() < limits.max_mhz) {
+            limits.effective_max_mhz = sw_lim.limit_freq_mhz();
+            limits.is_capped = true;
+        } else {
+            limits.effective_max_mhz = limits.max_mhz;
+            limits.is_capped = false;
+        }
+
+        limits.valid = true;
+
+        return limits;
+    }
+
+    u32 IntelGpuDevice::current_gt_freq_mhz() const {
+        GEN6_RPSTAT1 status{};
+        status.raw = *reinterpret_cast<volatile u32*>(mmio_base_ + GEN6_RPSTAT1_OFFSET);
+
+        return status.gen9_freq_mhz();
+    }
+
 
     u8 IntelGpuDevice::allocate_irq_vector(irq_handler_t handler, void* ctx) {
         if (irq_vector_ != INVALID_VECTOR) {
