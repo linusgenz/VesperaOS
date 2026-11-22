@@ -225,6 +225,7 @@ namespace gpu::intel::core {
         bool wait_seqno(u32 engine_class, const EngineContext* ctx, u32 target_seqno, i64 timeout_ns) const;
 
         u32 current_gt_freq_mhz() const;
+        void request_gt_frequency(u32 target_mhz) const;
 
     private:
         /// exec_submit()/syncobj_wait() need engine_for_class()

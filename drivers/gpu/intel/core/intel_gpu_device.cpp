@@ -112,14 +112,21 @@ namespace gpu::intel::core {
         fuse_topology_ = query_fuse_topology();
         gt_freq_limits_ = query_gt_frequency_limits();
 
-        Log::debug("intel-gpu: GT freq limits: min=%u MHz, guaranteed=%u MHz, max=%u MHz, effective_max=%u MHz (capped=%s)",
-           gt_freq_limits_.min_mhz,
-           gt_freq_limits_.guaranteed_mhz,
-           gt_freq_limits_.max_mhz,
-           gt_freq_limits_.effective_max_mhz,
-           gt_freq_limits_.is_capped ? "yes" : "no");
+        Log::debug(
+            "intel-gpu: GT freq limits: min=%u MHz, guaranteed=%u MHz, max=%u MHz, effective_max=%u MHz (capped=%s)",
+            gt_freq_limits_.min_mhz,
+            gt_freq_limits_.guaranteed_mhz,
+            gt_freq_limits_.max_mhz,
+            gt_freq_limits_.effective_max_mhz,
+            gt_freq_limits_.is_capped ? "yes" : "no");
 
         Log::debug("intel-gpu: GT current freq: %u Mhz", current_gt_freq_mhz());
+
+        request_gt_frequency(500);
+
+        kernel::time::sleep_ms(10);
+
+        Log::debug("intel-gpu: GT current freq: %u Mhz (updated)", current_gt_freq_mhz());
 
         wa::enable_all_mmio_workarounds(mmio_base(), fuse_topology_.mcr_selector);
 
@@ -304,6 +311,18 @@ namespace gpu::intel::core {
         return status.gen9_freq_mhz();
     }
 
+    void IntelGpuDevice::request_gt_frequency(const u32 target_mhz) const {
+        if (!force_wake_enable(RENDER_FORCEWAKE_DOMAIN)) {
+            Log::warning("intel-gpu: ForceWake failed before RPNSWREQ write, skipping frequency request");
+            return;
+        }
+
+        const GEN6_RPNSWREQ req = GEN6_RPNSWREQ::make_gen9(target_mhz);
+        *reinterpret_cast<volatile u32*>(mmio_base_ + GEN6_RPNSWREQ_OFFSET) = req.raw;
+        (void)*reinterpret_cast<volatile u32*>(mmio_base_ + GEN6_RPNSWREQ_OFFSET);
+
+        Log::debug("intel-gpu: requested GT freq %u MHz via RPNSWREQ (raw=0x%08x)", target_mhz, req.raw);
+    }
 
     u8 IntelGpuDevice::allocate_irq_vector(irq_handler_t handler, void* ctx) {
         if (irq_vector_ != INVALID_VECTOR) {

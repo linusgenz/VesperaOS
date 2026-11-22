@@ -68,4 +68,73 @@ union GEN6_RPSTAT1 {
     }
 };
 
+
+constexpr usize GEN6_RPNSWREQ_OFFSET = 0xA008;
+
+/**
+ * @brief Render P-State Normal SW Request - Offset A008h in the GTTMMADR MMIO window.
+ *
+ * Used by software to request a target graphics frequency (ratio) for the
+ * Integrated GFX Engine (GT). Bit layout varies across Intel generations.
+ *
+ * @note Located at physical address (GTTMMADR base) + 0xA008 (PCI 00:02.0 BAR0).
+ * @note Requires Render Forcewake (e.g., FORCEWAKE_RENDER_GEN9 at 0xA278) to be
+ *       active before writing on Gen 6+ hardware.
+ */
+union GEN6_RPNSWREQ {
+    struct {
+        u32 reserved0        : 15; ///< [14:0]  Reserved / power gating hints
+        u32 aggressive_turbo : 4;  ///< [18:15] Turbo aggressiveness (0 = aggressive)
+        u32 offset           : 6;  ///< [24:19] Frequency offset
+        u32 frequency        : 6;  ///< [30:25] Requested frequency ratio (50 MHz units)
+        u32 turbo_disable    : 1;  ///< [31]    1 = Disable turbo, 0 = Enable turbo
+    } __attribute__((packed)) gen6;
+
+    struct {
+        u32 reserved0        : 15; ///< [14:0]  Reserved / power gating hints
+        u32 aggressive_turbo : 4;  ///< [18:15] Turbo aggressiveness (0 = aggressive)
+        u32 offset           : 5;  ///< [23:19] Frequency offset
+        u32 frequency        : 7;  ///< [30:24] Requested frequency ratio (50 MHz units)
+        u32 turbo_disable    : 1;  ///< [31]    1 = Disable turbo, 0 = Enable turbo
+    } __attribute__((packed)) hsw;
+
+    struct {
+        u32 ignore_slice_ratio : 1;  ///< [0]     0 = Ignore separate slice ratio (use unslice)
+        u32 reserved0          : 12; ///< [12:1]  Reserved
+        u32 media_freq_ratio   : 1;  ///< [13]    Gen 12+ media frequency ratio select
+        u32 reserved1          : 9;  ///< [22:14] Reserved
+        u32 frequency          : 9;  ///< [31:23] Requested unslice frequency ratio (16.66 MHz units)
+    } __attribute__((packed)) gen9;
+
+    u32 raw;
+
+    [[nodiscard]] static constexpr GEN6_RPNSWREQ make_gen6(
+        const u32 target_mhz, const bool disable_turbo = false
+    ) {
+        GEN6_RPNSWREQ req{};
+        req.gen6.turbo_disable = disable_turbo ? 1u : 0u;
+        req.gen6.frequency = (target_mhz / 50u) & 0x3Fu;
+        req.gen6.aggressive_turbo = 0u;
+        return req;
+    }
+
+    [[nodiscard]] static constexpr GEN6_RPNSWREQ make_hsw(
+        const u32 target_mhz, const bool disable_turbo = false
+    ) {
+        GEN6_RPNSWREQ req{};
+        req.hsw.turbo_disable = disable_turbo ? 1u : 0u;
+        req.hsw.frequency = (target_mhz / 50u) & 0x7Fu;
+        req.hsw.aggressive_turbo = 0u;
+        return req;
+    }
+
+    [[nodiscard]] static constexpr GEN6_RPNSWREQ make_gen9(const u32 target_mhz) {
+        GEN6_RPNSWREQ req{};
+        // Gen 9+ encodes frequency in units of 16.66 MHz (50 / 3 MHz), like in RPSTAT1
+        req.gen9.frequency = ((target_mhz * 3u) / 50u) & 0x1FFu;
+        req.gen9.ignore_slice_ratio = 0u;
+        return req;
+    }
+};
+
 #endif //VESPERAWORKSPACE_GT_POWER_REGS_H
