@@ -25,6 +25,8 @@
 #include <vespera/mm/file_backing.h>
 
 #include <filesystem/vfs.h>
+
+#include <filesystem/vfs_node.h>
 #include "klib/utils.h"
 
 namespace {

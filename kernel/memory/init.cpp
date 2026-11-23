@@ -42,16 +42,7 @@ namespace kernel::memory {
         initialize_page_table_manager(boot_info);
 
         // PAT
-        constexpr u32 ia32_pat_msr = 0x277;
-        u64 pat_value = (0x06ULL << 0) |   // PAT0: WB
-                        (0x01ULL << 8) |   // PAT1: WC
-                        (0x07ULL << 16) |  // PAT2: UC-
-                        (0x00ULL << 24) |  // PAT3: UC
-                        (0x06ULL << 32) |  // PAT4: WB
-                        (0x04ULL << 40) |  // PAT5: WT
-                        (0x07ULL << 48) |  // PAT6: UC-
-                        (0x05ULL << 56);   // PAT7: WP
-        wrmsr(ia32_pat_msr, pat_value);
+        initialize_pat();
 
         const u64 fb_virt = reinterpret_cast<u64>(boot_info->framebuffer->base_address);
         const u64 fb_phys = boot_info->framebuffer->phys_base_address;
@@ -71,5 +62,18 @@ namespace kernel::memory {
         asm volatile("mov %0, %%cr3" : : "r"(get_pagetable_address()) : "memory");
         g_hhdm_offset = boot_info->hhdm_offset;
         relocate_bitmap_to_hhdm();
+    }
+
+    void initialize_pat() {
+        constexpr u32 ia32_pat_msr = 0x277;
+        u64 pat_value = (0x06ULL << 0) |   // PAT0: WB
+                        (0x01ULL << 8) |   // PAT1: WC
+                        (0x07ULL << 16) |  // PAT2: UC-
+                        (0x00ULL << 24) |  // PAT3: UC
+                        (0x06ULL << 32) |  // PAT4: WB
+                        (0x04ULL << 40) |  // PAT5: WT
+                        (0x07ULL << 48) |  // PAT6: UC-
+                        (0x05ULL << 56);   // PAT7: WP
+        wrmsr(ia32_pat_msr, pat_value);
     }
 }  // namespace kernel::memory
