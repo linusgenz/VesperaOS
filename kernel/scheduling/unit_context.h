@@ -24,6 +24,8 @@
 
 #include <vespera/types.h>
 
+#include "vespera/cpu/simd.h"
+
 struct UnitCpuContext {
     u64 r15, r14, r13, r12;
     u64 r11, r10, r9,  r8;
@@ -38,27 +40,11 @@ struct UnitCpuContext {
 };
 
 
-struct alignas(16) UnitFpuState {
-    u8 fxsave_area[512];
-};
+using UnitFpuState = simd::FpuState;
 
-inline void fpu_save(UnitFpuState* s) {
-    asm volatile("fxsaveq %0" : "=m"(s->fxsave_area) :: "memory");
-}
-
-inline void fpu_restore(const UnitFpuState* s) {
-    asm volatile("fxrstorq %0" :: "m"(s->fxsave_area) : "memory");
-}
-
-inline void fpu_init_state(UnitFpuState* s) {
-    for (usize i = 0; i < 512; ++i) s->fxsave_area[i] = 0;
-    // FCW @ offset 0: 0x037F — mask all x87 exceptions, round-to-nearest, 64-bit prec
-    s->fxsave_area[0] = 0x7F;
-    s->fxsave_area[1] = 0x03;
-    // MXCSR @ offset 24: 0x1F80 — mask all SSE exceptions, round-to-nearest
-    s->fxsave_area[24] = 0x80;
-    s->fxsave_area[25] = 0x1F;
-}
+inline void fpu_save(UnitFpuState* s) noexcept       { simd::save_state(*s); }
+inline void fpu_restore(const UnitFpuState* s) noexcept { simd::restore_state(*s); }
+inline void fpu_init_state(UnitFpuState* s) noexcept { simd::init_state(*s); }
 
 struct TrapFrame;
 

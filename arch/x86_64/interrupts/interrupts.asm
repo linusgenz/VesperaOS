@@ -1,6 +1,8 @@
 ; interrupts.asm — VesperaOS x86_64 unified ISR stubs
 
-%define TF_SIZE   0xB0
+%define TF_SIZE       0xB8
+%define TF_FPU_STATE  0xB0
+%define FPU_AREA_SIZE 0xC00   ; 3072 bytes (64-byte aligned, covers x87 + SSE + AVX + AVX-512)
 
 %define TF_R15        0x00
 %define TF_R14        0x08
@@ -80,7 +82,12 @@ section .text
 ;   [RSP+40]  rsp
 ;   [RSP+48]  ss
 
+%define FPU_CFG_MODE       0x00
+%define FPU_CFG_SIZE       0x04
+%define FPU_CFG_XSAVE_MASK 0x08
+
 extern vespera_trap_handler
+extern g_vespera_fpu_config
 
 global isr_common_entry
 isr_common_entry:
@@ -119,6 +126,7 @@ isr_common_entry:
     mov     [rsp + TF_RSP], rax
     mov     rax, [rsi + HDR_SS]
     mov     [rsp + TF_SS], rax
+    mov     qword [rsp + TF_FPU_STATE], 0
 
     ; Swap GS if coming from user mode
     test    byte [rsp + TF_CS], 3
@@ -127,11 +135,68 @@ isr_common_entry:
     lfence
 .from_kernel:
 
-    mov     rdi, rsp
-    push    rdi
-    and     rsp, -16
+    ; Preserve TrapFrame* in callee-saved r12 across the C++ handler.
+    mov     r12, rsp
+
+    ; Save FPU/SSE/AVX state BEFORE any C++ kernel code runs (the kernel is
+    ; compiled with SSE enabled and uses XMM/YMM in IRQs and scheduler code).
+    mov     ecx, dword [rel g_vespera_fpu_config + FPU_CFG_MODE]
+    test    ecx, ecx
+    jz      .skip_fpu_save
+
+    sub     rsp, FPU_AREA_SIZE
+    and     rsp, -64                    ; XSAVE64 requires 64-byte alignment
+    mov     [r12 + TF_FPU_STATE], rsp
+
+    cmp     ecx, 2
+    je      .do_xsave
+
+    fxsave64 [rsp]
+    jmp     .skip_fpu_save
+
+.do_xsave:
+    ; XSAVE does not clear XCOMP_BV (offset 520) or reserved header bytes
+    ; (528..575); zero the 64-byte XSAVE header so XRSTOR never raises #GP.
+    xor     eax, eax
+    mov     [rsp + 512], rax
+    mov     [rsp + 520], rax
+    mov     [rsp + 528], rax
+    mov     [rsp + 536], rax
+    mov     [rsp + 544], rax
+    mov     [rsp + 552], rax
+    mov     [rsp + 560], rax
+    mov     [rsp + 568], rax
+
+    mov     rax, [rel g_vespera_fpu_config + FPU_CFG_XSAVE_MASK]
+    mov     rdx, rax
+    shr     rdx, 32
+    xsave64 [rsp]
+
+.skip_fpu_save:
+    and     rsp, -16                    ; SysV AMD64 16-byte stack alignment
+    mov     rdi, r12                    ; arg0 = TrapFrame*
     call    vespera_trap_handler
-    pop     rsp
+
+    ; Restore FPU/SSE/AVX state AFTER all C++ code (including do_switch) finishes.
+    mov     rbx, [r12 + TF_FPU_STATE]
+    test    rbx, rbx
+    jz      .skip_fpu_restore
+
+    mov     ecx, dword [rel g_vespera_fpu_config + FPU_CFG_MODE]
+    cmp     ecx, 2
+    je      .do_xrstor
+
+    fxrstor64 [rbx]
+    jmp     .skip_fpu_restore
+
+.do_xrstor:
+    mov     rax, [rel g_vespera_fpu_config + FPU_CFG_XSAVE_MASK]
+    mov     rdx, rax
+    shr     rdx, 32
+    xrstor64 [rbx]
+
+.skip_fpu_restore:
+    mov     rsp, r12
 
     lea     rsi, [rsp + TF_SIZE]
     mov     rax, [rsp + TF_RIP]

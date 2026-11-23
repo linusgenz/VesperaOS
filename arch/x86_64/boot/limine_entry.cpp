@@ -192,7 +192,7 @@ extern "C" void limine_entry() {
         boot_info.kernel_virt_base = 0xFFFFFFFF80100000ULL;
     }
 
-    simd_init();
+    simd::init();
 
     parse_psf_font();
     boot_info.font = &embedded_font;

@@ -69,7 +69,7 @@ Unit* setup_idle_unit(const u8 cpu_id) {
         .name                 = "idle_thread",
         .cpu_id               = cpu_id,
         .priority             = PRIORITY_NONE,
-        .stack_size           = 0x1000,
+        .stack_size           = 0x4000,
         .initial_handles      = nullptr,
         .initial_handle_count = 0,
         .is_idle              = true,
@@ -97,6 +97,9 @@ namespace kernel::scheduling::cpu_scheduler {
     /// GsData* directly.
     static void do_switch(Unit* prev, Unit* next, TrapFrame* tf) {
         const u64 now = kernel::time::get_uptime_ns();
+        const usize area_size = simd::fpu_area_size();
+        const usize fpu_copy_size =
+            (area_size <= UnitFpuState::SIZE) ? area_size : UnitFpuState::SIZE;
 
         if (prev) {
             if (prev->run_start_ns != 0) {
@@ -104,11 +107,19 @@ namespace kernel::scheduling::cpu_scheduler {
             }
             prev->context.fs_base = rdmsr(MSR_FS_BASE);
             cpu_context_save(tf, &prev->context.cpu_ctx);
-            fpu_save(&prev->context.fpu_ctx);
+            if (tf->fpu_state) {
+                memcpy(prev->context.fpu_ctx.area, tf->fpu_state, fpu_copy_size);
+            } else {
+                fpu_save(&prev->context.fpu_ctx);
+            }
         }
 
         next->run_start_ns = now;
-        fpu_restore(&next->context.fpu_ctx);
+        if (tf->fpu_state) {
+            memcpy(tf->fpu_state, next->context.fpu_ctx.area, fpu_copy_size);
+        } else {
+            fpu_restore(&next->context.fpu_ctx);
+        }
         cpu_context_load(&next->context.cpu_ctx, tf);
 
         const u8 cpu_id = next->cpu_id;
@@ -180,9 +191,12 @@ namespace kernel::scheduling::cpu_scheduler {
         u64 flags = 0;
         cpu->lock.lock_irqsave(flags);
 
+        cpu->blocked_queue.remove(unit);
         unit->state = UnitState::Ready;
-        unit->next = nullptr;
-        cpu->ready_queue.push(unit);
+        if (!cpu->ready_queue.contains(unit)) {
+            unit->next = nullptr;
+            cpu->ready_queue.push(unit);
+        }
 
         bool need_ipi = false;
         if (cpu->scheduler_enabled && cpu->current_unit == cpu->idle_unit) {
@@ -293,11 +307,11 @@ namespace kernel::scheduling::cpu_scheduler {
     void add_blocked_unit(Unit* unit, const u8 cpu_id) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
 
-        // Remove from ready queue first – current unit shouldn't be there,
-        // but be defensive.
+        // Remove from ready/blocked queues first so intrusive links stay valid.
         {
             SpinlockGuardIrq guard(cpu->lock);
             cpu->ready_queue.remove(unit);
+            cpu->blocked_queue.remove(unit);
             unit->next = nullptr;
             unit->state = UnitState::Blocked;
             cpu->blocked_queue.push(unit);
@@ -312,35 +326,60 @@ namespace kernel::scheduling::cpu_scheduler {
         CpuScheduler* cpu = get_cpu_data(unit->cpu_id);
         {
             SpinlockGuardIrq guard(cpu->lock);
+            // IntrusiveQueue::remove clears unit->next only if unit was found;
+            // never clobber unit->next when unit is already on ready_queue.
             cpu->blocked_queue.remove(unit);
-            unit->next = nullptr;
         }
     }
 
     void wake_sleeping_units(const u8 cpu_id) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
+        const u64 now = time::get_uptime_ns();
 
-        // Extract all units whose sleep deadline has passed or that are already
-        // marked Ready (e.g. woken by an event before the timer fired).
-        Unit* woken = cpu->blocked_queue.extract_if([&](const Unit* u) -> bool {
-            return u->sleep_context.wakeup_ns <= time::get_uptime_ns() || u->state == UnitState::Ready;
-        });
+        u64 new_min = 0;
+        bool need_ipi = false;
 
-        while (woken) {
-            Unit* next = woken->next;
-            woken->sleep_context.wakeup_ns = 0;
-            add_unit_to_cpu(woken, cpu_id);
-            woken = next;
+        {
+            SpinlockGuardIrq guard(cpu->lock);
+
+            // Extract all units whose sleep deadline has passed or that are already
+            // marked Ready (e.g. woken by an event before the timer fired).
+            Unit* woken = cpu->blocked_queue.extract_if([&](const Unit* u) -> bool {
+                return u->sleep_context.wakeup_ns <= now || u->state == UnitState::Ready;
+            });
+
+            // Recalculate the earliest remaining wakeup so the sleep timer can be
+            // programmed accurately.
+            cpu->blocked_queue.for_each([&](const Unit* u) {
+                if (new_min == 0 || u->sleep_context.wakeup_ns < new_min) {
+                    new_min = u->sleep_context.wakeup_ns;
+                }
+            });
+
+            bool any_woken = false;
+            while (woken) {
+                Unit* next = woken->next;
+                woken->next = nullptr;
+                woken->sleep_context.wakeup_ns = 0;
+                woken->state = UnitState::Ready;
+                if (!cpu->ready_queue.contains(woken)) {
+                    cpu->ready_queue.push(woken);
+                }
+                any_woken = true;
+                woken = next;
+            }
+
+            if (any_woken && cpu->scheduler_enabled && cpu->current_unit == cpu->idle_unit) {
+                cpu->need_resched = true;
+                need_ipi = (cpu_id != cpu_manager::get_current_cpu_id());
+            }
         }
 
-        // Recalculate the earliest remaining wakeup so the sleep timer can be
-        // programmed accurately.
-        u64 new_min = 0;
-        cpu->blocked_queue.for_each([&](const Unit* u) {
-            if (new_min == 0 || u->sleep_context.wakeup_ns < new_min) {
-                new_min = u->sleep_context.wakeup_ns;
-            }
-        });
+        if (need_ipi) {
+            const u32 target_apic_id = cpu_manager::get_apic_id(cpu_id);
+            arch::x86_64::interrupts::apic::send_ipi(target_apic_id, IRQ_YIELD);
+        }
+
         time::sleep_timer::update_min_wakeup(cpu_id, new_min);
     }
 } // namespace kernel::scheduling::cpu_scheduler

@@ -14,7 +14,7 @@
 #include "vespera/mm/memory.h"
 
 extern "C" void ap_main() {
-    simd_enable_on_current_core();
+    simd::enable_on_current_core();
     kernel::memory::initialize_pat();
 
     const u32 cpu_id = cpu_manager::get_current_cpu_id();
