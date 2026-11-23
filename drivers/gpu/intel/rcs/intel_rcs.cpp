@@ -30,6 +30,7 @@
 #include "gpu/intel/core/intel_forcewake.h"
 #include "gpu/intel/core/mocs_init.h"
 #include "gpu/intel/regs/error_regs.h"
+#include "vespera/debug/chronos.h"
 
 namespace gpu::intel::rcs {
     IntelRcs::IntelRcs(core::IntelGpuDevice& device)
@@ -148,6 +149,7 @@ namespace gpu::intel::rcs {
     void IntelRcs::on_gt_user_interrupt() {
         completion_flag_.set();
         waiters_.wake_all_irq();
+        kernel::chronos::checkpoint("gpu.irq", "rcs_user_int");
     }
 
     void IntelRcs::emit_flush(u32 seqno) {

@@ -33,6 +33,7 @@
 #include "intel_workarounds.h"
 #include "mocs_init.h"
 #include "gpu/intel/rcs/commands/cmd_pipe_control.h"
+#include "vespera/debug/chronos.h"
 
 // TODO(FIX): hardware race ib lite restore, we have to check wether ctx switch is pending
 // see lrc_set_reg in dispatch_batxcch and and the end of submit_ring
@@ -190,7 +191,6 @@ namespace gpu::intel::core {
                 while (engine_ring_.tail & 0x7) {
                     ring_write(engine_ring_, MI_NOOP);
                 }
-                asm volatile("wbinvd" ::: "memory");
                 asm volatile("mfence" ::: "memory");
 
                 RING_BUFFER_TAIL tail{};
@@ -210,7 +210,6 @@ namespace gpu::intel::core {
                 }
                 lrc_update_tail(ctx, ctx.ring.tail);
 
-                asm volatile("wbinvd" ::: "memory");
                 asm volatile("mfence" ::: "memory");
                 lrc_submit(ctx, sibling);
                 break;
@@ -484,11 +483,13 @@ namespace gpu::intel::core {
                         mask | LRC_CTX_SR_CTL_INHIBIT_SYNC_CTX_SWITCH_BIT);
         }
 
+        kernel::chronos::checkpoint("gpu.ring", "wait_space_begin");
         if (!ring_wait_space(ctx, 512, 100000)) {
             Log::error("intel-%s: ring_wait_space timed out", engine_type_to_string(type_));
             active_dispatch_ring_ = saved_ring;
             return false;
         }
+        kernel::chronos::checkpoint("gpu.ring", "wait_space_end");
 
         if (type_ == EngineType::RCS && !ctx.has_run_once) {
             u32 lri_buf[64];
@@ -533,7 +534,9 @@ namespace gpu::intel::core {
 
         active_dispatch_ring_->inflight_push(*out_seqno, postfix);
 
+        kernel::chronos::checkpoint("gpu.ring", "submit_ring_begin");
         submit_ring(ctx, sibling);
+        kernel::chronos::checkpoint("gpu.ring", "submit_ring_end");
 
         ctx.has_run_once = true;
 

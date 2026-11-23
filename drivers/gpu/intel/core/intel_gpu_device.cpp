@@ -122,11 +122,11 @@ namespace gpu::intel::core {
 
         Log::debug("intel-gpu: GT current freq: %u Mhz", current_gt_freq_mhz());
 
-        request_gt_frequency(500);
+        //request_gt_frequency(500);
 
-        kernel::time::sleep_ms(10);
+       // kernel::time::sleep_ms(10);
 
-        Log::debug("intel-gpu: GT current freq: %u Mhz (updated)", current_gt_freq_mhz());
+       // Log::debug("intel-gpu: GT current freq: %u Mhz (updated)", current_gt_freq_mhz());
 
         wa::enable_all_mmio_workarounds(mmio_base(), fuse_topology_.mcr_selector);
 

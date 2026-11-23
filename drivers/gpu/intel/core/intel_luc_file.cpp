@@ -34,6 +34,7 @@
 #include "intel_gpu_device.h"
 #include "../kernel/units/unit.h"
 #include "../regs/lrc_layout.h"
+#include "vespera/debug/chronos.h"
 #include "vespera/realm/handles.h"
 
 namespace gpu::intel::core {
@@ -208,6 +209,10 @@ namespace gpu::intel::core {
     }
 
     bool LucFile::gem_madvise(const lucifer_gem_madvise& args, bool* out_retained) const {
+        if (!out_retained) {
+            return false;
+        }
+
         GemObject* obj = gem_get_ref(args.handle);
         if (!obj || obj->is_userptr) {
             if (obj) obj->dec_ref();
@@ -215,30 +220,18 @@ namespace gpu::intel::core {
             return false;
         }
 
-        bool result_ok = true;
-
-        if (args.state == LUCIFER_MADVICE_DONT_NEED) {
-            // WE HAVE TO VERIFY THAT THIS IS ALREADY UNMAPPED
-            if (!obj->purged) {
-                /*const usize page_count = (obj->size + PAGE_SIZE - 1) / PAGE_SIZE;
-                kernel::memory::free_pages_phys(obj->phys_addr, page_count);
-                obj->phys_addr = phys_addr_t{};
-                obj->purged = true;*/
-            }
-
-            *out_retained = false; // DONTNEED never reports resident
-        } else if (obj->purged) {
-            // LUCIFER_MADVICE_WILL_NEED, but backing store is gone and this
-            // bring-up path never reallocates it -- caller
-            // (lucifer_bo_madvise()) is expected to see retained == false
-            // and recreate the BO.
-            *out_retained = false;
-        } else {
-            *out_retained = true; // was never purged, still live
+        switch (args.state) {
+            case LUCIFER_MADVICE_DONT_NEED:
+            case LUCIFER_MADVICE_WILL_NEED:
+                *out_retained = !obj->purged;
+                break;
+            default:
+                obj->dec_ref();
+                return false;
         }
 
         obj->dec_ref();
-        return result_ok;
+        return true;
     }
 
     GemObject* LucFile::lookup_gem(const u32 handle) const {
@@ -418,6 +411,7 @@ namespace gpu::intel::core {
         // no timeout (submission-time ordering, not a userspace-visible
         // wait with its own deadline). Matches how Mesa/iris only ever
         // passes already-outstanding fences from prior submissions here.
+        kernel::chronos::checkpoint("gpu.exec", "wait_deps_begin");
         for (u32 i = 0; i < args.num_syncs; ++i) {
             if (syncs[i].flags & LUCIFER_SYNC_FLAG_SIGNAL) {
                 continue;
@@ -429,12 +423,15 @@ namespace gpu::intel::core {
                 return false;
             }
         }
+        kernel::chronos::checkpoint("gpu.exec", "wait_deps_end");
 
+        kernel::chronos::checkpoint("gpu.submit", "submit_begin");
         u32 seqno = 0;
         if (!engine->submit_or_wait(make_gfx(args.batch_addr), args.batch_len, &seqno, vm, *ctx)) {
             Log::log_dbc("intel-gpu: EXEC failed (submit_or_wait)");
             return false;
         }
+        kernel::chronos::checkpoint("gpu.submit", "submit_end");
 
         args.out_seqno = seqno;
         device_.note_submit(engine_class_of(args.engine), ctx, seqno);
@@ -581,6 +578,8 @@ namespace gpu::intel::core {
             return -1;
         }
 
+        kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_begin");
+
         {
             SpinlockGuard guard(handle_lock_);
             for (u32 i = 0; i < count_handles; ++i) {
@@ -627,6 +626,7 @@ namespace gpu::intel::core {
 
         Unit* cur = kernel::scheduling::get_current_unit();
         if (!cur || cur->is_idle) {
+            kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
             return syncobj_wait_poll(handles, count_handles, wait_all, timeout_ns, out_first_signaled);
         }
 
@@ -637,11 +637,21 @@ namespace gpu::intel::core {
         while (true) {
             u32 signaled_count = 0;
             int rc = syncobj_wait_poll_once(handles, count_handles, wait_all, out_first_signaled, &signaled_count);
-            if (rc != 0) return rc;
-            if (!wait_all && signaled_count > 0) return 0;
-            if (wait_all && signaled_count == count_handles) return 0;
+            if (rc != 0) {
+                kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
+                return rc;
+            };
+            if (!wait_all && signaled_count > 0) {
+                kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
+                return 0;
+            };
+            if (wait_all && signaled_count == count_handles) {
+                kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
+                return 0;
+            };
 
             if (num_wait_engines == 0) {
+                kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
                 return syncobj_wait_poll(handles, count_handles, wait_all, timeout_ns, out_first_signaled);
             }
 
@@ -657,9 +667,18 @@ namespace gpu::intel::core {
             kernel::scheduling::yield();
 
             rc = syncobj_wait_poll_once(handles, count_handles, wait_all, out_first_signaled, &signaled_count);
-            if (rc != 0) return rc;
-            if (!wait_all && signaled_count > 0) return 0;
-            if (wait_all && signaled_count == count_handles) return 0;
+            if (rc != 0) {
+                kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
+                return rc;
+            };
+            if (!wait_all && signaled_count > 0) {
+                kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
+                return 0;
+            };
+            if (wait_all && signaled_count == count_handles) {
+                kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
+                return 0;
+            };
 
             if (!infinite && kernel::time::get_uptime_ns() >= deadline_ns) {
                 bool any_lost_race = false;
@@ -669,6 +688,7 @@ namespace gpu::intel::core {
                     }
                 }
                 if (!any_lost_race) {
+                    kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
                     return -ETIME;
                 }
             }
@@ -1073,7 +1093,7 @@ namespace gpu::intel::core {
                 // this struct today.
                 const auto* handles = reinterpret_cast<const u32*>(wait->handles);
                 return syncobj_wait(handles, wait->count_handles, wait->flags,
-                                    wait->deadline_nsec, &wait->first_signaled);
+                                    wait->timeout_nsec, &wait->first_signaled);
             }
 
             case DRM_IOCTL_SYNCOBJ_RESET: {

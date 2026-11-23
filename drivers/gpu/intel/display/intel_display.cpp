@@ -29,6 +29,7 @@
 #include <gpu/intel/core/intel_gpu_device.h>
 
 #include "vespera/cpu/simd_mem.h"
+#include "vespera/debug/chronos.h"
 
 namespace gpu::intel::display {
     namespace {
@@ -100,9 +101,21 @@ namespace gpu::intel::display {
             }
         }
 
+        const usize shadow_bytes = static_cast<usize>(scanout_[0].pitch) * scanout_[0].height;
+        shadow_ = static_cast<u32*>(kernel::memory::malloc(shadow_bytes));
+        if (!shadow_) {
+            Log::error("intel-display: shadow buffer allocation failed");
+            return false;
+        }
+        memset(shadow_, 0, shadow_bytes);
+        shadow_stride_px_ = scanout_[0].pitch / SCANOUT_BYTES_PER_PIXEL;
+        curr_dirty_.reset();
+        prev_dirty_.reset();
+
         front_idx_ = 0;
         back_idx_ = 1;
         back_dirty_ = false;
+        flip_pending_ = false;
 
         PlaneConfig cfg = scanout_[front_idx_].plane_config();
         cfg.format = firmware_cfg.format; // Pixelformat der Firmware übernehmen, Rest ist unser Buffer
@@ -120,7 +133,7 @@ namespace gpu::intel::display {
         return true;
     }
 
-    ScanoutBuffer IntelDisplay::alloc_scanout(const Resolution res, const TileMode tiling) {
+    ScanoutBuffer IntelDisplay::alloc_scanout(const Resolution res, const TileMode tiling) const {
         ScanoutBuffer out{};
 
         if (!res.is_valid() || res.width > PLANE_MAX_WIDTH || res.height > PLANE_MAX_HEIGHT) {
@@ -185,15 +198,40 @@ namespace gpu::intel::display {
         return handled;
     }
 
+    void IntelDisplay::ensure_back_ready() {
+        if (!flip_pending_) return;
+
+        kernel::chronos::checkpoint("disp.flip_wait", "begin");
+        if (!primary_plane().wait_flip_done(FLIP_TIMEOUT_US)) {
+            Log::warning("intel-display: flip did not complete within %u us", FLIP_TIMEOUT_US);
+        }
+        flip_pending_ = false;
+        kernel::chronos::checkpoint("disp.flip_wait", "flip_done");
+
+        const ScanoutBuffer& front = scanout_[front_idx_];
+        const ScanoutBuffer& back = scanout_[back_idx_];
+
+        const usize bytes_to_copy = static_cast<usize>(front.pitch) * front.height;
+        fb_memcpy_avx2(virt_ptr(back.alloc.cpu_addr), virt_ptr(front.alloc.cpu_addr), bytes_to_copy);
+        kernel::chronos::checkpoint("disp.flip_wait", "back_sync_end");
+    }
+
     bool IntelDisplay::fill_rect(const u32 px, const u32 py, const u32 w, const u32 h, const u32 colour) {
-        if (!scanout_ready_) return false;
+        if (!scanout_ready_ || !shadow_) return false;
 
         const ScanoutBuffer& back = scanout_[back_idx_];
         if (px > back.width || py > back.height) return false;
         if (w > back.width - px || h > back.height - py) return false;
+        if (w == 0 || h == 0) return true;
 
-        fb_fill_rect_sse2(virt_ptr(back.alloc.cpu_addr), back.pitch / SCANOUT_BYTES_PER_PIXEL, px, py, w, h, colour);
-        back_dirty_ = true;
+        u32* first_row = shadow_ + static_cast<usize>(py) * shadow_stride_px_ + px;
+        for (u32 x = 0; x < w; ++x) first_row[x] = colour;
+        const usize row_bytes = static_cast<usize>(w) * SCANOUT_BYTES_PER_PIXEL;
+        for (u32 y = 1; y < h; ++y) {
+            memcpy(shadow_ + static_cast<usize>(py + y) * shadow_stride_px_ + px, first_row, row_bytes);
+        }
+
+        curr_dirty_.expand(px, py, w, h);
         return true;
     }
 
@@ -201,31 +239,69 @@ namespace gpu::intel::display {
         const u32* pixels, const u32 src_stride, const u32 src_x, const u32 src_y,
         const u32 w, const u32 h, const u32 dst_x, const u32 dst_y
     ) {
-        if (!scanout_ready_ || !pixels) return false;
+        if (!scanout_ready_ || !shadow_ || !pixels) return false;
 
         const ScanoutBuffer& back = scanout_[back_idx_];
         if (dst_x >= back.width || dst_y >= back.height) return false;
 
         const u32 max_w = (dst_x + w > back.width) ? back.width - dst_x : w;
         const u32 max_h = (dst_y + h > back.height) ? back.height - dst_y : h;
-        const u32 dst_stride_px = back.pitch / SCANOUT_BYTES_PER_PIXEL;
+        if (max_w == 0 || max_h == 0) return true;
 
-        auto* dst = static_cast<u32*>(virt_ptr(back.alloc.cpu_addr));
+        kernel::chronos::checkpoint("disp.blit_region", "begin");
+
         const usize row_bytes = static_cast<usize>(max_w) * SCANOUT_BYTES_PER_PIXEL;
-
-        for (u32 y = 0; y < max_h; y++) {
+        for (u32 y = 0; y < max_h; ++y) {
             const u32* src_row = pixels + static_cast<usize>(src_y + y) * src_stride + src_x;
-            u32* dst_row = dst + static_cast<usize>(dst_y + y) * dst_stride_px + dst_x;
-
-            fb_memcpy_avx2(dst_row, src_row, row_bytes);
+            u32* dst_row = shadow_ + static_cast<usize>(dst_y + y) * shadow_stride_px_ + dst_x;
+            memcpy(dst_row, src_row, row_bytes); // normal cached memcpy -> bleibt im L3!
         }
 
-        back_dirty_ = true;
+        kernel::chronos::checkpoint("disp.blit_region", "memcopy done");
+
+        curr_dirty_.expand(dst_x, dst_y, max_w, max_h);
         return true;
     }
 
+    void IntelDisplay::upload_rect_to_back(const DirtyRect& r) const {
+        if (!r.valid) return;
+        const ScanoutBuffer& back = scanout_[back_idx_];
+        auto* dst = static_cast<u32*>(virt_ptr(back.alloc.cpu_addr));
+        const usize row_bytes = static_cast<usize>(r.x1 - r.x0) * SCANOUT_BYTES_PER_PIXEL;
+
+        for (u32 y = r.y0; y < r.y1; ++y) {
+            const usize off = static_cast<usize>(y) * shadow_stride_px_ + r.x0;
+            fb_memcpy_avx2(dst + off, shadow_ + off, row_bytes);
+        }
+    }
+
     void IntelDisplay::present() {
-        if (!scanout_ready_ || !back_dirty_) return;
+        if (!scanout_ready_ || !curr_dirty_.valid) return;
+
+        if (flip_pending_) {
+            kernel::chronos::checkpoint("disp.flip_wait", "begin");
+            if (!primary_plane().wait_flip_done(FLIP_TIMEOUT_US)) {
+                Log::warning("intel-display: flip did not complete within %u us", FLIP_TIMEOUT_US);
+            }
+            flip_pending_ = false;
+            kernel::chronos::checkpoint("disp.flip_wait", "flip_done");
+        }
+
+        kernel::chronos::checkpoint("disp.present", "present_begin");
+
+        if (prev_dirty_.valid) {
+            const DirtyRect u = curr_dirty_.union_with(prev_dirty_);
+            if (u.area() <= curr_dirty_.area() + prev_dirty_.area()) {
+                upload_rect_to_back(u);
+            } else {
+                upload_rect_to_back(prev_dirty_);
+                upload_rect_to_back(curr_dirty_);
+            }
+        } else {
+            upload_rect_to_back(curr_dirty_);
+        }
+
+        kernel::chronos::checkpoint("disp.present", "upload_done");
 
         DisplayPlane& plane1 = primary_plane();
         if (!plane1.flip(scanout_[back_idx_].alloc.gfx_addr)) {
@@ -233,22 +309,14 @@ namespace gpu::intel::display {
             return;
         }
 
-        // Blockiert bis der Flip gelandet ist, bevor der alte Front-Buffer als
-        // neuer Back-Buffer freigegeben wird -- sonst könnte der nächste
-        // fill_rect()/blit_region() noch aktiv gescannten Speicher überschreiben.
-        if (!plane1.wait_flip_done(FLIP_TIMEOUT_US)) {
-            Log::warning("intel-display: present: flip did not complete within %u us", FLIP_TIMEOUT_US);
-        }
-
         const u32 new_back = front_idx_;
         front_idx_ = back_idx_;
         back_idx_ = new_back;
-        back_dirty_ = false;
 
-        const ScanoutBuffer& front = scanout_[front_idx_];
-        const ScanoutBuffer& back = scanout_[back_idx_];
+        prev_dirty_ = curr_dirty_;
+        curr_dirty_.reset();
+        flip_pending_ = true;
 
-        const usize bytes_to_copy = static_cast<usize>(front.pitch) * front.height;
-        fb_memcpy_avx2(virt_ptr(back.alloc.cpu_addr), virt_ptr(front.alloc.cpu_addr), bytes_to_copy);
+        kernel::chronos::checkpoint("disp.present", "flip_queued");
     }
 } // namespace gpu::intel::display

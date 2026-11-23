@@ -40,6 +40,46 @@ namespace gpu::intel::core {
 }
 
 namespace gpu::intel::display {
+    struct DirtyRect {
+        u32 x0 = 0, y0 = 0, x1 = 0, y1 = 0;
+        bool valid = false;
+
+        void reset() { valid = false; }
+
+        void expand(const u32 x, const u32 y, const u32 w, const u32 h) {
+            if (w == 0 || h == 0) return;
+            const u32 nx1 = x + w;
+            const u32 ny1 = y + h;
+            if (!valid) {
+                x0 = x;
+                y0 = y;
+                x1 = nx1;
+                y1 = ny1;
+                valid = true;
+                return;
+            }
+            if (x < x0) x0 = x;
+            if (y < y0) y0 = y;
+            if (nx1 > x1) x1 = nx1;
+            if (ny1 > y1) y1 = ny1;
+        }
+
+        [[nodiscard]] u64 area() const {
+            return valid ? static_cast<u64>(x1 - x0) * (y1 - y0) : 0;
+        }
+
+        [[nodiscard]] DirtyRect union_with(const DirtyRect& o) const {
+            if (!valid) return o;
+            if (!o.valid) return *this;
+            DirtyRect r{};
+            r.x0 = (x0 < o.x0) ? x0 : o.x0;
+            r.y0 = (y0 < o.y0) ? y0 : o.y0;
+            r.x1 = (x1 > o.x1) ? x1 : o.x1;
+            r.y1 = (y1 > o.y1) ? y1 : o.y1;
+            r.valid = true;
+            return r;
+        }
+    };
 
     /// A GGTT-backed scanout surface with all the alignment / padding rules
     /// PLANE_SURF imposes already applied (see IntelDisplay::alloc_scanout()).
@@ -49,8 +89,8 @@ namespace gpu::intel::display {
         u32 height = 0;
         u32 pitch = 0;
         TileMode tiling = TileMode::Linear;
-        u32 surface_pages = 0;  ///< pages covered by pitch * height
-        u32 total_pages = 0;    ///< surface_pages + SCANOUT_PTE_PADDING_PAGES
+        u32 surface_pages = 0; ///< pages covered by pitch * height
+        u32 total_pages = 0;   ///< surface_pages + SCANOUT_PTE_PADDING_PAGES
         bool valid = false;
 
         [[nodiscard]] PlaneConfig plane_config() const {
@@ -104,7 +144,7 @@ namespace gpu::intel::display {
         /// pitch and height rounded up for the tiling, base aligned to
         /// 256 KB (Linear/X) or 1 MB (Y), plus the 136 padding PTEs.
         /// `valid` is false on failure.
-        [[nodiscard]] ScanoutBuffer alloc_scanout(Resolution res, TileMode tiling);
+        [[nodiscard]] ScanoutBuffer alloc_scanout(Resolution res, TileMode tiling) const;
 
         /// Called from IntelGpuDevice::device_irq_handler() with the
         /// MASTER_INT_CTL value it just read. Returns true if a pipe handled
@@ -120,9 +160,11 @@ namespace gpu::intel::display {
         [[nodiscard]] u32 screen_width_px() const override {
             return scanout_ready_ ? scanout_[front_idx_].width : 0;
         }
+
         [[nodiscard]] u32 screen_height_px() const override {
             return scanout_ready_ ? scanout_[front_idx_].height : 0;
         }
+
         [[nodiscard]] u32 bytes_per_scanline() const override {
             return scanout_ready_ ? scanout_[front_idx_].pitch : 0;
         }
@@ -130,17 +172,24 @@ namespace gpu::intel::display {
     private:
         void log_firmware_state();
         bool init_scanout();
+        void ensure_back_ready();
+        void upload_rect_to_back(const DirtyRect& r) const;
 
         core::IntelGpuDevice& device_;
         DisplayPipe pipes_[PIPE_COUNT];
 
         ScanoutBuffer scanout_[2]{};
-        u32 front_idx_ = 0;
-        u32 back_idx_ = 1;
-        bool scanout_ready_ = false;
-        bool back_dirty_ = false;
-    };
+        u32 front_idx_{0u};
+        u32 back_idx_{1u};
+        bool scanout_ready_{false};
+        bool back_dirty_{false};
+        bool flip_pending_{false};
 
-}  // namespace gpu::intel::display
+        u32* shadow_ = nullptr;
+        u32 shadow_stride_px_{0u};
+        DirtyRect curr_dirty_{};
+        DirtyRect prev_dirty_{};
+    };
+} // namespace gpu::intel::display
 
 #endif  // VESPERAOS_INTEL_DISPLAY_H
