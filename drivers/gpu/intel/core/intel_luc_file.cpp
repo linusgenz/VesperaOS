@@ -418,7 +418,7 @@ namespace gpu::intel::core {
             }
 
             const u32 handle = syncs[i].handle;
-            if (syncobj_wait(&handle, 1, DRM_SYNCOBJ_WAIT_FLAGS_WAIT_ALL, -1, nullptr) != 0) {
+            if (syncobj_wait(&handle, 1, DRM_SYNCOBJ_WAIT_FLAGS_WAIT_ALL, 0x7FFF'FFFF'FFFF'FFFFLL, nullptr) != 0) {
                 Log::log_dbc("intel-gpu: EXEC failed (wait on sync handle=%u)", handle);
                 return false;
             }
@@ -550,8 +550,9 @@ namespace gpu::intel::core {
         const u32* handles, const u32 count_handles, const bool wait_all,
         const i64 timeout_ns, u32* out_first_signaled
     ) {
-        const bool infinite = timeout_ns < 0;
-        const u64 deadline_ns = infinite ? 0 : kernel::time::get_uptime_ns() + static_cast<u64>(timeout_ns);
+        constexpr i64 SYNCOBJ_WAIT_INFINITE = 0x7FFF'FFFF'FFFF'FFFFLL;
+        const bool infinite = (timeout_ns == SYNCOBJ_WAIT_INFINITE);
+        const u64 deadline_ns = (timeout_ns <= 0) ? 0ULL : static_cast<u64>(timeout_ns);
         const i64 poll_interval_us = 500;
 
         while (true) {
@@ -630,9 +631,25 @@ namespace gpu::intel::core {
             return syncobj_wait_poll(handles, count_handles, wait_all, timeout_ns, out_first_signaled);
         }
 
-        const bool infinite = timeout_ns < 0;
-        const u64 deadline_ns = infinite ? 0 : kernel::time::get_uptime_ns() + static_cast<u64>(timeout_ns);
+        // DRM ABI: drm_syncobj_wait::timeout_nsec is an absolute CLOCK_MONOTONIC
+        // timestamp in ns (same epoch as kernel::time::get_uptime_ns()).
+        // INT64_MAX = wait forever; <= 0 or <= now = non-blocking busy check.
+        constexpr i64 SYNCOBJ_WAIT_INFINITE = 0x7FFF'FFFF'FFFF'FFFFLL;
+        const bool infinite = (timeout_ns == SYNCOBJ_WAIT_INFINITE);
+        const u64 deadline_ns = (timeout_ns <= 0) ? 0ULL : static_cast<u64>(timeout_ns);
         const u8 cpu_id = cur->cpu_id;
+
+        auto cleanup_wait = [&]() {
+            for (u32 j = 0; j < num_wait_engines; ++j) {
+                wait_engines[j]->waiters_.remove(cur);
+            }
+            if (!infinite) {
+                kernel::scheduling::remove_blocked_unit(cur);
+                cur->sleep_context.wakeup_ns = 0;
+            }
+            kernel::scheduling::remove_unit(cur);
+            cur->state = UnitState::Running;
+        };
 
         while (true) {
             u32 signaled_count = 0;
@@ -640,61 +657,76 @@ namespace gpu::intel::core {
             if (rc != 0) {
                 kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
                 return rc;
-            };
+            }
             if (!wait_all && signaled_count > 0) {
                 kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
                 return 0;
-            };
+            }
             if (wait_all && signaled_count == count_handles) {
                 kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
                 return 0;
-            };
+            }
+
+            // Fast-path for non-blocking checks (iris_bo_busy / expired deadline):
+            // return -ETIME immediately without touching waiters_ or yielding.
+            if (!infinite && kernel::time::get_uptime_ns() >= deadline_ns) {
+                kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
+                return -ETIME;
+            }
 
             if (num_wait_engines == 0) {
                 kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
                 return syncobj_wait_poll(handles, count_handles, wait_all, timeout_ns, out_first_signaled);
             }
 
+            if (!infinite) {
+                cur->sleep_context.wakeup_ns = deadline_ns;
+                kernel::time::sleep_timer::notify_sleep(cpu_id, deadline_ns);
+                kernel::scheduling::add_blocked_unit(cur, cpu_id);
+            }
+
             for (u32 j = 0; j < num_wait_engines; ++j) {
                 wait_engines[j]->waiters_.add_wait(cur);
             }
 
-            if (!infinite) {
-                cur->sleep_context.wakeup_ns = deadline_ns;
-                kernel::scheduling::add_blocked_unit(cur, cpu_id);
+            // Re-check after registering in waiters_ to close the lost-wakeup window
+            // if the GPU IRQ fired between poll_once() and add_wait().
+            rc = syncobj_wait_poll_once(handles, count_handles, wait_all, out_first_signaled, &signaled_count);
+            if (rc != 0 || (!wait_all && signaled_count > 0) || (wait_all && signaled_count == count_handles)) {
+                cleanup_wait();
+                kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
+                return (rc != 0) ? rc : 0;
             }
 
-            kernel::scheduling::yield();
+            if (static_cast<UnitState>(
+                    __atomic_load_n(reinterpret_cast<const u8*>(&cur->state), __ATOMIC_ACQUIRE)
+                ) == UnitState::Blocked) {
+                kernel::scheduling::yield();
+            }
+
+            // Remove any leftover waiter/timer registrations before re-checking or returning.
+            cleanup_wait();
 
             rc = syncobj_wait_poll_once(handles, count_handles, wait_all, out_first_signaled, &signaled_count);
             if (rc != 0) {
                 kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
                 return rc;
-            };
+            }
             if (!wait_all && signaled_count > 0) {
                 kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
                 return 0;
-            };
+            }
             if (wait_all && signaled_count == count_handles) {
                 kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
                 return 0;
-            };
-
-            if (!infinite && kernel::time::get_uptime_ns() >= deadline_ns) {
-                bool any_lost_race = false;
-                for (u32 j = 0; j < num_wait_engines; ++j) {
-                    if (!wait_engines[j]->waiters_.remove(cur)) {
-                        any_lost_race = true;
-                    }
-                }
-                if (!any_lost_race) {
-                    kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
-                    return -ETIME;
-                }
             }
 
-            // Not yet signaled, not timed out (or lost a removal race) --
-            // loop back and park again.
+            if (!infinite && kernel::time::get_uptime_ns() >= deadline_ns) {
+                kernel::chronos::checkpoint("gpu.sync", "syncobj_wait_end");
+                return -ETIME;
+            }
+
+            // Spurious/unrelated engine wakeup before our seqno retired -- loop and park again.
         }
     }
 

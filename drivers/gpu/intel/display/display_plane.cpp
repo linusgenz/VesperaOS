@@ -23,9 +23,11 @@
 #include "display_plane.h"
 
 #include <vespera/log.h>
+#include <vespera/scheduling.h>
 #include <vespera/time.h>
 
 #include <gpu/intel/core/intel_gpu_device.h>
+#include "../kernel/units/unit.h"
 
 #include "display_mmio.h"
 #include "display_pipe.h"
@@ -230,19 +232,62 @@ namespace gpu::intel::display {
     }
 
     bool DisplayPlane::wait_flip_done(const u32 timeout_us) const {
-        constexpr u32 STEP_US = 10;
+        if (!flip_pending()) {
+            return true;
+        }
 
-        for (u32 waited = 0; flip_pending(); waited += STEP_US) {
-            if (waited >= timeout_us) {
+        const u64 deadline_ns = kernel::time::get_uptime_ns() + static_cast<u64>(timeout_us) * 1'000ULL;
+
+        Unit* cur = kernel::scheduling::get_current_unit();
+        if (!cur || cur->is_idle) {
+            while (flip_pending()) {
+                if (kernel::time::get_uptime_ns() >= deadline_ns) {
+                    return false;
+                }
+                kernel::time::sleep_us(50);
+            }
+            return true;
+        }
+
+        const u8 cpu_id = cur->cpu_id;
+
+        auto cleanup = [&]() {
+            flip_waiters_.remove(cur);
+            kernel::scheduling::remove_blocked_unit(cur);
+            cur->sleep_context.wakeup_ns = 0;
+            kernel::scheduling::remove_unit(cur);
+            cur->state = UnitState::Running;
+        };
+
+        while (flip_pending()) {
+            if (kernel::time::get_uptime_ns() >= deadline_ns) {
                 return false;
             }
-            kernel::time::sleep_us(STEP_US);
+
+            cur->sleep_context.wakeup_ns = deadline_ns;
+            kernel::time::sleep_timer::notify_sleep(cpu_id, deadline_ns);
+            kernel::scheduling::add_blocked_unit(cur, cpu_id);
+            flip_waiters_.add_wait(cur);
+
+            if (!flip_pending()) {
+                cleanup();
+                return true;
+            }
+
+            if (static_cast<UnitState>(
+                    __atomic_load_n(reinterpret_cast<const u8*>(&cur->state), __ATOMIC_ACQUIRE)
+                ) == UnitState::Blocked) {
+                kernel::scheduling::yield();
+            }
+
+            cleanup();
         }
         return true;
     }
 
     void DisplayPlane::on_flip_complete() {
         __atomic_store_n(&flip_pending_, 0u, __ATOMIC_RELEASE);
+        flip_waiters_.wake_all_irq();
     }
 
 }  // namespace gpu::intel::display

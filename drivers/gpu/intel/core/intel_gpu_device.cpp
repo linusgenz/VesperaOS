@@ -122,11 +122,12 @@ namespace gpu::intel::core {
 
         Log::debug("intel-gpu: GT current freq: %u Mhz", current_gt_freq_mhz());
 
-        //request_gt_frequency(500);
-
-       // kernel::time::sleep_ms(10);
-
-       // Log::debug("intel-gpu: GT current freq: %u Mhz (updated)", current_gt_freq_mhz());
+        const u32 target_freq = (gt_freq_limits_.valid && gt_freq_limits_.effective_max_mhz > 0)
+                                    ? gt_freq_limits_.effective_max_mhz
+                                    : 500u;
+        request_gt_frequency(500);
+        kernel::time::sleep_ms(10);
+        Log::debug("intel-gpu: GT current freq: %u Mhz (updated)", current_gt_freq_mhz());
 
         wa::enable_all_mmio_workarounds(mmio_base(), fuse_topology_.mcr_selector);
 
@@ -464,6 +465,14 @@ namespace gpu::intel::core {
         auto* master_reg = reinterpret_cast<volatile u32*>(self->mmio_base_ + GEN8_MASTER_INT_CTL_OFFSET);
         MASTER_INT_CTL master{};
         master.raw = *master_reg;
+        if (!master.master_enable) {
+            return IRQ_NONE;
+        }
+
+        *master_reg = 0;
+        volatile u32 post_dis = *master_reg;
+        (void)post_dis;
+
         bool handled = false;
 
         // ---- GT0 path (RCS + BCS) ----
@@ -543,8 +552,9 @@ namespace gpu::intel::core {
             handled = true;
         }
 
-        master.master_enable = 1;
-        *master_reg = master.raw;
+        MASTER_INT_CTL reenable{};
+        reenable.master_enable = 1;
+        *master_reg = reenable.raw;
         volatile u32 post = *master_reg;
         (void)post;
 

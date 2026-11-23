@@ -24,6 +24,7 @@
 #define VESPERAOS_DISPLAY_PLANE_H
 
 #include <vespera/mm/addr.h>
+#include <vespera/sync/wait_queue.h>
 #include <vespera/types.h>
 
 #include "display_reg_addr.h"
@@ -113,6 +114,7 @@ namespace gpu::intel::display {
 
         TileMode tiling_ = TileMode::Linear;  ///< of the last commit(), for flip() checks
         u32 flip_pending_ = 0;                ///< accessed with __atomic builtins
+        mutable WaitQueue flip_waiters_;      ///< woken by on_flip_complete() in VBlank IRQ
     };
 
 }  // namespace gpu::intel::display
