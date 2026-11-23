@@ -1734,6 +1734,8 @@ namespace ext4 {
             switch (mode & 0xF000u) {
                 case static_cast<u32>(InodeType::Fifo):
                     return {InodeType::Fifo, DirEntryType::Fifo};
+                case static_cast<u32>(InodeType::Socket):
+                    return {InodeType::Socket, DirEntryType::Socket};
                 default:
                     return {InodeType::RegularFile, DirEntryType::RegularFile};
             }

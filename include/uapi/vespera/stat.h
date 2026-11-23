@@ -102,6 +102,9 @@ struct stat {
     off_t     st_size;      ///< Total size, in bytes
     blksize_t st_blksize;   ///< Block size for filesystem I/O
     blkcnt_t  st_blocks;    ///< Number of 512B blocks allocated
+    u64       st_atime;
+    u64       st_mtime;
+    u64       st_ctime; // TODO, not filled currently
 
     struct timespec st_atim;  ///< Time of last access
     struct timespec st_mtim;  ///< Time of last modification

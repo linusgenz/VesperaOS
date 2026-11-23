@@ -37,10 +37,10 @@ void WaitQueue::add_wait(Unit *u) {
     entry->unit = u;
     entry->next = nullptr;
 
+    SpinlockGuardIrq guard(lock_);
+
     u->state = UnitState::Blocked;
     kernel::scheduling::remove_unit(u);
-
-    SpinlockGuard guard(lock_);
 
     if (!head_) {
         head_ = tail_ = entry;
@@ -57,6 +57,7 @@ void WaitQueue::wake_all_impl() {
             entry->unit->state = UnitState::Ready;
 
             if (entry->unit->sleep_context.wakeup_ns != 0) {
+                entry->unit->sleep_context.wakeup_ns = 0;
                 kernel::scheduling::remove_blocked_unit(entry->unit);
             }
             kernel::scheduling::add_unit(entry->unit);
@@ -71,7 +72,7 @@ void WaitQueue::wake_all_impl() {
 }
 
 void WaitQueue::wake_all() {
-    SpinlockGuard guard(lock_);
+    SpinlockGuardIrq guard(lock_);
 
     wake_all_impl();
 }
@@ -90,8 +91,10 @@ void WaitQueue::wake_one_impl() {
 
     if (entry->unit) {
         entry->unit->state = UnitState::Ready;
-        if (entry->unit->sleep_context.wakeup_ns != 0)
+        if (entry->unit->sleep_context.wakeup_ns != 0) {
+            entry->unit->sleep_context.wakeup_ns = 0;
             kernel::scheduling::remove_blocked_unit(entry->unit);
+        }
         kernel::scheduling::add_unit(entry->unit);
     }
 
@@ -99,7 +102,7 @@ void WaitQueue::wake_one_impl() {
 }
 
 void WaitQueue::wake_one() {
-    SpinlockGuard guard(lock_);
+    SpinlockGuardIrq guard(lock_);
     wake_one_impl();
 }
 
@@ -109,7 +112,7 @@ void WaitQueue::wake_one_irq() {
 }
 
 bool WaitQueue::remove(const Unit *u) {
-    SpinlockGuard guard(lock_);
+    SpinlockGuardIrq guard(lock_);
 
     if (!head_) return false;
 
@@ -139,7 +142,7 @@ bool WaitQueue::remove(const Unit *u) {
 }
 
 u32 WaitQueue::wake_matching(u32 max_wake, bool (*predicate)(const Unit*)) {
-    SpinlockGuard guard(lock_);
+    SpinlockGuardIrq guard(lock_);
     u32 woken = 0;
     WaitQueueEntry* prev = nullptr;
     WaitQueueEntry* cur = head_;

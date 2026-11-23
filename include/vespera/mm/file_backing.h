@@ -22,10 +22,12 @@
 #ifndef VESPERAOS_VFS_BACKING_H
 #define VESPERAOS_VFS_BACKING_H
 
-#include <filesystem/vfs_node.h>
 #include <vespera/mm/vm_backing.h>
 #include <vespera/sync/spinlock.h>
 #include <vespera/types.h>
+
+struct MountPoint;
+struct VfsNode;
 
 class FileBackingObject final : public kernel::vm::VmBackingObject {
 public:

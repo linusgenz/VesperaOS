@@ -49,6 +49,8 @@ enum class CacheMode {
 namespace kernel::memory {
     void initialize_memory(BootInfo* boot_info);
 
+    void initialize_pat();
+
     // Page Table Management
     void initialize_page_table_manager(BootInfo* boot_info);
 

@@ -247,7 +247,11 @@ VoidResult DevFs::open(VfsNode* node, VfsHandleContext* ctx) {
 
     if (const KernelDevice* kd = entry->device; kd->chardev) {
         auto* cf = new CharFile();
-        if (const int ret = kd->chardev->open(&cf); ret != 0) return static_cast<Error>(-ret);
+        cf->node = kd;
+        if (const int ret = kd->chardev->open(&cf); ret != 0) {
+            delete cf;
+            return static_cast<Error>(-ret);
+        }
 
         ctx->type_specific_data = cf;
     }

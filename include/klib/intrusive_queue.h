@@ -146,6 +146,15 @@ public:
         }
     }
 
+    [[nodiscard]] bool contains(const Node *target) const {
+        const Node *cur = head_;
+        while (cur) {
+            if (cur == target) return true;
+            cur = cur->next;
+        }
+        return false;
+    }
+
     [[nodiscard]] bool empty() const {
         return head_ == nullptr;
     }

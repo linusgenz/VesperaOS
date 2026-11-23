@@ -111,9 +111,17 @@ namespace kernel::chronos {
             --s_phase_depth;
     }
 
+    static bool summary = true;
     void checkpoint(const char* phase, const char* label) {
         u32 slot = alloc_slot();
-        if (slot >= ::chronos::MAX_EVENTS) return;
+        if (slot >= ::chronos::MAX_EVENTS) {
+            if (summary) {
+                dump_dbc();
+                summary = false;
+            }
+
+            return;
+        };
 
         const char* eff_phase = phase ? phase : current_phase();
         u64 ts = time::clock_manager::read_ns();
@@ -129,7 +137,14 @@ namespace kernel::chronos {
 
     void checkpoint_from_user(u32 realm_id, const ::chronos::UserCheckpoint& cp) {
         u32 slot = alloc_slot();
-        if (slot >= ::chronos::MAX_EVENTS) return;
+        if (slot >= ::chronos::MAX_EVENTS) {
+            if (summary) {
+                dump_dbc();
+                summary = false;
+            }
+
+            return;
+        };
 
         u64 ts = time::clock_manager::read_ns();
         u64 delta = delta_for(realm_id);
@@ -165,8 +180,8 @@ namespace kernel::chronos {
                              src, ev.cpu_id,
                              t_buf, ev.phase, ev.label, d_buf);
             } else {
-                Log::log_dbc("  [%s:r%u] %-13s  %-22s  %-20s  +%s",
-                             src, ev.realm_id,
+                Log::log_dbc("  [%s:r%u](cpu_id=%u) %-13s  %-22s  %-20s  +%s",
+                             src, ev.realm_id, ev.cpu_id,
                              t_buf, ev.phase, ev.label, d_buf);
             }
         }

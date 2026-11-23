@@ -27,11 +27,15 @@
 #include <vespera/mm/memory.h>
 
 namespace arch::x86_64::interrupts::ioapic {
-
     static volatile u32* map_ioapic(const uptr phys_address) {
         const phys_addr_t phys = make_phys(phys_address);
         const virt_addr_t virt = phys_to_virt(phys);
-        kernel::memory::map_memory(virt, phys, (1ULL << PtFlag::CacheDisabled) | (1ULL << PtFlag::ReadWrite));
+        kernel::memory::map_memory(
+            virt,
+            phys,
+            (1ULL << PtFlag::ReadWrite),
+            CacheMode::Uncacheable
+        );
         return reinterpret_cast<volatile u32*>(virt_raw(virt));
     }
 
@@ -71,7 +75,7 @@ namespace arch::x86_64::interrupts::ioapic {
                 return overrides[i].gsi;
             }
         }
-        return irq;  // identity mapping if no override exists
+        return irq; // identity mapping if no override exists
     }
 
     static u16 get_flags_for_irq(const u8 irq) {
@@ -94,8 +98,8 @@ namespace arch::x86_64::interrupts::ioapic {
      */
     static u32 build_redir_low(const u8 vector, const u16 madt_flags, const bool masked) {
         u32 low = vector;
-        low |= 0u << 8;   // delivery mode = Fixed (000)
-        low |= 0u << 11;  // destination mode = Physical
+        low |= 0u << 8;  // delivery mode = Fixed (000)
+        low |= 0u << 11; // destination mode = Physical
 
         // Polarity: active-low if bits[1:0] == 11
         if ((madt_flags & MADT_FLAG_POLARITY_MASK) == MADT_FLAG_POLARITY_LOW) {
@@ -182,5 +186,4 @@ namespace arch::x86_64::interrupts::ioapic {
             write_redir_entry(mmio, index, low, high);
         }
     }
-
-}  // namespace arch::x86_64::interrupts::ioapic
+} // namespace arch::x86_64::interrupts::ioapic

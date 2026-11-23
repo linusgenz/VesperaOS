@@ -57,6 +57,16 @@ namespace kernel::input {
     isize MiceDevice::write(CharFile*, const void*, usize) { return -1; } // Read-Only
 
     void MiceDevice::push_to_queue(MiceDevice* dev, const mice_event& ev) {
+        if (ev.type == MICE_EVENT_MOVE && dev->head_ != dev->tail_) {
+            const usize last = (dev->head_ + MiceDevice::BUFFER_SIZE - 1) % MiceDevice::BUFFER_SIZE;
+            mice_event& prev = dev->buffer_[last];
+            if (prev.type == MICE_EVENT_MOVE && prev.buttons == ev.buttons) {
+                prev.dx += ev.dx;
+                prev.dy += ev.dy;
+                return;
+            }
+        }
+
         usize next = (dev->head_ + 1) % MiceDevice::BUFFER_SIZE;
         if (next != dev->tail_) {
             dev->buffer_[dev->head_] = ev;
@@ -123,7 +133,7 @@ namespace kernel::input {
         }
 
         if (pushed_any) {
-            s_instance_->wait_queue_.wake_one();
+            s_instance_->wait_queue_.wake_one_irq();
         }
     }
 
@@ -162,14 +172,7 @@ namespace kernel::input {
     }
 
     int MiceDevice::poll(CharFile*) {
-        while (true) {
-            {
-                SpinlockGuardIrq g(lock_);
-                if (head_ != tail_) return POLLIN;
-                wait_queue_.add_wait(kernel::scheduling::get_current_unit());
-            }
-
-            kernel::scheduling::yield();
-        }
+        SpinlockGuardIrq g(lock_);
+        return (head_ != tail_) ? POLLIN : 0;
     }
 } // namespace kernel::input

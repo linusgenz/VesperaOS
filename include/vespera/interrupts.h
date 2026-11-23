@@ -65,6 +65,8 @@ struct TrapFrame {
     u64 rflags;
     u64 rsp;
     u64 ss;
+
+    void* fpu_state;
 };
 
 static_assert(__builtin_offsetof(TrapFrame, r15)        == 0x00);
@@ -89,7 +91,8 @@ static_assert(__builtin_offsetof(TrapFrame, cs)         == 0x90);
 static_assert(__builtin_offsetof(TrapFrame, rflags)     == 0x98);
 static_assert(__builtin_offsetof(TrapFrame, rsp)        == 0xA0);
 static_assert(__builtin_offsetof(TrapFrame, ss)         == 0xA8);
-static_assert(sizeof(TrapFrame)                         == 0xB0);
+static_assert(__builtin_offsetof(TrapFrame, fpu_state)  == 0xB0);
+static_assert(sizeof(TrapFrame)                         == 0xB8);
 
 inline bool trap_frame_from_user(const TrapFrame* tf) {
     return (tf->cs & 3) == 3;

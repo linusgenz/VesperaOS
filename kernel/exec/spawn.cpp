@@ -60,6 +60,7 @@ namespace kernel::exec {
 
     }  // namespace
 
+    bool tes = true;
     Result<RealmId> spawn(const char* path, const char** argv, const char** envp, const spawn_config_t* cfg) {
         if (!path) return Error::Inval;
 
@@ -176,9 +177,10 @@ namespace kernel::exec {
             .interp_base = elf.interp_base,
         };
 
-        const UnitConfig ucfg = {
+        tes = !tes;
+         UnitConfig ucfg = {
             .name = "main_unit",
-            .cpu_id = 6,
+            .cpu_id = static_cast<u8>(tes ? 6 : 5),
             .priority = 5,
             .is_user = true,
             .is_main_unit = true,
