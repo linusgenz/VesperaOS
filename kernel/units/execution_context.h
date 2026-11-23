@@ -86,4 +86,8 @@ struct ExecutionContext {
     u64 fs_base;
 };
 
+static_assert(__builtin_offsetof(ExecutionContext, stack_pointer)      == 0x18);
+static_assert(__builtin_offsetof(ExecutionContext, user_stack_pointer) == 0x38);
+static_assert(__builtin_offsetof(ExecutionContext, current_trap_frame) == 144);
+
 #endif  // VESPERAOS_KERNEL_UNITS_EXECUTION_CONTEXT_H

@@ -9,7 +9,6 @@
 
 class FramebufferDriver final : public IRenderDriver, public IDeviceInfo {
    public:
-    void simd_gop_init(const SimdFeatures& f);
     FramebufferDriver(Framebuffer* fb, PsfFont* font);
     void init_simd() noexcept;
 
@@ -18,6 +17,10 @@ class FramebufferDriver final : public IRenderDriver, public IDeviceInfo {
     bool blit_region(
         const u32* pixels, u32 src_stride, u32 src_x, u32 src_y, u32 w, u32 h, u32 dst_x, u32 dst_y
     ) override;
+
+    void present() override;
+
+    bool enable_double_buffering();
 
     [[nodiscard]] u32 screen_width_px() const override;
     [[nodiscard]] u32 screen_height_px() const override;
@@ -54,6 +57,14 @@ class FramebufferDriver final : public IRenderDriver, public IDeviceInfo {
     void* (*fn_memcpy_)(void*, const void*, usize) = nullptr;
     void (*fn_fill_rect_)(void*, u32, u32, u32, u32, u32, u32) = nullptr;
     void* (*fn_memmove_)(void*, const void*, usize) = nullptr;
+
+    u32* back_ = nullptr;
+    bool dirty_ = false;
+    u32 dirty_x0_ = 0, dirty_y0_ = 0, dirty_x1_ = 0, dirty_y1_ = 0;  // [x0,x1) [y0,y1)
+    bool vblank_ok_ = false;
+
+    void* draw_base() const { return back_ ? back_ : fb_->base_address; }
+    void mark_dirty(u32 x, u32 y, u32 w, u32 h);
 
     KernelDevice* kd_;
 };
