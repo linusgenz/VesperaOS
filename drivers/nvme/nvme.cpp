@@ -23,7 +23,11 @@ namespace nvme {
         phys_addr_t mmio = make_phys(((static_cast<u64>(pci->bar1) << 32) | (pci->bar0 & 0xFFFFFFF0)));
         virt_addr_t addr = kernel::memory::request_pages(4);
         c_regs_ = virt_as<NVME_CONTROLLER_REGISTERS>(addr);
-        kernel::memory::map_range(addr, mmio, PAGE_SIZE * 4, (1ULL << WriteThrough) | (1ULL << CacheDisabled) | (1ULL << PtFlag::ReadWrite));
+        kernel::memory::map_range(
+            addr, mmio, PAGE_SIZE * 4,
+            (1ULL << PtFlag::ReadWrite),
+            CacheMode::Uncacheable
+        );
 
         Log::info("[NVMe] Initializing Controller...");
 
@@ -40,8 +44,8 @@ namespace nvme {
             return;
         }
 
-        c_regs_->cc.iosqes = 6;  // 2^6 = 64 bytes
-        c_regs_->cc.iocqes = 4;  // 2^4 = 16 bytes
+        c_regs_->cc.iosqes = 6; // 2^6 = 64 bytes
+        c_regs_->cc.iocqes = 4; // 2^4 = 16 bytes
 
         phys_addr_t adm_cq_phys_page = kernel::memory::request_page_phys();
         phys_addr_t adm_sq_phys_page = kernel::memory::request_page_phys();
@@ -54,10 +58,14 @@ namespace nvme {
         virt_addr_t adm_sq_virt_page = phys_to_virt(adm_sq_phys_page);
 
         kernel::memory::map_memory(
-            adm_cq_virt_page, adm_cq_phys_page, (1ULL << WriteThrough) | (1ULL << CacheDisabled) | (1ULL << PtFlag::ReadWrite)
+            adm_cq_virt_page, adm_cq_phys_page,
+            (1ULL << PtFlag::ReadWrite),
+            CacheMode::Uncacheable
         );
         kernel::memory::map_memory(
-            adm_sq_virt_page, adm_sq_phys_page, (1ULL << WriteThrough) | (1ULL << CacheDisabled) | (1ULL << PtFlag::ReadWrite)
+            adm_sq_virt_page, adm_sq_phys_page,
+            (1ULL << PtFlag::ReadWrite),
+            CacheMode::Uncacheable
         );
 
         memset(virt_ptr(adm_cq_virt_page), 0, PAGE_SIZE);
@@ -66,7 +74,7 @@ namespace nvme {
         c_regs_->acq.acqb = phys_raw(adm_cq_phys_page) >> 12;
         c_regs_->asq.asqb = phys_raw(adm_sq_phys_page) >> 12;
 
-        new (&admin_queue_) NvmeQueue(
+        new(&admin_queue_) NvmeQueue(
             0,
             adm_cq_phys_page,
             adm_sq_phys_page,
@@ -122,14 +130,14 @@ namespace nvme {
         DeviceManager::alloc_unique_device_name("nvme", name, sizeof(name));
         kd_ = DeviceManager::register_device(
             DeviceDescriptor{}
-                .set_name(name)
-                .set_type(DeviceType::Controller)
-                .set_class(DeviceClass::Storage)
-                .set_bus(BusType::Pci)
-                .set_controller(ControllerType::Nvme)
-                .with_lifecycle(this)
-                .with_smart(this)
-                .with_info(this)
+            .set_name(name)
+            .set_type(DeviceType::Controller)
+            .set_class(DeviceClass::Storage)
+            .set_bus(BusType::Pci)
+            .set_controller(ControllerType::Nvme)
+            .with_lifecycle(this)
+            .with_smart(this)
+            .with_info(this)
         );
         DevFs::register_device(kd_);
 
@@ -157,13 +165,13 @@ namespace nvme {
             DeviceManager::generate_nvme_device_name(kd_, name_namespace, sizeof(name_namespace), namespace_id);
             ns->kd = DeviceManager::register_device(
                 DeviceDescriptor{}
-                    .set_name(name_namespace)
-                    .set_type(DeviceType::Block)
-                    .set_class(DeviceClass::Storage)
-                    .set_bus(BusType::Pci)
-                    .set_controller(ControllerType::Nvme)
-                    .with_block(ns)
-                    .with_parent(kd_)
+                .set_name(name_namespace)
+                .set_type(DeviceType::Block)
+                .set_class(DeviceClass::Storage)
+                .set_bus(BusType::Pci)
+                .set_controller(ControllerType::Nvme)
+                .with_block(ns)
+                .with_parent(kd_)
             );
             DevFs::register_device(ns->kd);
 
@@ -232,7 +240,9 @@ namespace nvme {
         virt_addr_t namespace_list_virt = kernel::memory::request_page();
         phys_addr_t namespace_list_phys = virt_to_phys(namespace_list_virt);
         kernel::memory::map_memory(
-            namespace_list_virt, namespace_list_phys, (1ULL << PtFlag::WriteThrough) | (1ULL << PtFlag::CacheDisabled)
+            namespace_list_virt, namespace_list_phys,
+            (1ULL << PtFlag::ReadWrite),
+            CacheMode::Uncacheable
         );
 
         auto* namespace_list = virt_as<u32>(namespace_list_virt);
@@ -289,7 +299,7 @@ namespace nvme {
             // Poll CSTS.SHST for shutdown complete (10b)
             while (elapsed < timeout_ms) {
                 constexpr u32 poll_interval_ms = 10;
-                if (c_regs_->csts.shst == 0x2)  // 10b = shutdown complete
+                if (c_regs_->csts.shst == 0x2) // 10b = shutdown complete
                 {
                     Log::ok("[NVMe] Controller shutdown complete");
                     d_status = DRIVER_STATUS::CONTROLLER_SHUTDOWN;
@@ -353,8 +363,16 @@ namespace nvme {
             return -1;
         }
 
-        kernel::memory::map_memory(sq_virt, sq_phys, (1ULL << PtFlag::WriteThrough) | (1ULL << PtFlag::CacheDisabled) | (1ULL << PtFlag::ReadWrite));
-        kernel::memory::map_memory(cq_virt, cq_phys, (1ULL << PtFlag::WriteThrough) | (1ULL << PtFlag::CacheDisabled) | (1ULL << PtFlag::ReadWrite));
+        kernel::memory::map_memory(
+            sq_virt, sq_phys,
+            (1ULL << PtFlag::ReadWrite),
+            CacheMode::Uncacheable
+        );
+        kernel::memory::map_memory(
+            cq_virt, cq_phys,
+            (1ULL << PtFlag::ReadWrite),
+            CacheMode::Uncacheable
+        );
 
         u16 queue_id = allocate_queue_id();
 
@@ -362,7 +380,7 @@ namespace nvme {
 
         queue_ptr->~NvmeQueue();
 
-        new (queue_ptr) NvmeQueue(
+        new(queue_ptr) NvmeQueue(
             queue_id,
             cq_phys,
             sq_phys,
@@ -409,14 +427,14 @@ namespace nvme {
         volatile u32* cq_db, volatile u32* sq_db, const u16 csz, const u16 ssz
     )
         : queue_id_(qid)
-        , completion_base_(cq_base)
-        , submission_base_(sq_base)
-        , completion_queue_(virt_as<NVME_COMPLETION_ENTRY>(cq))
-        , submission_queue_(virt_as<NVME_COMMAND>(sq))
-        , completion_db_(cq_db)
-        , submission_db_(sq_db)
-        , cq_count_(csz / sizeof(NVME_COMPLETION_ENTRY))
-        , sq_count_(ssz / sizeof(NVME_COMMAND)) {
+          , completion_base_(cq_base)
+          , submission_base_(sq_base)
+          , completion_queue_(virt_as<NVME_COMPLETION_ENTRY>(cq))
+          , submission_queue_(virt_as<NVME_COMMAND>(sq))
+          , completion_db_(cq_db)
+          , submission_db_(sq_db)
+          , cq_count_(csz / sizeof(NVME_COMPLETION_ENTRY))
+          , sq_count_(ssz / sizeof(NVME_COMMAND)) {
         memset(completion_queue_, 0, csz);
         memset(submission_queue_, 0, ssz);
         queue_mutex_.init();
@@ -495,7 +513,7 @@ namespace nvme {
 
         const phys_addr_t prp_list_phys = kernel::memory::request_page_phys();
         if (phys_null(prp_list_phys)) {
-            return 0;  // Allocation failed
+            return 0; // Allocation failed
         }
 
         const virt_addr_t prp_list_virt = phys_to_virt(prp_list_phys);
@@ -516,12 +534,12 @@ namespace nvme {
 
         NVME_COMMAND cmd{};
         cmd.cdw0.opc = NVME_ADMIN_COMMAND_GET_LOG_PAGE;
-        cmd.nsid = 0xFFFFFFFF;  // controller-wide
+        cmd.nsid = 0xFFFFFFFF; // controller-wide
         cmd.prp1 = phys_raw(phys);
 
         // CDW10: LID=0x02, NUMDL=511/4=127 dwords (512 bytes)
-        cmd.u.getlogpage.cdw10_v13.lid = 0x02;   // Health Information
-        cmd.u.getlogpage.cdw10_v13.numdl = 127;  // (512/4) - 1
+        cmd.u.getlogpage.cdw10_v13.lid = 0x02;  // Health Information
+        cmd.u.getlogpage.cdw10_v13.numdl = 127; // (512/4) - 1
 
         NVME_COMPLETION_ENTRY completion{};
         admin_queue_.submit_wait(cmd, completion);
@@ -537,6 +555,7 @@ namespace nvme {
     }
 
     constexpr u16 KELVIN_TO_CELSIUS_OFFSET = 273;
+
     static u8 kelvin_to_celsius(const u8 lo, const u8 hi) {
         const u16 kelvin = static_cast<u16>(lo) | static_cast<u16>(hi) << 8;
         return kelvin > KELVIN_TO_CELSIUS_OFFSET ? static_cast<u8>(kelvin - KELVIN_TO_CELSIUS_OFFSET) : 0;
@@ -626,15 +645,15 @@ namespace nvme {
         snprintf(unit_name, sizeof(unit_name), "nvme-io-ns%u", ns_id_);
 
         const UnitConfig cfg = {
-            .name = unit_name,
-            .cpu_id = cpu_id,
-            .priority = 4,
-            .stack_size = 0x4000,
-            .initial_handles = nullptr,
+            .name                 = unit_name,
+            .cpu_id               = cpu_id,
+            .priority             = 4,
+            .stack_size           = 0x4000,
+            .initial_handles      = nullptr,
             .initial_handle_count = 0,
-            .is_idle = false,
-            .is_user = false,
-            .user_stack_size = 0,
+            .is_idle              = false,
+            .is_user              = false,
+            .user_stack_size      = 0,
         };
 
         const Unit* unit = UnitManager::create(kernel::realm::REALM_DRIVER, io_worker_entry, this, &cfg);
@@ -662,7 +681,7 @@ namespace nvme {
                     req->result = ns->do_write(req->lba, req->sector_count, req->buffer, req->buffer_size);
                     break;
                 case BlockIoOp::Flush:
-                    req->result = 0;  // NVMe flushes implicitly; add FUA if needed
+                    req->result = 0; // NVMe flushes implicitly; add FUA if needed
                     break;
             }
 
@@ -810,7 +829,7 @@ namespace nvme {
             cmd.cdw0.opc = NVME_NVM_COMMAND_DATASET_MANAGEMENT;
             cmd.nsid = ns_id_;
             cmd.prp1 = phys_raw(dma_phys);
-            cmd.u.datasetmanagement.cdw10.nr = static_cast<u8>(batch - 1);  // 0-based
+            cmd.u.datasetmanagement.cdw10.nr = static_cast<u8>(batch - 1); // 0-based
             cmd.u.datasetmanagement.cdw11.ad = 1;
 
             NVME_COMPLETION_ENTRY completion{};
@@ -828,4 +847,4 @@ namespace nvme {
 
         return true;
     }
-}  // namespace nvme
+} // namespace nvme

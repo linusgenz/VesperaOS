@@ -72,7 +72,7 @@ namespace ahci {
     void Port::interrupt_handler() {
         const u32 is = hba_port->interrupt_status;
 
-        if (!is) return;  // no Interrupt
+        if (!is) return; // no Interrupt
 
         if (is & HBA_PX_IS_TFES) {
             last_error = true;
@@ -86,7 +86,7 @@ namespace ahci {
     Irqreturn AhciDriver::global_interrupt_handler(const AhciDriver* driver) {
         const u32 is = driver->abar->interrupt_status;
 
-        if (!is) return IRQ_NONE;  // no Interrupt
+        if (!is) return IRQ_NONE; // no Interrupt
 
         for (int i = 0; i < driver->port_count; i++) {
             if (is & 1 << driver->ports[i]->port_number) driver->ports[i]->interrupt_handler();
@@ -203,6 +203,7 @@ namespace ahci {
     usize Port::get_size() const {
         return total_sectors * sector_size;
     }
+
     usize Port::get_sector_size() const {
         return sector_size;
     }
@@ -234,16 +235,16 @@ namespace ahci {
 
         cmd_table->prdt_entry[0].data_base_address = static_cast<u32>(phys_raw(dma_phys));
         cmd_table->prdt_entry[0].data_base_address_upper = static_cast<u32>(phys_raw(dma_phys) >> 32);
-        cmd_table->prdt_entry[0].byte_count = 511;  // 512 - 1
+        cmd_table->prdt_entry[0].byte_count = 511; // 512 - 1
         cmd_table->prdt_entry[0].interrupt_on_completion = 1;
 
         auto* cmd_fis = reinterpret_cast<FIS_REG_H2D*>(&cmd_table->command_fis);
         cmd_fis->fis_type = FIS_TYPE_REG_H2D;
         cmd_fis->command_control = 1;
-        cmd_fis->command = ATA_CMD_SMART;            // 0xB0
-        cmd_fis->feature_low = ATA_SMART_READ_DATA;  // 0xD0
-        cmd_fis->lba1 = 0x4F;                        // SMART signature
-        cmd_fis->lba2 = 0xC2;                        // SMART signature
+        cmd_fis->command = ATA_CMD_SMART;           // 0xB0
+        cmd_fis->feature_low = ATA_SMART_READ_DATA; // 0xD0
+        cmd_fis->lba1 = 0x4F;                       // SMART signature
+        cmd_fis->lba2 = 0xC2;                       // SMART signature
 
         command_completed = false;
         last_error = false;
@@ -271,7 +272,7 @@ namespace ahci {
         out->temperature_celsius = ata.temperature_celsius;
         out->power_on_hours = ata.power_on_hours;
         out->health_ok = ata.health_ok;
-        out->critical_warning_raw = ata.health_ok ? 0 : 0xFF;  // synthesized
+        out->critical_warning_raw = ata.health_ok ? 0 : 0xFF; // synthesized
         return true;
     }
 
@@ -300,7 +301,7 @@ namespace ahci {
             dst.flags = src.flags;
             dst.current = src.current;
             dst.worst = src.worst;
-            dst.threshold = 0;  // vendor specific typeshit, is marked as obsolete in ACS-4
+            dst.threshold = 0; // vendor specific typeshit, is marked as obsolete in ACS-4
             memcpy(dst.raw, src.raw, 6);
 
             switch (src.id) {
@@ -310,7 +311,7 @@ namespace ahci {
                     break;
                 case 0x09:
                     out->power_on_hours = src.raw[0] | static_cast<u64>(src.raw[1]) << 8 |
-                                          static_cast<u64>(src.raw[2]) << 16 | static_cast<u64>(src.raw[3]) << 24;
+                        static_cast<u64>(src.raw[2]) << 16 | static_cast<u64>(src.raw[3]) << 24;
                     break;
                 case 0x0C:
                     out->power_cycles = src.raw[0] | static_cast<u32>(src.raw[1]) << 8;
@@ -357,8 +358,8 @@ namespace ahci {
         cmd_fis->fis_type = FIS_TYPE_REG_H2D;
         cmd_fis->command_control = 1;
         cmd_fis->command = ATA_CMD_SMART;
-        cmd_fis->feature_low = ATA_SMART_RETURN_STATUS;  // 0xDA
-        cmd_fis->lba1 = 0x4F;                            // C24Fh signature: lba1=4F, lba2=C2
+        cmd_fis->feature_low = ATA_SMART_RETURN_STATUS; // 0xDA
+        cmd_fis->lba1 = 0x4F;                           // C24Fh signature: lba1=4F, lba2=C2
         cmd_fis->lba2 = 0xC2;
 
         command_completed = false;
@@ -381,8 +382,8 @@ namespace ahci {
         const u8 lba_mid = dev_to_host->lba1;
         const u8 lba_high = dev_to_host->lba2;
 
-        if (lba_mid == 0xF4 && lba_high == 0x2C) return false;  // threshold exceeded
-        return true;                                            // 0x4F / 0xC2 = healthy
+        if (lba_mid == 0xF4 && lba_high == 0x2C) return false; // threshold exceeded
+        return true;                                           // 0x4F / 0xC2 = healthy
     }
 
     bool Port::trim(const TrimRange* ranges, usize count) {
@@ -411,7 +412,7 @@ namespace ahci {
             make_phys(static_cast<u64>(hba_port->command_list_base_upper) << 32 | hba_port->command_list_base);
         auto* cmd_header = static_cast<HBA_COMMAND_HEADER*>(virt_ptr(phys_to_virt(cmd_list_phys)));
         cmd_header->command_fis_length = sizeof(FIS_REG_H2D) / sizeof(u32);
-        cmd_header->write = 1;  // Host -> Device
+        cmd_header->write = 1; // Host -> Device
         cmd_header->prdt_length = 1;
 
         const phys_addr_t cmd_table_phys = make_phys(
@@ -423,15 +424,15 @@ namespace ahci {
 
         cmd_table->prdt_entry[0].data_base_address = static_cast<u32>(phys_raw(dma_phys));
         cmd_table->prdt_entry[0].data_base_address_upper = static_cast<u32>(phys_raw(dma_phys) >> 32);
-        cmd_table->prdt_entry[0].byte_count = blocks * 512 - 1;  // 0-based
+        cmd_table->prdt_entry[0].byte_count = blocks * 512 - 1; // 0-based
         cmd_table->prdt_entry[0].interrupt_on_completion = 1;
 
         auto* cmd_fis = reinterpret_cast<FIS_REG_H2D*>(&cmd_table->command_fis);
         cmd_fis->fis_type = FIS_TYPE_REG_H2D;
         cmd_fis->command_control = 1;
         cmd_fis->command = ATA_CMD_DATA_SET_MANAGEMENT;
-        cmd_fis->feature_low = ATA_DSM_TRIM;  // Bit 0 = TRIM bit
-        cmd_fis->feature_high = 0;            // DSM FUNCTION reserved if TRIM=1
+        cmd_fis->feature_low = ATA_DSM_TRIM; // Bit 0 = TRIM bit
+        cmd_fis->feature_high = 0;           // DSM FUNCTION reserved if TRIM=1
         cmd_fis->count_low = static_cast<u8>(blocks & 0xFF);
         cmd_fis->count_high = static_cast<u8>((blocks >> 8) & 0xFF);
         cmd_fis->device_register = 0;
@@ -470,7 +471,7 @@ namespace ahci {
 
         cmd_header->command_fis_length = sizeof(FIS_REG_H2D) / sizeof(u32);
         cmd_header->write = 0;
-        cmd_header->prdt_length = 0;  // no data transfer
+        cmd_header->prdt_length = 0; // no data transfer
 
         const phys_addr_t cmd_table_phys = make_phys(
             static_cast<u64>(cmd_header->command_table_base_address_upper) << 32 |
@@ -606,7 +607,7 @@ namespace ahci {
 
         if (identify_->additional_supported.extended_user_addressable_sectors_supported) {
             total_sectors = static_cast<u64>(identify_->extended_number_of_user_addressable_sectors[1]) << 32 |
-                            identify_->extended_number_of_user_addressable_sectors[0];
+                identify_->extended_number_of_user_addressable_sectors[0];
         } else {
             total_sectors = identify_->user_addressable_sectors;
         }
@@ -654,7 +655,7 @@ namespace ahci {
 
     int Port::flush() {
         BlockIoRequest req;
-        req.op   = BlockIoOp::Flush;
+        req.op = BlockIoOp::Flush;
         req.done.init(1, 0);
         io_queue_.submit(&req);
         req.done.wait();
@@ -801,15 +802,15 @@ namespace ahci {
         snprintf(unit_name, sizeof(unit_name), "ahci-io-%u", port_number);
 
         const UnitConfig cfg = {
-            .name = unit_name,
-            .cpu_id = cpu_id,
-            .priority = 4,
-            .stack_size = 0x4000,
-            .initial_handles = nullptr,
+            .name                 = unit_name,
+            .cpu_id               = cpu_id,
+            .priority             = 4,
+            .stack_size           = 0x4000,
+            .initial_handles      = nullptr,
             .initial_handle_count = 0,
-            .is_idle = false,
-            .is_user = false,
-            .user_stack_size = 0,
+            .is_idle              = false,
+            .is_user              = false,
+            .user_stack_size      = 0,
         };
 
         const Unit* unit = UnitManager::create(kernel::realm::REALM_DRIVER, io_worker_entry, this, &cfg);
@@ -827,7 +828,7 @@ namespace ahci {
 
         while (true) {
             BlockIoRequest* req = port->io_queue_.dequeue_blocking();
-            if (!req) break;  // shutdown() was called
+            if (!req) break; // shutdown() was called
 
             switch (req->op) {
                 case BlockIoOp::Read:
@@ -847,25 +848,30 @@ namespace ahci {
 
     AhciDriver::AhciDriver(volatile pci::PCI_DEVICE_HEADER* pci_base_address)
         : pci_base_address(pci_base_address)
-        , port_count(0) {
+          , port_count(0) {
         Log::ok("[ AHCI ] AHCI Driver instance initialized");
 
         char name[16];
         DeviceManager::alloc_unique_device_name("ahci", name, sizeof(name));
         kd_ = DeviceManager::register_device(
             DeviceDescriptor{}
-                .set_name(name)
-                .set_type(DeviceType::Controller)
-                .set_class(DeviceClass::Storage)
-                .set_bus(BusType::Pci)
-                .set_controller(ControllerType::Ahci)
-                .with_lifecycle(this)
-                .with_info(this)
+            .set_name(name)
+            .set_type(DeviceType::Controller)
+            .set_class(DeviceClass::Storage)
+            .set_bus(BusType::Pci)
+            .set_controller(ControllerType::Ahci)
+            .with_lifecycle(this)
+            .with_info(this)
         );
 
         const phys_addr_t abar_phys = make_phys(reinterpret_cast<volatile pci::PCI_HEADER0*>(pci_base_address)->bar5);
         abar = static_cast<HBA_MEMORY*>(virt_ptr(phys_to_virt(abar_phys)));
-        kernel::memory::map_memory(make_virt(abar), abar_phys, 1ULL << CacheDisabled | 1ULL << PtFlag::WriteThrough | (1ULL << PtFlag::ReadWrite));
+        kernel::memory::map_memory(
+            make_virt(abar),
+            abar_phys,
+            (1ULL << PtFlag::ReadWrite),
+            CacheMode::Uncacheable
+        );
 
         probe_ports();
 
@@ -891,15 +897,15 @@ namespace ahci {
             DeviceManager::generate_sd_device_name(name_buf, sizeof(name_buf));
             port->kd = DeviceManager::register_device(
                 DeviceDescriptor{}
-                    .set_name(name_buf)
-                    .set_type(DeviceType::Block)
-                    .set_class(DeviceClass::Storage)
-                    .set_bus(BusType::Pci)
-                    .set_controller(ControllerType::Ahci)
-                    .with_block(port)
-                    .with_smart(port)
-                    .with_info(port)
-                    .with_parent(kd_)
+                .set_name(name_buf)
+                .set_type(DeviceType::Block)
+                .set_class(DeviceClass::Storage)
+                .set_bus(BusType::Pci)
+                .set_controller(ControllerType::Ahci)
+                .with_block(port)
+                .with_smart(port)
+                .with_info(port)
+                .with_parent(kd_)
             );
             DevFs::register_device(port->kd);
         }
@@ -947,7 +953,7 @@ namespace ahci {
             port->stop_cmd();
 
             port->hba_port->interrupt_enable = 0;
-            port->hba_port->interrupt_status = 0xFFFFFFFF;  // clear pending Bits  (W1C)
+            port->hba_port->interrupt_status = 0xFFFFFFFF; // clear pending Bits  (W1C)
         }
 
         abar->global_host_control &= ~AHCI_GHC_IE;
@@ -963,4 +969,4 @@ namespace ahci {
             ports[i]->flush();
         }
     }
-}  // namespace ahci
+} // namespace ahci
