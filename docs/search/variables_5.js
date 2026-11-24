@@ -23,10 +23,10 @@ var searchData=
   ['engines_20',['engines',['../structlucifer__query__engines.html#ab65331850a437cd8c58336a01e7525a8',1,'lucifer_query_engines']]],
   ['environ_21',['environ',['../stdlib_8h.html#aa006daaf11f1e2e45a6ababaf463212b',1,'stdlib.h']]],
   ['eof_22',['eof',['../structFILE.html#ae4ad838bac83365bd7165ffb2000d027',1,'FILE']]],
-  ['errno_23',['errno',['../errno_8h.html#ab7b51b34b19a7c8c7d6e23d66888640d',1,'errno.h']]],
+  ['errno_23',['errno',['../errno_8h.html#a852dac476b9a86acaf91ccb9f90a2741',1,'errno.h']]],
   ['error_24',['error',['../structFILE.html#a53285086088ad9f3c1e4f59accf8e1c4',1,'FILE']]],
   ['error_5flog_5fentries_25',['error_log_entries',['../structsmart__nvme.html#a52cd2b03488f7d23a22b0a0082754abe',1,'smart_nvme']]],
   ['eu_5fmask_26',['eu_mask',['../structlucifer__query__topology.html#ae7635264d1d367d3181c5135a91c44f8',1,'lucifer_query_topology']]],
-  ['events_27',['events',['../structpollfd.html#ac9b2f2c5b1f9a7487eb57e67cd4960ef',1,'pollfd::events'],['../structpollhdl.html#a3d431e3cce00196507242f04753c583d',1,'pollhdl::events']]],
+  ['events_27',['events',['../structpollfd.html#ac9b2f2c5b1f9a7487eb57e67cd4960ef',1,'pollfd::events'],['../structepoll__event.html#a4eb5ccec6b1c1e58d8ccd9aaa3aed6ed',1,'epoll_event::events'],['../structpollhdl.html#a3d431e3cce00196507242f04753c583d',1,'pollhdl::events'],['../epoll_8h.html#a913e06cb1e923a53739d21d9e9e6f952',1,'events:&#160;epoll.h']]],
   ['exit_5fcode_28',['exit_code',['../structunit__info.html#a07779b2699d71da869a714d920acee65',1,'unit_info']]]
 ];

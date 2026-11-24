@@ -13,5 +13,7 @@ var searchData=
   ['elf64_5frela_10',['Elf64_Rela',['../structElf64__Rela.html',1,'']]],
   ['elf64_5fsym_11',['Elf64_Sym',['../structElf64__Sym.html',1,'']]],
   ['elf_5fdyn_5fscan_5fresult_5ft_12',['elf_dyn_scan_result_t',['../structelf__dyn__scan__result__t.html',1,'']]],
-  ['elf_5floaded_5fobject_13',['elf_loaded_object',['../structelf__loaded__object.html',1,'']]]
+  ['elf_5floaded_5fobject_13',['elf_loaded_object',['../structelf__loaded__object.html',1,'']]],
+  ['epoll_5fdata_14',['epoll_data',['../unionepoll__data.html',1,'']]],
+  ['epoll_5fevent_15',['epoll_event',['../structepoll__event.html',1,'']]]
 ];

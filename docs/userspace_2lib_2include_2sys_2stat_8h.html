@@ -102,6 +102,7 @@ $(function(){initNavTree('userspace_2lib_2include_2sys_2stat_8h.html','',''); })
 Functions</h2></td></tr>
 <tr class="memitem:af33f7e02d6b1207d62997105df0d9b32" id="r_af33f7e02d6b1207d62997105df0d9b32"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af33f7e02d6b1207d62997105df0d9b32">stat</a> (const char *__restrict__ path, struct stat *__restrict__ buf)</td></tr>
 <tr class="memitem:a198a57e185e8a036ad06345623b84521" id="r_a198a57e185e8a036ad06345623b84521"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a198a57e185e8a036ad06345623b84521">fstat</a> (int fd, struct <a class="el" href="structstat.html">stat</a> *buf)</td></tr>
+<tr class="memitem:aa86ef721f99bb7d2d7fe094bce76138c" id="r_aa86ef721f99bb7d2d7fe094bce76138c"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa86ef721f99bb7d2d7fe094bce76138c">lstat</a> (const char *restrict path, struct <a class="el" href="structstat.html">stat</a> *restrict buf)</td></tr>
 <tr class="memitem:aee98bbe743c2d14dbaa67f01c3fb9ed5" id="r_aee98bbe743c2d14dbaa67f01c3fb9ed5"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aee98bbe743c2d14dbaa67f01c3fb9ed5">mkdir</a> (const char *pathname, <a class="el" href="alltypes_8h.html#a4509add91f8e7bf695ce1c157da37527">mode_t</a> mode)</td></tr>
 <tr class="memdesc:aee98bbe743c2d14dbaa67f01c3fb9ed5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new directory.  <br /></td></tr>
 <tr class="memitem:ae92589973c691560ce2a6a97043872cf" id="r_ae92589973c691560ce2a6a97043872cf"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae92589973c691560ce2a6a97043872cf">mknod</a> (const char *pathname, <a class="el" href="alltypes_8h.html#a4509add91f8e7bf695ce1c157da37527">mode_t</a> mode, <a class="el" href="include_2uapi_2vespera_2types_8h.html#a25ab4acd63db23ce8ebc580b48d6c32f">dev_t</a> dev)</td></tr>
@@ -185,6 +186,35 @@ Functions</h2></td></tr>
           <td></td>
         </tr>
       </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa86ef721f99bb7d2d7fe094bce76138c" name="aa86ef721f99bb7d2d7fe094bce76138c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa86ef721f99bb7d2d7fe094bce76138c">&#9670;&#160;</a></span>lstat()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int lstat </td>
+          <td>(</td>
+          <td class="paramtype">const char *restrict</td>          <td class="paramname"><span class="paramname"><em>path</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structstat.html">stat</a> *restrict</td>          <td class="paramname"><span class="paramname"><em>buf</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>

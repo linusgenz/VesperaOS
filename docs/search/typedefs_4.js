@@ -20,5 +20,6 @@ var searchData=
   ['elf64_5fversym_17',['Elf64_Versym',['../elf_8h.html#acdc5f76ef4cf0f090a3fe0b1b958667c',1,'elf.h']]],
   ['elf64_5fword_18',['Elf64_Word',['../elf_8h.html#aa3aa1920ed115b7ef7e99716fece4401',1,'elf.h']]],
   ['elf64_5fxword_19',['Elf64_Xword',['../elf_8h.html#a5447a48a3dae0bd24f606415268c6fe4',1,'elf.h']]],
-  ['elf_5floaded_5fobject_5ft_20',['elf_loaded_object_t',['../elf__loader_8h.html#a1858b8e372b399d1da9647159c93ab12',1,'elf_loader.h']]]
+  ['elf_5floaded_5fobject_5ft_20',['elf_loaded_object_t',['../elf__loader_8h.html#a1858b8e372b399d1da9647159c93ab12',1,'elf_loader.h']]],
+  ['epoll_5fdata_5ft_21',['epoll_data_t',['../epoll_8h.html#ae448b6f1679acd3309458397357ffa2d',1,'epoll.h']]]
 ];

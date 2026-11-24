@@ -52,7 +52,7 @@ var NAVTREE =
         [ "All", "globals.html", "globals_dup" ],
         [ "Functions", "globals_func.html", "globals_func" ],
         [ "Variables", "globals_vars.html", null ],
-        [ "Typedefs", "globals_type.html", null ],
+        [ "Typedefs", "globals_type.html", "globals_type" ],
         [ "Enumerations", "globals_enum.html", null ],
         [ "Enumerator", "globals_eval.html", null ],
         [ "Macros", "globals_defs.html", "globals_defs" ]
@@ -64,22 +64,22 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "alloca_8h.html",
-"crepusculum__protocol_8h.html#a266333671c6faaee3a55431bd624f57fafade63e71e1cd58ca034c09fb1b4998d",
-"elf_8h.html#a74c374136cf9a969dde2585536c808ac",
-"eventfd_8h.html#aa1cf1f9ea4d84916ad5fdf7105d4ee1f",
-"gpu__api_8h.html#a309acd5013ba0f027b080b53889347a4",
-"include_2uapi_2vespera_2types_8h_source.html",
-"ioctl__tty_8h.html#ace6b2fe789d6bd8db3fc84e36554f31a",
-"math_8h.html#a574b5065100ea8044ac8fc2a9c777b13",
-"pthread_8h.html#a0cca7a9d5a754d87cdbfde331c1d8d2d",
-"spawn_8h.html",
-"stella_8h.html#a788107aaed7a1b003a9fa42375a3bfdd",
-"structchronos__event.html#a4c15c59d9e2571e50b0e40e73ce43317",
-"structjpeg__save__options__t.html#ad2b0c13b97e9ebd7cf4939078068f3a6",
-"structsignalfd__siginfo.html",
-"structvbus__header.html#a9e259dd7a1bb31b691868f55ee950c6f",
-"unistd_8h.html#a49bb0c485f30ab14364721c9ce433bab",
-"wchar_8h.html#a79dfa042809689b5192467b09d6be486"
+"crepusculum__protocol_8h.html#a266333671c6faaee3a55431bd624f57fac8b515bb25ca1a4decf5ce194539f029",
+"elf_8h.html#a813d71f2e87f1c5cf856b510bb8e62ff",
+"errno_8h.html#ab887181dacee705fdcc1bb1be392e167",
+"globals_q.html",
+"include_2uapi_2vespera_2socket_8h.html#a0fd8739854bc8b48d65f0b669fed3ffe",
+"inttypes_8h.html#a1d766603a3524c9e03effbbece9c2118",
+"libgen_8h_source.html",
+"math_8h.html#a83a6b46501a951ddf058454ba776c86a",
+"pthread_8h.html#a715e9644a7183d98cb2c9dd41cb89645",
+"stdio_8h.html#ad41876f99f190c7488e64ef39c50a23f",
+"structElf32__Ehdr.html#a49e40a791813c06e3b6ebcb53aef1bb8",
+"structepoll__event.html#a4eb5ccec6b1c1e58d8ccd9aaa3aed6ed",
+"structlucifer__vm__create.html#a251c8f3532b617062dc1e305f2495588",
+"structtimespec.html#a6d9d14e9cdae880583f79d3b4a7fd42a",
+"sysstd_8h.html#a7166a7249135d5c8db774be86fc02286",
+"userspace_2lib_2include_2fcntl_8h.html#a06df2208247096abdd71b9d673d05198"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronization';

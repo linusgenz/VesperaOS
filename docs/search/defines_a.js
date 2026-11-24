@@ -25,7 +25,7 @@ var searchData=
   ['little_5fendian_22',['LITTLE_ENDIAN',['../endian_8h.html#a8782a401fbf55261460863fc2f8df1ce',1,'endian.h']]],
   ['llong_5fmax_23',['LLONG_MAX',['../limits_8h.html#a23ec2cf7fc07ea8f817bbac758402baf',1,'limits.h']]],
   ['llong_5fmin_24',['LLONG_MIN',['../limits_8h.html#af17a13b2ae0e9c24c020ac1f044f30c2',1,'limits.h']]],
-  ['local_5fpeercred_25',['LOCAL_PEERCRED',['../socket_8h.html#ad42d462b339c4fa3f42409cafa79081f',1,'socket.h']]],
+  ['local_5fpeercred_25',['LOCAL_PEERCRED',['../include_2uapi_2vespera_2socket_8h.html#ad42d462b339c4fa3f42409cafa79081f',1,'socket.h']]],
   ['lock_5fex_26',['LOCK_EX',['../file_8h.html#a640585398981aa2bb565dd65ede96778',1,'file.h']]],
   ['lock_5fnb_27',['LOCK_NB',['../file_8h.html#a3527dd84628b5a5c2befd2b7f57804c9',1,'file.h']]],
   ['lock_5fsh_28',['LOCK_SH',['../file_8h.html#ab0abca95a2265e7cea4b2e026278a968',1,'file.h']]],

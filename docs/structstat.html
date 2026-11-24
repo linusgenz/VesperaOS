@@ -120,6 +120,9 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a38d474e1ae3cf6fbdde89ac3c3e308f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Block size for filesystem I/O.  <br /></td></tr>
 <tr class="memitem:a42dd716b2f9234f961d949fc9500eefb" id="r_a42dd716b2f9234f961d949fc9500eefb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="include_2uapi_2vespera_2types_8h.html#a01f09037e280d30b853241841415669a">blkcnt_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a42dd716b2f9234f961d949fc9500eefb">st_blocks</a></td></tr>
 <tr class="memdesc:a42dd716b2f9234f961d949fc9500eefb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of 512B blocks allocated.  <br /></td></tr>
+<tr class="memitem:a214c4076dd11d95721decea9693eca9f" id="r_a214c4076dd11d95721decea9693eca9f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="tmp_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a214c4076dd11d95721decea9693eca9f">st_atime</a></td></tr>
+<tr class="memitem:ae7fb94d78654bc5c10fe1b0ae5395de9" id="r_ae7fb94d78654bc5c10fe1b0ae5395de9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="tmp_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae7fb94d78654bc5c10fe1b0ae5395de9">st_mtime</a></td></tr>
+<tr class="memitem:af7b8533c04f354b4fe90c66d558f30c8" id="r_af7b8533c04f354b4fe90c66d558f30c8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="tmp_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af7b8533c04f354b4fe90c66d558f30c8">st_ctime</a></td></tr>
 <tr class="memitem:a8447c545451bec2b95f9d67787404934" id="r_a8447c545451bec2b95f9d67787404934"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtimespec.html">timespec</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8447c545451bec2b95f9d67787404934">st_atim</a></td></tr>
 <tr class="memdesc:a8447c545451bec2b95f9d67787404934"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time of last access.  <br /></td></tr>
 <tr class="memitem:a78eca07da5a8a88b1c3dd8be5a32821e" id="r_a78eca07da5a8a88b1c3dd8be5a32821e"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtimespec.html">timespec</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a78eca07da5a8a88b1c3dd8be5a32821e">st_mtim</a></td></tr>
@@ -164,6 +167,20 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Time of last access. </p>
+
+</div>
+</div>
+<a id="a214c4076dd11d95721decea9693eca9f" name="a214c4076dd11d95721decea9693eca9f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a214c4076dd11d95721decea9693eca9f">&#9670;&#160;</a></span>st_atime</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="tmp_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a> stat::st_atime</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -212,6 +229,20 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Time of last status change. </p>
+
+</div>
+</div>
+<a id="af7b8533c04f354b4fe90c66d558f30c8" name="af7b8533c04f354b4fe90c66d558f30c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7b8533c04f354b4fe90c66d558f30c8">&#9670;&#160;</a></span>st_ctime</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="tmp_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a> stat::st_ctime</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -292,6 +323,20 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Time of last modification. </p>
+
+</div>
+</div>
+<a id="ae7fb94d78654bc5c10fe1b0ae5395de9" name="ae7fb94d78654bc5c10fe1b0ae5395de9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7fb94d78654bc5c10fe1b0ae5395de9">&#9670;&#160;</a></span>st_mtime</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="tmp_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a> stat::st_mtime</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>

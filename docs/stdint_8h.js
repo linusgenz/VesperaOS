@@ -1,5 +1,7 @@
 var stdint_8h =
 [
+    [ "__INT64_C", "stdint_8h.html#a4b8971e411b88166747d2a3c2425eaee", null ],
+    [ "__UINT64_C", "stdint_8h.html#a405cee4934ed56c9a4aa4e7dc4380bd2", null ],
     [ "INT16_MAX", "stdint_8h.html#ac58f2c111cc9989c86db2a7dc4fd84ca", null ],
     [ "INT16_MIN", "stdint_8h.html#ad4e9955955b27624963643eac448118a", null ],
     [ "INT32_C", "stdint_8h.html#a1ddf83530d986214005d1e766f036b28", null ],
@@ -18,6 +20,7 @@ var stdint_8h =
     [ "INT_LEAST64_MIN", "stdint_8h.html#ac12b4f6966b57ad82feb683b284b4060", null ],
     [ "INT_LEAST8_MAX", "stdint_8h.html#aa05109908fb2770f632d2b646b9f85bf", null ],
     [ "INT_LEAST8_MIN", "stdint_8h.html#a3e986cad833f63f420962ff60eda87e5", null ],
+    [ "PTRDIFF_MAX", "stdint_8h.html#add2ef7bffac19cfdd1f4b5495409672f", null ],
     [ "SIZE_MAX", "stdint_8h.html#a3c75bb398badb69c7577b21486f9963f", null ],
     [ "UINT16_MAX", "stdint_8h.html#a3ea490c9b3617d4479bd80ef93cd5602", null ],
     [ "UINT32_C", "stdint_8h.html#ad76f76a71e9ffc13963ee895d1828b2c", null ],

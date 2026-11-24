@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['sfd_5fcloexec_0',['SFD_CLOEXEC',['../signalfd_8h.html#ae1beb299515bc1f6b16643e626f97089a6b41d08cc988a3ed1ca6de606ceb29bc',1,'signalfd.h']]],
-  ['sfd_5fnonblock_1',['SFD_NONBLOCK',['../signalfd_8h.html#ae1beb299515bc1f6b16643e626f97089aa7309fdbd6701d30ca0a4fc942deedc6',1,'signalfd.h']]],
+  ['sfd_5fcloexec_0',['SFD_CLOEXEC',['../include_2uapi_2vespera_2signalfd_8h.html#ae1beb299515bc1f6b16643e626f97089a6b41d08cc988a3ed1ca6de606ceb29bc',1,'signalfd.h']]],
+  ['sfd_5fnonblock_1',['SFD_NONBLOCK',['../include_2uapi_2vespera_2signalfd_8h.html#ae1beb299515bc1f6b16643e626f97089aa7309fdbd6701d30ca0a4fc942deedc6',1,'signalfd.h']]],
   ['smart_5fdriver_5fata_2',['SMART_DRIVER_ATA',['../ioctl__smart_8h.html#abcc9e6bcf7ee2d9a509faf60a5087a44acbf78631e633f01a414fd9b7e3a47730',1,'ioctl_smart.h']]],
   ['smart_5fdriver_5fnvme_3',['SMART_DRIVER_NVME',['../ioctl__smart_8h.html#abcc9e6bcf7ee2d9a509faf60a5087a44a407b2fd71f0e9d2ac5a9d3ab40fcd5ac',1,'ioctl_smart.h']]],
   ['smart_5fdriver_5funknown_4',['SMART_DRIVER_UNKNOWN',['../ioctl__smart_8h.html#abcc9e6bcf7ee2d9a509faf60a5087a44adcaafb97b9fa32dc4694170896737cd9',1,'ioctl_smart.h']]],

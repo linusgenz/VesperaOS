@@ -11,6 +11,7 @@ var limits_8h =
     [ "LONG_MAX", "limits_8h.html#a50fece4db74f09568b2938db583c5655", null ],
     [ "LONG_MIN", "limits_8h.html#ae8a44c5a7436466221e0f3859d02420f", null ],
     [ "MB_LEN_MAX", "limits_8h.html#a88a1b2d6ac46174ac7b571dca5b1f274", null ],
+    [ "PAGE_SIZE", "limits_8h.html#a7d467c1d283fdfa1f2081ba1e0d01b6e", null ],
     [ "PATH_MAX", "limits_8h.html#ae688d728e1acdfe5988c7db45d6f0166", null ],
     [ "RE_DUP_MAX", "limits_8h.html#aa7d072d0a88c61d3692dc547ea27538e", null ],
     [ "SCHAR_MAX", "limits_8h.html#a8c13fdd8c2840edf0cb04a65297037bb", null ],

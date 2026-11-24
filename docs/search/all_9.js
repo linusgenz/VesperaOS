@@ -94,7 +94,7 @@ var searchData=
   ['ioc_5fvoid_91',['IOC_VOID',['../include_2uapi_2vespera_2ioctl_8h.html#a7871c80cdb00b01cc72dc287259a5986',1,'ioctl.h']]],
   ['ioc_5fwrite_92',['IOC_WRITE',['../include_2uapi_2vespera_2ioctl_8h.html#aa4ddeaf002da6c88825ae14c76e707f5',1,'ioctl.h']]],
   ['ioccom_2eh_93',['ioccom.h',['../ioccom_8h.html',1,'']]],
-  ['ioctl_94',['ioctl',['../userspace_2lib_2include_2sys_2ioctl_8h.html#a6e9aba913b9fad9a6fcf0106bed0fadb',1,'ioctl.h']]],
+  ['ioctl_94',['ioctl',['../userspace_2lib_2include_2sys_2ioctl_8h.html#ab9f3e07a46c0616082c1352235f9ad07',1,'ioctl.h']]],
   ['ioctl_2eh_95',['ioctl.h',['../include_2uapi_2vespera_2ioctl_8h.html',1,'(Global Namespace)'],['../userspace_2lib_2include_2sys_2ioctl_8h.html',1,'(Global Namespace)']]],
   ['ioctl_5fbat_5fget_5finfo_96',['IOCTL_BAT_GET_INFO',['../include_2uapi_2vespera_2dev_2power_8h.html#ad3effe09a752feb93d93d19174caf53b',1,'power.h']]],
   ['ioctl_5fbat_5fget_5fstatus_97',['IOCTL_BAT_GET_STATUS',['../include_2uapi_2vespera_2dev_2power_8h.html#ace57049e57cee188e0557f8da6bfa15c',1,'power.h']]],

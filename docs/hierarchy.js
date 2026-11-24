@@ -15,6 +15,7 @@ var hierarchy =
     [ "devinfo_string_t", "structdevinfo__string__t.html", null ],
     [ "devinfo_t", "structdevinfo__t.html", null ],
     [ "dirent", "structdirent.html", null ],
+    [ "Dl_info", "structDl__info.html", null ],
     [ "dma_buf_export_sync_file", "structdma__buf__export__sync__file.html", null ],
     [ "dma_buf_import_sync_file", "structdma__buf__import__sync__file.html", null ],
     [ "dma_buf_sync", "structdma__buf__sync.html", null ],
@@ -42,6 +43,8 @@ var hierarchy =
     [ "Elf64_Sym", "structElf64__Sym.html", null ],
     [ "elf_dyn_scan_result_t", "structelf__dyn__scan__result__t.html", null ],
     [ "elf_loaded_object", "structelf__loaded__object.html", null ],
+    [ "epoll_data", "unionepoll__data.html", null ],
+    [ "epoll_event", "structepoll__event.html", null ],
     [ "fb_blit", "structfb__blit.html", null ],
     [ "fb_clear", "structfb__clear.html", null ],
     [ "fb_info", "structfb__info.html", null ],
@@ -156,5 +159,6 @@ var hierarchy =
       [ "stella::Label", "classstella_1_1Label.html", null ]
     ] ],
     [ "stella::Window", "classstella_1_1Window.html", null ],
-    [ "winsize", "structwinsize.html", null ]
+    [ "winsize", "structwinsize.html", null ],
+    [ "xucred", "structxucred.html", null ]
 ];

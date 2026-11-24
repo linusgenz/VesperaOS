@@ -251,13 +251,15 @@ $(function(){initNavTree('stdlib_8h_source.html','',''); });
 <div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span> </div>
 <div class="line"><a id="l00259" name="l00259"></a><span class="lineno"><a class="line" href="stdlib_8h.html#a5ef32b5a0609786de9363e1b5e1e60b8">  259</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="stdlib_8h.html#a5ef32b5a0609786de9363e1b5e1e60b8">mbtowc</a>(<span class="keywordtype">wchar_t</span> *__restrict__ wc, <span class="keyword">const</span> <span class="keywordtype">char</span> *__restrict__ src, <span class="keywordtype">size_t</span> n);</div>
 <div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span> </div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno"><a class="line" href="stdlib_8h.html#aed1e9c27ea92f5ae3a480059bf45c311">  261</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="stdlib_8h.html#aed1e9c27ea92f5ae3a480059bf45c311">posix_memalign</a>(<span class="keywordtype">void</span> **memptr, <span class="keywordtype">size_t</span> alignment, <span class="keywordtype">size_t</span> size);</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno"><a class="line" href="stdlib_8h.html#a3d70482477f22fe775a506788cc9f0e7">  261</a></span><span class="keywordtype">void</span> *<a class="code hl_function" href="stdlib_8h.html#a3d70482477f22fe775a506788cc9f0e7">aligned_alloc</a>(<span class="keywordtype">size_t</span> align, <span class="keywordtype">size_t</span> len);</div>
 <div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span> </div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span><span class="preprocessor">#ifdef __cplusplus</span></div>
-<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>}</div>
-<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span> </div>
-<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span><span class="preprocessor">#endif  </span><span class="comment">// _STDLIB_H</span></div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno"><a class="line" href="stdlib_8h.html#aed1e9c27ea92f5ae3a480059bf45c311">  263</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="stdlib_8h.html#aed1e9c27ea92f5ae3a480059bf45c311">posix_memalign</a>(<span class="keywordtype">void</span> **memptr, <span class="keywordtype">size_t</span> alignment, <span class="keywordtype">size_t</span> size);</div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span> </div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span><span class="preprocessor">#ifdef __cplusplus</span></div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>}</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span> </div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span><span class="preprocessor">#endif  </span><span class="comment">// _STDLIB_H</span></div>
 <div class="ttc" id="aalloca_8h_html"><div class="ttname"><a href="alloca_8h.html">alloca.h</a></div></div>
 <div class="ttc" id="astddef_8h_html"><div class="ttname"><a href="stddef_8h.html">stddef.h</a></div></div>
 <div class="ttc" id="astdint_8h_html_aaa5d1cd013383c889537491c3cfd9aad"><div class="ttname"><a href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a></div><div class="ttdeci">unsigned long long uint64_t</div><div class="ttdef"><b>Definition</b> stdint.h:38</div></div>
@@ -276,6 +278,7 @@ $(function(){initNavTree('stdlib_8h_source.html','',''); });
 <div class="ttc" id="astdlib_8h_html_a3102965969578ae09e43dfc53996e90e"><div class="ttname"><a href="stdlib_8h.html#a3102965969578ae09e43dfc53996e90e">labs</a></div><div class="ttdeci">static long labs(long x)</div><div class="ttdef"><b>Definition</b> stdlib.h:203</div></div>
 <div class="ttc" id="astdlib_8h_html_a311071298c2fe3e5d7057f396a6acfdc"><div class="ttname"><a href="stdlib_8h.html#a311071298c2fe3e5d7057f396a6acfdc">strtol</a></div><div class="ttdeci">long strtol(const char *nptr, char **endptr, int base)</div></div>
 <div class="ttc" id="astdlib_8h_html_a35e28bfcc8d641e0eebd66f4dc559a3f"><div class="ttname"><a href="stdlib_8h.html#a35e28bfcc8d641e0eebd66f4dc559a3f">__compar_fn_t</a></div><div class="ttdeci">int(* __compar_fn_t)(const void *, const void *)</div><div class="ttdef"><b>Definition</b> stdlib.h:239</div></div>
+<div class="ttc" id="astdlib_8h_html_a3d70482477f22fe775a506788cc9f0e7"><div class="ttname"><a href="stdlib_8h.html#a3d70482477f22fe775a506788cc9f0e7">aligned_alloc</a></div><div class="ttdeci">void * aligned_alloc(size_t align, size_t len)</div></div>
 <div class="ttc" id="astdlib_8h_html_a44ecd701acbb30c8fd00a40c5d353a5e"><div class="ttname"><a href="stdlib_8h.html#a44ecd701acbb30c8fd00a40c5d353a5e">abort</a></div><div class="ttdeci">NORETURN void abort(void)</div></div>
 <div class="ttc" id="astdlib_8h_html_a5e43287e1dd4097af9094206a00d8806"><div class="ttname"><a href="stdlib_8h.html#a5e43287e1dd4097af9094206a00d8806">system</a></div><div class="ttdeci">int system(const char *cmd)</div></div>
 <div class="ttc" id="astdlib_8h_html_a5ef32b5a0609786de9363e1b5e1e60b8"><div class="ttname"><a href="stdlib_8h.html#a5ef32b5a0609786de9363e1b5e1e60b8">mbtowc</a></div><div class="ttdeci">int mbtowc(wchar_t *__restrict__ wc, const char *__restrict__ src, size_t n)</div></div>

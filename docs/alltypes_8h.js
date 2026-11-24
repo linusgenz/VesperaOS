@@ -5,6 +5,7 @@ var alltypes_8h =
     [ "winsize", "structwinsize.html", "structwinsize" ],
     [ "__BIG_ENDIAN", "alltypes_8h.html#aa2c4bb6d7658760c2b3c668362e126ea", null ],
     [ "__BYTE_ORDER", "alltypes_8h.html#a53577389633eb80892bdc0b8387573c5", null ],
+    [ "__iovec_defined", "alltypes_8h.html#ad55477086481bac2817300d7780511cf", null ],
     [ "__LITTLE_ENDIAN", "alltypes_8h.html#aeccf3e279c16687d91cd28d0463cbde6", null ],
     [ "__LONG_MAX", "alltypes_8h.html#ad896ef973a3b47ebdc61650fa08e09fe", null ],
     [ "_Addr", "alltypes_8h.html#a1207fcefa3120c0865728b8dd13a5f7f", null ],

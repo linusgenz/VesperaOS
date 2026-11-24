@@ -264,14 +264,14 @@ Functions</h2></td></tr>
 <p>Wait for events on a set of file descriptors. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">fds</td><td>Array of <span class="tt">struct <a class="el" href="structpollfd.html">pollfd</a></span> describing the fds to watch and the events of interest in each entry's <span class="tt">events</span> field. On return, each entry's <span class="tt">revents</span> field is filled with the events that actually occurred (0 if none). </td></tr>
+    <tr><td class="paramname">fds</td><td>Array of <span class="tt">struct <a class="el" href="structpollfd.html">pollfd</a></span> describing the fds to watch and the events of interest in each entry's <span class="tt"><a class="el" href="epoll_8h.html#a913e06cb1e923a53739d21d9e9e6f952">events</a></span> field. On return, each entry's <span class="tt">revents</span> field is filled with the events that actually occurred (0 if none). </td></tr>
     <tr><td class="paramname">nfds</td><td>Number of entries in <span class="tt">fds</span>. </td></tr>
     <tr><td class="paramname">timeout</td><td>Timeout in milliseconds: &gt; 0 : wait at most this many milliseconds 0 : return immediately (non-blocking poll) &lt; 0 : block indefinitely until an event occurs</td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>On success, the number of <span class="tt">fds</span> entries with a nonzero <span class="tt">revents</span> (i.e. ready, error, or hangup). Returns 0 if the timeout expired before anything became ready. Returns -1 on error (errno set): EINVAL - <span class="tt">fds</span> is NULL and <span class="tt">nfds</span> != 0, or <span class="tt">nfds</span> exceeds the maximum single <a class="el" href="sysstd_8h.html#a25ef6a476bf50bc58be0dd2bbe9aabd7" title="Wait for events on a set of handles.">sys_poll()</a> call size EFAULT - <span class="tt">fds</span> pointer rejected by the kernel</dd></dl>
-<dl class="section note"><dt>Note</dt><dd>An invalid fd in one entry does not fail the whole call — as with Linux/POSIX, that entry's <span class="tt">revents</span> is set to POLLNVAL and <span class="tt">events</span> for that entry is ignored, same as glibc's <a class="el" href="#aa97ba0bfbedf1784e648dd753a92449d" title="Wait for events on a set of file descriptors.">poll()</a>. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>An invalid fd in one entry does not fail the whole call — as with Linux/POSIX, that entry's <span class="tt">revents</span> is set to POLLNVAL and <span class="tt"><a class="el" href="epoll_8h.html#a913e06cb1e923a53739d21d9e9e6f952">events</a></span> for that entry is ignored, same as glibc's <a class="el" href="#aa97ba0bfbedf1784e648dd753a92449d" title="Wait for events on a set of file descriptors.">poll()</a>. </dd></dl>
 
 </div>
 </div>

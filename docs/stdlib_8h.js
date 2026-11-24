@@ -14,6 +14,7 @@ var stdlib_8h =
     [ "_Exit", "stdlib_8h.html#a1964abca2fa8601fcc112f68ede27c63", null ],
     [ "abort", "stdlib_8h.html#a44ecd701acbb30c8fd00a40c5d353a5e", null ],
     [ "abs", "stdlib_8h.html#a182ab0d37b2885d8da8f6364fb6d37ec", null ],
+    [ "aligned_alloc", "stdlib_8h.html#a3d70482477f22fe775a506788cc9f0e7", null ],
     [ "atexit", "stdlib_8h.html#a7fd89c82095df80e5e12d6b2834a2acc", null ],
     [ "atof", "stdlib_8h.html#ac03da055b7752247b034fb582cb4372f", null ],
     [ "atoi", "stdlib_8h.html#a30670a60464f77af17dfb353353d6df8", null ],

@@ -40,5 +40,5 @@ var searchData=
   ['procs_37',['procs',['../structsysinfo.html#af6d06a9d519c5703cdce5320a5b2090d',1,'sysinfo']]],
   ['product_5fid_38',['product_id',['../structusb__device__info.html#a542f8985c766c27a08dccb4dc4cf23e1',1,'usb_device_info']]],
   ['progressive_39',['progressive',['../structjpeg__save__options__t.html#a38dc64a3bf241407ff4f79da14650e36',1,'jpeg_save_options_t']]],
-  ['ptr_40',['ptr',['../structlucifer__gem__userptr.html#acf928cc8614ad31120ad7fc15fe7b9a4',1,'lucifer_gem_userptr']]]
+  ['ptr_40',['ptr',['../unionepoll__data.html#a9f8d926f9b65dc170be11dfe31e03702',1,'epoll_data::ptr'],['../structlucifer__gem__userptr.html#acf928cc8614ad31120ad7fc15fe7b9a4',1,'lucifer_gem_userptr::ptr']]]
 ];

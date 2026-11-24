@@ -1,10 +1,6 @@
 var userspace_2lib_2include_2signal_8h =
 [
-    [ "sigaction", "structsigaction.html", "structsigaction" ],
     [ "NSIG", "userspace_2lib_2include_2signal_8h.html#ab83b88daaecc469d1edb90a527ab4a39", null ],
-    [ "SA_NODEFER", "userspace_2lib_2include_2signal_8h.html#abec4abd80d73397fc2f78f57f178565f", null ],
-    [ "SA_RESETHAND", "userspace_2lib_2include_2signal_8h.html#a8d5fb4f35858d31035e7354c1d4048ea", null ],
-    [ "SA_RESTART", "userspace_2lib_2include_2signal_8h.html#a74ef0a27afcf55b6cd6d35cf0fa5d427", null ],
     [ "SIG_ERR", "userspace_2lib_2include_2signal_8h.html#a3c330fbddd84bf34e65af370b11998d6", null ],
     [ "SIGABRT", "userspace_2lib_2include_2signal_8h.html#aa86c630133e5b5174ac970227b273446", null ],
     [ "sigaddset", "userspace_2lib_2include_2signal_8h.html#a71c4beece96f3b2b714722283db8df13", null ],

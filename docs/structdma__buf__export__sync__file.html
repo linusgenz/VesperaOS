@@ -93,16 +93,28 @@ $(function(){initNavTree('structdma__buf__export__sync__file.html','','structdma
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="dma-buf_8h_source.html">dma-buf.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="userspace_2lib_2include_2dma-buf_8h_source.html">dma-buf.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
+<tr class="memitem:aeba839e175e09628148133efe2aa046d" id="r_aeba839e175e09628148133efe2aa046d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="userspace_2lib_2include_2dma-buf_8h.html#a3acae9310e2c2e411e800a8a369171c6">__u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeba839e175e09628148133efe2aa046d">flags</a></td></tr>
+<tr class="memitem:a6ffa6cfeed92f2f378ab26b17791e017" id="r_a6ffa6cfeed92f2f378ab26b17791e017"><td class="memItemLeft" align="right" valign="top"><a class="el" href="userspace_2lib_2include_2dma-buf_8h.html#a375730bf3d49b04b76cd45693a00e5d5">__s32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6ffa6cfeed92f2f378ab26b17791e017">fd</a></td></tr>
 <tr class="memitem:afe49479cf2a53bb6842756ed4d4bba4b" id="r_afe49479cf2a53bb6842756ed4d4bba4b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="tmp_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afe49479cf2a53bb6842756ed4d4bba4b">flags</a></td></tr>
 <tr class="memitem:a6f7490f0c830b621404ed8db91ef8dbc" id="r_a6f7490f0c830b621404ed8db91ef8dbc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="tmp_8h.html#a9e3ad5f8e752f01d926ce122d5a5285e">i32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6f7490f0c830b621404ed8db91ef8dbc">fd</a></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>struct <a class="el" href="structdma__buf__export__sync__file.html">dma_buf_export_sync_file</a> - Get a sync_file from a dma-buf</p>
+<p>Userspace can perform a DMA_BUF_IOCTL_EXPORT_SYNC_FILE to retrieve the current set of fences on a dma-buf file descriptor as a sync_file. CPU waits via <a class="el" href="userspace_2lib_2include_2poll_8h.html#aa97ba0bfbedf1784e648dd753a92449d" title="Wait for events on a set of file descriptors.">poll()</a> or other driver-specific mechanisms typically wait on whatever fences are on the dma-buf at the time the wait begins. This is similar except that it takes a snapshot of the current fences on the dma-buf for waiting later instead of waiting immediately. This is useful for modern graphics APIs such as Vulkan which assume an explicit synchronization model but still need to inter-operate with dma-buf.</p>
+<p>The intended usage pattern is the following:</p>
+<ol type="1">
+<li>Export a sync_file with flags corresponding to the expected GPU usage via DMA_BUF_IOCTL_EXPORT_SYNC_FILE.</li>
+<li>Submit rendering work which uses the dma-buf. The work should wait on the exported sync file before rendering and produce another sync_file when complete.</li>
+<li>Import the rendering-complete sync_file into the dma-buf with flags corresponding to the GPU usage via DMA_BUF_IOCTL_IMPORT_SYNC_FILE.</li>
+</ol>
+<p>Unlike doing implicit synchronization via a GPU kernel driver's exec ioctl, the above is not a single atomic operation. If userspace wants to ensure ordering via these fences, it is the respnosibility of userspace to use locks or other mechanisms to ensure that no other context adds fences or submits work between steps 1 and 3 above. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a6f7490f0c830b621404ed8db91ef8dbc" name="a6f7490f0c830b621404ed8db91ef8dbc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6f7490f0c830b621404ed8db91ef8dbc">&#9670;&#160;</a></span>fd</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a6f7490f0c830b621404ed8db91ef8dbc">&#9670;&#160;</a></span>fd <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -116,8 +128,23 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a6ffa6cfeed92f2f378ab26b17791e017" name="a6ffa6cfeed92f2f378ab26b17791e017"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6ffa6cfeed92f2f378ab26b17791e017">&#9670;&#160;</a></span>fd <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="userspace_2lib_2include_2dma-buf_8h.html#a375730bf3d49b04b76cd45693a00e5d5">__s32</a> dma_buf_export_sync_file::fd</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>@fd: Returned sync file descriptor </p>
+
+</div>
+</div>
 <a id="afe49479cf2a53bb6842756ed4d4bba4b" name="afe49479cf2a53bb6842756ed4d4bba4b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afe49479cf2a53bb6842756ed4d4bba4b">&#9670;&#160;</a></span>flags</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#afe49479cf2a53bb6842756ed4d4bba4b">&#9670;&#160;</a></span>flags <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -134,8 +161,27 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<hr/>The documentation for this struct was generated from the following file:<ul>
-<li>include/uapi/vespera/dev/<a class="el" href="dma-buf_8h_source.html">dma-buf.h</a></li>
+<a id="aeba839e175e09628148133efe2aa046d" name="aeba839e175e09628148133efe2aa046d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeba839e175e09628148133efe2aa046d">&#9670;&#160;</a></span>flags <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="userspace_2lib_2include_2dma-buf_8h.html#a3acae9310e2c2e411e800a8a369171c6">__u32</a> dma_buf_export_sync_file::flags</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>@flags: Read/write flags</p>
+<p>Must be DMA_BUF_SYNC_READ, DMA_BUF_SYNC_WRITE, or both.</p>
+<p>If DMA_BUF_SYNC_READ is set and DMA_BUF_SYNC_WRITE is not set, the returned sync file waits on any writers of the dma-buf to complete. Waiting on the returned sync file is equivalent to <a class="el" href="userspace_2lib_2include_2poll_8h.html#aa97ba0bfbedf1784e648dd753a92449d" title="Wait for events on a set of file descriptors.">poll()</a> with POLLIN.</p>
+<p>If DMA_BUF_SYNC_WRITE is set, the returned sync file waits on any users of the dma-buf (read or write) to complete. Waiting on the returned sync file is equivalent to <a class="el" href="userspace_2lib_2include_2poll_8h.html#aa97ba0bfbedf1784e648dd753a92449d" title="Wait for events on a set of file descriptors.">poll()</a> with POLLOUT. If both DMA_BUF_SYNC_WRITE and DMA_BUF_SYNC_READ are set, this is equivalent to just DMA_BUF_SYNC_WRITE. </p>
+
+</div>
+</div>
+<hr/>The documentation for this struct was generated from the following files:<ul>
+<li>userspace/lib/include/<a class="el" href="userspace_2lib_2include_2dma-buf_8h_source.html">dma-buf.h</a></li>
+<li>include/uapi/vespera/dev/<a class="el" href="include_2uapi_2vespera_2dev_2dma-buf_8h_source.html">dma-buf.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

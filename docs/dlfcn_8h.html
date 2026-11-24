@@ -96,6 +96,10 @@ $(function(){initNavTree('dlfcn_8h.html','',''); });
 </div>
 <p><a href="dlfcn_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:Dl_5Finfo" id="r_Dl_5Finfo"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structDl__info.html">Dl_info</a></td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-define-members" class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:a5c83709ee3bd7d316f8f47e122f3be20" id="r_a5c83709ee3bd7d316f8f47e122f3be20"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5c83709ee3bd7d316f8f47e122f3be20">RTLD_LAZY</a>&#160;&#160;&#160;0x0001</td></tr>
@@ -117,6 +121,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:af483b6c4400965aa885f9f1a144138a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Release a handle previously obtained from <a class="el" href="#afbed7af6231db23cc469bae1e3826404" title="Load a shared library and map it into the calling unit&#39;s address space.">dlopen()</a>.  <br /></td></tr>
 <tr class="memitem:a2bbbe680edd6e3918311f5dbf33b3996" id="r_a2bbbe680edd6e3918311f5dbf33b3996"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2bbbe680edd6e3918311f5dbf33b3996">dlerror</a> (void)</td></tr>
 <tr class="memdesc:a2bbbe680edd6e3918311f5dbf33b3996"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a description of the most recent <a class="el" href="#afbed7af6231db23cc469bae1e3826404" title="Load a shared library and map it into the calling unit&#39;s address space.">dlopen()</a>/dlsym()/ <a class="el" href="#af483b6c4400965aa885f9f1a144138a5" title="Release a handle previously obtained from dlopen().">dlclose()</a> failure on the calling unit.  <br /></td></tr>
+<tr class="memitem:a87798b28391b964dbd4c9ffc04057ea7" id="r_a87798b28391b964dbd4c9ffc04057ea7"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a87798b28391b964dbd4c9ffc04057ea7">dladdr</a> (const void *address, <a class="el" href="structDl__info.html">Dl_info</a> *info)</td></tr>
 </table>
 <a name="doc-define-members" id="doc-define-members"></a><h2 id="header-doc-define-members" class="groupheader">Macro Definition Documentation</h2>
 <a id="ace65454279c135fe5e6168d456c31263" name="ace65454279c135fe5e6168d456c31263"></a>
@@ -188,6 +193,27 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="a87798b28391b964dbd4c9ffc04057ea7" name="a87798b28391b964dbd4c9ffc04057ea7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a87798b28391b964dbd4c9ffc04057ea7">&#9670;&#160;</a></span>dladdr()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int dladdr </td>
+          <td>(</td>
+          <td class="paramtype">const void *</td>          <td class="paramname"><span class="paramname"><em>address</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structDl__info.html">Dl_info</a> *</td>          <td class="paramname"><span class="paramname"><em>info</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="af483b6c4400965aa885f9f1a144138a5" name="af483b6c4400965aa885f9f1a144138a5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af483b6c4400965aa885f9f1a144138a5">&#9670;&#160;</a></span>dlclose()</h2>
 

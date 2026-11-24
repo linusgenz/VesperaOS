@@ -1414,7 +1414,7 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Open a dynamically-growing in-memory stream for writing. </p>
-<p>Ownership: <code class="param">*bufp</code> is owned by the caller after <a class="el" href="#a16899976ac8e865813485db3d5f5186f" title="Close a file stream.">fclose()</a> and must be freed with <a class="el" href="stdlib_8h.html#afbedc913aa4651b3c3b4b3aecd9b4711" title="Releases a block of memory previously allocated by malloc().">free()</a>. Before <a class="el" href="#a16899976ac8e865813485db3d5f5186f" title="Close a file stream.">fclose()</a>, the pointer may be invalidated by any further write (realloc may move it) — re-read <code class="param">*bufp</code> after each <a class="el" href="#aa0ed35dbaf8a840c92daef7aa52b40bf" title="Flush buffered output on a file stream.">fflush()</a> rather than caching it.</p>
+<p>Ownership: <code class="param">*bufp</code> is owned by the caller after <a class="el" href="#a16899976ac8e865813485db3d5f5186f" title="Close a file stream.">fclose()</a> and must be freed with <a class="el" href="malloc_8h.html#af07d89f5ceaea0c7c8252cc41fd75f37">free()</a>. Before <a class="el" href="#a16899976ac8e865813485db3d5f5186f" title="Close a file stream.">fclose()</a>, the pointer may be invalidated by any further write (realloc may move it) — re-read <code class="param">*bufp</code> after each <a class="el" href="#aa0ed35dbaf8a840c92daef7aa52b40bf" title="Flush buffered output on a file stream.">fflush()</a> rather than caching it.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">bufp</td><td>Out param: receives the current buffer pointer on each flush. </td></tr>

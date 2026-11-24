@@ -1,15 +1,17 @@
 var searchData=
 [
-  ['uid_0',['uid',['../structspawn__config.html#a2e6c0763c8a87bd13cbb5617de66e97d',1,'spawn_config']]],
-  ['uncorrectable_5fsectors_1',['uncorrectable_sectors',['../structsmart__ata.html#a3696dd2012f0a202ce4254e3a547afaf',1,'smart_ata']]],
-  ['unget_5fchar_2',['unget_char',['../structFILE.html#a2e89f8ab8f1bb17b57f9b3158963eeb4',1,'FILE']]],
-  ['unit_5fcount_3',['unit_count',['../structrealm__info.html#a5451f0261ccff72ef8bb0003bf1ce41d',1,'realm_info']]],
-  ['unsafe_5fshutdowns_4',['unsafe_shutdowns',['../structsmart__nvme.html#ac1d939ac361cf064973c310533eca1be',1,'smart_nvme']]],
-  ['unused_5',['unused',['../structpthread__barrierattr__t.html#a440a32f4117d704855f1c823ac3783b2',1,'pthread_barrierattr_t::unused'],['../structpthread__rwlockattr__t.html#af62f339fa4701b914838cf887f688a85',1,'pthread_rwlockattr_t::unused']]],
-  ['uptime_6',['uptime',['../structsysinfo.html#ab8da041f2f945fcba98f6903f2cf554e',1,'sysinfo']]],
-  ['usage_5fpercent_7',['usage_percent',['../structcpu__usage__stat.html#aafb9ce588b00be8978b707ce164728eb',1,'cpu_usage_stat']]],
-  ['used_8',['used',['../structlucifer__query__mem__regions.html#a98da84542f1d7ad1b6d35c16f9a79f84',1,'lucifer_query_mem_regions']]],
-  ['used_5fram_9',['used_ram',['../structmeminfo.html#aa9591f759ce9c89e1924871b3a92d595',1,'meminfo']]],
-  ['user_5fstack_5fend_10',['user_stack_end',['../structunit__info.html#abee8ab3ec0124ed0fbfc51ed109becd4',1,'unit_info']]],
-  ['user_5fstack_5fstart_11',['user_stack_start',['../structunit__info.html#a7b19e43c35fcd0763b1f8397774c1892',1,'unit_info']]]
+  ['u32_0',['u32',['../unionepoll__data.html#a7511dd40b5e0bb321c447e53c53158d9',1,'epoll_data']]],
+  ['u64_1',['u64',['../unionepoll__data.html#a3f16ce318934a69c3e74a5a1cd25d88d',1,'epoll_data']]],
+  ['uid_2',['uid',['../structspawn__config.html#a2e6c0763c8a87bd13cbb5617de66e97d',1,'spawn_config']]],
+  ['uncorrectable_5fsectors_3',['uncorrectable_sectors',['../structsmart__ata.html#a3696dd2012f0a202ce4254e3a547afaf',1,'smart_ata']]],
+  ['unget_5fchar_4',['unget_char',['../structFILE.html#a2e89f8ab8f1bb17b57f9b3158963eeb4',1,'FILE']]],
+  ['unit_5fcount_5',['unit_count',['../structrealm__info.html#a5451f0261ccff72ef8bb0003bf1ce41d',1,'realm_info']]],
+  ['unsafe_5fshutdowns_6',['unsafe_shutdowns',['../structsmart__nvme.html#ac1d939ac361cf064973c310533eca1be',1,'smart_nvme']]],
+  ['unused_7',['unused',['../structpthread__barrierattr__t.html#a440a32f4117d704855f1c823ac3783b2',1,'pthread_barrierattr_t::unused'],['../structpthread__rwlockattr__t.html#af62f339fa4701b914838cf887f688a85',1,'pthread_rwlockattr_t::unused']]],
+  ['uptime_8',['uptime',['../structsysinfo.html#ab8da041f2f945fcba98f6903f2cf554e',1,'sysinfo']]],
+  ['usage_5fpercent_9',['usage_percent',['../structcpu__usage__stat.html#aafb9ce588b00be8978b707ce164728eb',1,'cpu_usage_stat']]],
+  ['used_10',['used',['../structlucifer__query__mem__regions.html#a98da84542f1d7ad1b6d35c16f9a79f84',1,'lucifer_query_mem_regions']]],
+  ['used_5fram_11',['used_ram',['../structmeminfo.html#aa9591f759ce9c89e1924871b3a92d595',1,'meminfo']]],
+  ['user_5fstack_5fend_12',['user_stack_end',['../structunit__info.html#abee8ab3ec0124ed0fbfc51ed109becd4',1,'unit_info']]],
+  ['user_5fstack_5fstart_13',['user_stack_start',['../structunit__info.html#a7b19e43c35fcd0763b1f8397774c1892',1,'unit_info']]]
 ];

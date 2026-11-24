@@ -1,0 +1,28 @@
+var epoll_8h =
+[
+    [ "epoll_data", "unionepoll__data.html", "unionepoll__data" ],
+    [ "epoll_event", "structepoll__event.html", "structepoll__event" ],
+    [ "EPOLL_CTL_ADD", "epoll_8h.html#a2d36c1c8457d15bf764d4a94b4077b38", null ],
+    [ "EPOLL_CTL_DEL", "epoll_8h.html#af8de2279a945391e86525bcb904bc092", null ],
+    [ "EPOLL_CTL_MOD", "epoll_8h.html#a8818bbe0441220b091976d944a2b1620", null ],
+    [ "EPOLLERR", "epoll_8h.html#a2b69cc87f3556dc5d41b9b1122a4413e", null ],
+    [ "EPOLLET", "epoll_8h.html#ada664c5f9d581e10b4f72d1bb444dbb4", null ],
+    [ "EPOLLHUP", "epoll_8h.html#ae6832a9da6c1bc16f40c4a5b15dde53a", null ],
+    [ "EPOLLIN", "epoll_8h.html#a9473bb25876648bb51926e6723802982", null ],
+    [ "EPOLLONESHOT", "epoll_8h.html#a12f33e7f9d329aeaf78678b56fa38d1c", null ],
+    [ "EPOLLOUT", "epoll_8h.html#a737460cee0c76ac8d04e9726ec200d6f", null ],
+    [ "EPOLLPRI", "epoll_8h.html#af76a4ccb6d42cfdf3ff7d5ac5a971834", null ],
+    [ "EPOLLRDBAND", "epoll_8h.html#af3ca771c01458a76902b34f98fa4ea78", null ],
+    [ "EPOLLRDHUP", "epoll_8h.html#afb6a93d0058c1e2bef8cff5ba1c28560", null ],
+    [ "EPOLLRDNORM", "epoll_8h.html#ace47c8a3d068e427a825773a3043bf16", null ],
+    [ "EPOLLWRBAND", "epoll_8h.html#a2d145da45c73675533044344a42a93e8", null ],
+    [ "EPOLLWRNORM", "epoll_8h.html#ae7b18b9b50e9130909fde80c6c832ff9", null ],
+    [ "epoll_data_t", "epoll_8h.html#ae448b6f1679acd3309458397357ffa2d", null ],
+    [ "__attribute__", "epoll_8h.html#aee2d68e08dcfee9ee42101ae35fffec1", null ],
+    [ "epoll_create", "epoll_8h.html#a8acfd23a345aff63c7bcb3da4bd2465a", null ],
+    [ "epoll_create1", "epoll_8h.html#af296de4aef27fe144a33fc38431f86b6", null ],
+    [ "epoll_ctl", "epoll_8h.html#a192b9bf39dddbe56b3a79ab2316a968d", null ],
+    [ "epoll_wait", "epoll_8h.html#aa43d07f8e2b7057990a422a06f55c115", null ],
+    [ "data", "epoll_8h.html#a025468670f2e33f63ddf537a9922007e", null ],
+    [ "events", "epoll_8h.html#a913e06cb1e923a53739d21d9e9e6f952", null ]
+];

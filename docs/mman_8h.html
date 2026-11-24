@@ -94,6 +94,7 @@ $(function(){initNavTree('mman_8h.html','',''); });
 <div class="contents">
 <div class="textblock"><code>#include &lt;<a class="el" href="stddef_8h_source.html">stddef.h</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="stdint_8h_source.html">stdint.h</a>&gt;</code><br />
+<code>#include &quot;<a class="el" href="include_2uapi_2vespera_2types_8h_source.html">vespera/types.h</a>&quot;</code><br />
 </div>
 <p><a href="mman_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -117,16 +118,114 @@ Macros</h2></td></tr>
 <tr class="memdesc:a387ec707b30c5e78cf20a14517a63b96"><td class="mdescLeft">&#160;</td><td class="mdescRight">Use exactly the address requested (dangerous).  <br /></td></tr>
 <tr class="memitem:a8523dcf952f6ff059a3bed717e4f1296" id="r_a8523dcf952f6ff059a3bed717e4f1296"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8523dcf952f6ff059a3bed717e4f1296">MAP_FAILED</a>&#160;&#160;&#160;((void*)-1)</td></tr>
 <tr class="memdesc:a8523dcf952f6ff059a3bed717e4f1296"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return value on failure.  <br /></td></tr>
+<tr class="memitem:aec65c6c4c9adf80f22eb745a10a92dc8" id="r_aec65c6c4c9adf80f22eb745a10a92dc8"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aec65c6c4c9adf80f22eb745a10a92dc8">MADV_NORMAL</a>&#160;&#160;&#160;0</td></tr>
+<tr class="memdesc:aec65c6c4c9adf80f22eb745a10a92dc8"><td class="mdescLeft">&#160;</td><td class="mdescRight">No special treatment.  <br /></td></tr>
+<tr class="memitem:ad20f68fbbd6999164c918398dd1df993" id="r_ad20f68fbbd6999164c918398dd1df993"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad20f68fbbd6999164c918398dd1df993">MADV_RANDOM</a>&#160;&#160;&#160;1</td></tr>
+<tr class="memdesc:ad20f68fbbd6999164c918398dd1df993"><td class="mdescLeft">&#160;</td><td class="mdescRight">Expect random page references.  <br /></td></tr>
+<tr class="memitem:a5251e8fa4acd2123079bd04ef1c01955" id="r_a5251e8fa4acd2123079bd04ef1c01955"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5251e8fa4acd2123079bd04ef1c01955">MADV_SEQUENTIAL</a>&#160;&#160;&#160;2</td></tr>
+<tr class="memdesc:a5251e8fa4acd2123079bd04ef1c01955"><td class="mdescLeft">&#160;</td><td class="mdescRight">Expect sequential page references.  <br /></td></tr>
+<tr class="memitem:adeeef1f5349095dcbfdf2df0dea3e41b" id="r_adeeef1f5349095dcbfdf2df0dea3e41b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adeeef1f5349095dcbfdf2df0dea3e41b">MADV_WILLNEED</a>&#160;&#160;&#160;3</td></tr>
+<tr class="memdesc:adeeef1f5349095dcbfdf2df0dea3e41b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Will need these pages.  <br /></td></tr>
+<tr class="memitem:adef2b7285968a843b78ba48fcd4d8c03" id="r_adef2b7285968a843b78ba48fcd4d8c03"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adef2b7285968a843b78ba48fcd4d8c03">MADV_DONTNEED</a>&#160;&#160;&#160;4</td></tr>
+<tr class="memdesc:adef2b7285968a843b78ba48fcd4d8c03"><td class="mdescLeft">&#160;</td><td class="mdescRight">Don't need these pages.  <br /></td></tr>
+<tr class="memitem:a979a9c42ee569172c2017c522c17a0b1" id="r_a979a9c42ee569172c2017c522c17a0b1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a979a9c42ee569172c2017c522c17a0b1">MREMAP_MAYMOVE</a>&#160;&#160;&#160;1</td></tr>
+<tr class="memitem:a689fc9cb8e5f54526471e67573624af9" id="r_a689fc9cb8e5f54526471e67573624af9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a689fc9cb8e5f54526471e67573624af9">MREMAP_FIXED</a>&#160;&#160;&#160;2</td></tr>
+<tr class="memitem:a98930d8c4137a6cf3f9e21b2b7c84c24" id="r_a98930d8c4137a6cf3f9e21b2b7c84c24"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a98930d8c4137a6cf3f9e21b2b7c84c24">MS_ASYNC</a>&#160;&#160;&#160;1</td></tr>
+<tr class="memitem:aee74e153705852ce48dca911f1b94d72" id="r_aee74e153705852ce48dca911f1b94d72"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aee74e153705852ce48dca911f1b94d72">MS_SYNC</a>&#160;&#160;&#160;4</td></tr>
+<tr class="memitem:ad094236c94cb5fcfd6a663b646782bc8" id="r_ad094236c94cb5fcfd6a663b646782bc8"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad094236c94cb5fcfd6a663b646782bc8">MS_INVALIDATE</a>&#160;&#160;&#160;2</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a943cf73b816880433935f7055d4fe72f" id="r_a943cf73b816880433935f7055d4fe72f"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a943cf73b816880433935f7055d4fe72f">mmap</a> (void *addr, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> length, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> prot, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> <a class="el" href="ioctl__smart_8h.html#a687c73b55452210faa467db4d365a3ee">flags</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> handle, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> offset)</td></tr>
-<tr class="memdesc:a943cf73b816880433935f7055d4fe72f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Map pages into the process address space.  <br /></td></tr>
+<tr class="memitem:a3fa07c484f2e670904fa92c94e4225da" id="r_a3fa07c484f2e670904fa92c94e4225da"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3fa07c484f2e670904fa92c94e4225da">mmap</a> (void *addr, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> length, int prot, int <a class="el" href="ioctl__smart_8h.html#a687c73b55452210faa467db4d365a3ee">flags</a>, int fd, <a class="el" href="unistd_8h.html#a053c614b69adbac710bb132a6eb9ccf6">off_t</a> offset)</td></tr>
+<tr class="memdesc:a3fa07c484f2e670904fa92c94e4225da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Map pages into the process address space.  <br /></td></tr>
 <tr class="memitem:a1343e4aa663c9e8bb7d1b16d367f0b08" id="r_a1343e4aa663c9e8bb7d1b16d367f0b08"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1343e4aa663c9e8bb7d1b16d367f0b08">munmap</a> (void *addr, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> length)</td></tr>
 <tr class="memdesc:a1343e4aa663c9e8bb7d1b16d367f0b08"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unmap a previously mapped memory region.  <br /></td></tr>
 <tr class="memitem:a1beae3f774b7e4798cbe4f5c75d127d3" id="r_a1beae3f774b7e4798cbe4f5c75d127d3"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1beae3f774b7e4798cbe4f5c75d127d3">mprotect</a> (void *addr, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> length, int prot)</td></tr>
+<tr class="memitem:ac1842269384644cb3cf52919b6a0c014" id="r_ac1842269384644cb3cf52919b6a0c014"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac1842269384644cb3cf52919b6a0c014">madvise</a> (void *addr, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> length, int advice)</td></tr>
+<tr class="memitem:af9989368c37ebcbda0353c7217d3f054" id="r_af9989368c37ebcbda0353c7217d3f054"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af9989368c37ebcbda0353c7217d3f054">mremap</a> (void *old_address, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> old_size, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> new_size, int <a class="el" href="ioctl__smart_8h.html#a687c73b55452210faa467db4d365a3ee">flags</a>,...)</td></tr>
+<tr class="memitem:abef113c04cdf88b279b9d4204a63d448" id="r_abef113c04cdf88b279b9d4204a63d448"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abef113c04cdf88b279b9d4204a63d448">msync</a> (void *addr, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> length, int <a class="el" href="ioctl__smart_8h.html#a687c73b55452210faa467db4d365a3ee">flags</a>)</td></tr>
 </table>
 <a name="doc-define-members" id="doc-define-members"></a><h2 id="header-doc-define-members" class="groupheader">Macro Definition Documentation</h2>
+<a id="adef2b7285968a843b78ba48fcd4d8c03" name="adef2b7285968a843b78ba48fcd4d8c03"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adef2b7285968a843b78ba48fcd4d8c03">&#9670;&#160;</a></span>MADV_DONTNEED</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MADV_DONTNEED&#160;&#160;&#160;4</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Don't need these pages. </p>
+
+</div>
+</div>
+<a id="aec65c6c4c9adf80f22eb745a10a92dc8" name="aec65c6c4c9adf80f22eb745a10a92dc8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec65c6c4c9adf80f22eb745a10a92dc8">&#9670;&#160;</a></span>MADV_NORMAL</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MADV_NORMAL&#160;&#160;&#160;0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>No special treatment. </p>
+
+</div>
+</div>
+<a id="ad20f68fbbd6999164c918398dd1df993" name="ad20f68fbbd6999164c918398dd1df993"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad20f68fbbd6999164c918398dd1df993">&#9670;&#160;</a></span>MADV_RANDOM</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MADV_RANDOM&#160;&#160;&#160;1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Expect random page references. </p>
+
+</div>
+</div>
+<a id="a5251e8fa4acd2123079bd04ef1c01955" name="a5251e8fa4acd2123079bd04ef1c01955"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5251e8fa4acd2123079bd04ef1c01955">&#9670;&#160;</a></span>MADV_SEQUENTIAL</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MADV_SEQUENTIAL&#160;&#160;&#160;2</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Expect sequential page references. </p>
+
+</div>
+</div>
+<a id="adeeef1f5349095dcbfdf2df0dea3e41b" name="adeeef1f5349095dcbfdf2df0dea3e41b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adeeef1f5349095dcbfdf2df0dea3e41b">&#9670;&#160;</a></span>MADV_WILLNEED</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MADV_WILLNEED&#160;&#160;&#160;3</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Will need these pages. </p>
+
+</div>
+</div>
 <a id="ae4f86bff73414c5fc08c058f957212f0" name="ae4f86bff73414c5fc08c058f957212f0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae4f86bff73414c5fc08c058f957212f0">&#9670;&#160;</a></span>MAP_ANONYMOUS</h2>
 
@@ -208,6 +307,76 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a689fc9cb8e5f54526471e67573624af9" name="a689fc9cb8e5f54526471e67573624af9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a689fc9cb8e5f54526471e67573624af9">&#9670;&#160;</a></span>MREMAP_FIXED</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MREMAP_FIXED&#160;&#160;&#160;2</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a979a9c42ee569172c2017c522c17a0b1" name="a979a9c42ee569172c2017c522c17a0b1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a979a9c42ee569172c2017c522c17a0b1">&#9670;&#160;</a></span>MREMAP_MAYMOVE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MREMAP_MAYMOVE&#160;&#160;&#160;1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a98930d8c4137a6cf3f9e21b2b7c84c24" name="a98930d8c4137a6cf3f9e21b2b7c84c24"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a98930d8c4137a6cf3f9e21b2b7c84c24">&#9670;&#160;</a></span>MS_ASYNC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MS_ASYNC&#160;&#160;&#160;1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad094236c94cb5fcfd6a663b646782bc8" name="ad094236c94cb5fcfd6a663b646782bc8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad094236c94cb5fcfd6a663b646782bc8">&#9670;&#160;</a></span>MS_INVALIDATE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MS_INVALIDATE&#160;&#160;&#160;2</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aee74e153705852ce48dca911f1b94d72" name="aee74e153705852ce48dca911f1b94d72"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aee74e153705852ce48dca911f1b94d72">&#9670;&#160;</a></span>MS_SYNC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MS_SYNC&#160;&#160;&#160;4</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a77848f068638e916c72cd543f5ecb815" name="a77848f068638e916c72cd543f5ecb815"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a77848f068638e916c72cd543f5ecb815">&#9670;&#160;</a></span>PROT_EXEC</h2>
 
@@ -274,8 +443,34 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
-<a id="a943cf73b816880433935f7055d4fe72f" name="a943cf73b816880433935f7055d4fe72f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a943cf73b816880433935f7055d4fe72f">&#9670;&#160;</a></span>mmap()</h2>
+<a id="ac1842269384644cb3cf52919b6a0c014" name="ac1842269384644cb3cf52919b6a0c014"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac1842269384644cb3cf52919b6a0c014">&#9670;&#160;</a></span>madvise()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int madvise </td>
+          <td>(</td>
+          <td class="paramtype">void *</td>          <td class="paramname"><span class="paramname"><em>addr</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a></td>          <td class="paramname"><span class="paramname"><em>length</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>advice</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3fa07c484f2e670904fa92c94e4225da" name="a3fa07c484f2e670904fa92c94e4225da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3fa07c484f2e670904fa92c94e4225da">&#9670;&#160;</a></span>mmap()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -293,22 +488,22 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a></td>          <td class="paramname"><span class="paramname"><em>prot</em></span>, </td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>prot</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a></td>          <td class="paramname"><span class="paramname"><em>flags</em></span>, </td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>flags</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a></td>          <td class="paramname"><span class="paramname"><em>handle</em></span>, </td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>fd</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a></td>          <td class="paramname"><span class="paramname"><em>offset</em></span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="unistd_8h.html#a053c614b69adbac710bb132a6eb9ccf6">off_t</a></td>          <td class="paramname"><span class="paramname"><em>offset</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -355,6 +550,68 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="af9989368c37ebcbda0353c7217d3f054" name="af9989368c37ebcbda0353c7217d3f054"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af9989368c37ebcbda0353c7217d3f054">&#9670;&#160;</a></span>mremap()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void * mremap </td>
+          <td>(</td>
+          <td class="paramtype">void *</td>          <td class="paramname"><span class="paramname"><em>old_address</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a></td>          <td class="paramname"><span class="paramname"><em>old_size</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a></td>          <td class="paramname"><span class="paramname"><em>new_size</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>flags</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>...</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abef113c04cdf88b279b9d4204a63d448" name="abef113c04cdf88b279b9d4204a63d448"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abef113c04cdf88b279b9d4204a63d448">&#9670;&#160;</a></span>msync()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int msync </td>
+          <td>(</td>
+          <td class="paramtype">void *</td>          <td class="paramname"><span class="paramname"><em>addr</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a></td>          <td class="paramname"><span class="paramname"><em>length</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>flags</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a1343e4aa663c9e8bb7d1b16d367f0b08" name="a1343e4aa663c9e8bb7d1b16d367f0b08"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1343e4aa663c9e8bb7d1b16d367f0b08">&#9670;&#160;</a></span>munmap()</h2>
 
@@ -377,7 +634,7 @@ Functions</h2></td></tr>
 <p>Unmap a previously mapped memory region. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">addr</td><td>Address returned by <a class="el" href="#a943cf73b816880433935f7055d4fe72f" title="Map pages into the process address space.">mmap()</a>. </td></tr>
+    <tr><td class="paramname">addr</td><td>Address returned by <a class="el" href="#a3fa07c484f2e670904fa92c94e4225da" title="Map pages into the process address space.">mmap()</a>. </td></tr>
     <tr><td class="paramname">length</td><td>Length of mapping (must match the original length).</td></tr>
   </table>
   </dd>

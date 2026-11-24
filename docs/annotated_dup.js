@@ -25,6 +25,7 @@ var annotated_dup =
     [ "devinfo_string_t", "structdevinfo__string__t.html", "structdevinfo__string__t" ],
     [ "devinfo_t", "structdevinfo__t.html", "structdevinfo__t" ],
     [ "dirent", "structdirent.html", "structdirent" ],
+    [ "Dl_info", "structDl__info.html", "structDl__info" ],
     [ "dma_buf_export_sync_file", "structdma__buf__export__sync__file.html", "structdma__buf__export__sync__file" ],
     [ "dma_buf_import_sync_file", "structdma__buf__import__sync__file.html", "structdma__buf__import__sync__file" ],
     [ "dma_buf_sync", "structdma__buf__sync.html", "structdma__buf__sync" ],
@@ -52,6 +53,8 @@ var annotated_dup =
     [ "Elf64_Sym", "structElf64__Sym.html", "structElf64__Sym" ],
     [ "elf_dyn_scan_result_t", "structelf__dyn__scan__result__t.html", "structelf__dyn__scan__result__t" ],
     [ "elf_loaded_object", "structelf__loaded__object.html", "structelf__loaded__object" ],
+    [ "epoll_data", "unionepoll__data.html", "unionepoll__data" ],
+    [ "epoll_event", "structepoll__event.html", "structepoll__event" ],
     [ "fb_blit", "structfb__blit.html", "structfb__blit" ],
     [ "fb_clear", "structfb__clear.html", "structfb__clear" ],
     [ "fb_info", "structfb__info.html", "structfb__info" ],
@@ -157,5 +160,6 @@ var annotated_dup =
     [ "vbus_orphaned", "structvbus__orphaned.html", "structvbus__orphaned" ],
     [ "vbus_payload_t", "unionvbus__payload__t.html", "unionvbus__payload__t" ],
     [ "vbus_subscribe_args", "structvbus__subscribe__args.html", "structvbus__subscribe__args" ],
-    [ "winsize", "structwinsize.html", "structwinsize" ]
+    [ "winsize", "structwinsize.html", "structwinsize" ],
+    [ "xucred", "structxucred.html", "structxucred" ]
 ];

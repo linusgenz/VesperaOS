@@ -60,7 +60,7 @@ var searchData=
   ['fputc_57',['fputc',['../stdio_8h.html#a0a260faecc8c64f08f4f3d3801c3f71a',1,'stdio.h']]],
   ['fputs_58',['fputs',['../stdio_8h.html#a37f8a04ff44af73c18cb3e43e7a1f752',1,'stdio.h']]],
   ['fread_59',['fread',['../stdio_8h.html#a58171c5b12ceca32c28fd878fe8a5450',1,'stdio.h']]],
-  ['free_60',['free',['../stdlib_8h.html#afbedc913aa4651b3c3b4b3aecd9b4711',1,'stdlib.h']]],
+  ['free_60',['free',['../malloc_8h.html#af07d89f5ceaea0c7c8252cc41fd75f37',1,'free(void *):&#160;malloc.h'],['../stdlib_8h.html#afbedc913aa4651b3c3b4b3aecd9b4711',1,'free(void *ptr):&#160;stdlib.h']]],
   ['freopen_61',['freopen',['../stdio_8h.html#a2283c07023f2890feb45d55531852d36',1,'stdio.h']]],
   ['frexp_62',['frexp',['../math_8h.html#a3e2b550e22e6a002262c5a8a339498f0',1,'math.h']]],
   ['frexpf_63',['frexpf',['../math_8h.html#a999dfc2c1295c19ca027590a13959eb3',1,'math.h']]],
