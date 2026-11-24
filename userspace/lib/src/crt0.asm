@@ -14,6 +14,7 @@ section .text
 _start:
     push rdi
     push rsi
+    push rdx
 
     mov rdi, rdx            ; rdx = envp
     call init_environ
@@ -23,6 +24,7 @@ _start:
     mov rdx, HANDLE_STDERR
     call __stdio_init
 
+    pop rdx
     pop rsi
     pop rdi
 
@@ -32,3 +34,5 @@ _start:
     call exit
 
     jmp $
+
+section .note.GNU-stack noalloc noexec nowrite progbits
