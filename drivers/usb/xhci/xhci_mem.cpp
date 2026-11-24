@@ -28,18 +28,24 @@
 uptr xhci_map_mmio(const u64 pci_bar_address, const u32 bar_size) {
     const phys_addr_t mmio_phys = make_phys(pci_bar_address);
     const virt_addr_t mmio_virt = phys_to_virt(mmio_phys);
-    kernel::memory::map_range(mmio_virt, mmio_phys, bar_size, (1ULL << CacheDisabled) | (1ULL << PtFlag::ReadWrite));
-
+    kernel::memory::map_range(
+        mmio_virt,
+        mmio_phys,
+        bar_size,
+        (1ULL << PtFlag::ReadWrite),
+        CacheMode::Uncacheable
+    );
     return virt_raw(mmio_virt);
 }
 
 
-void *alloc_xhci_memory(const usize size, const usize alignment, const usize boundary) {
+void* alloc_xhci_memory(const usize size, const usize alignment, const usize boundary) {
     if (size == 0 || alignment == 0 || boundary == 0) {
-        Log::error("Invalid memory alignment: %u, %u, %u, caller: %p", alignment, boundary, size, __builtin_return_address(0));
+        Log::error("Invalid memory alignment: %u, %u, %u, caller: %p", alignment, boundary, size,
+                   __builtin_return_address(0));
     }
 
-    void *memblock = kernel::memory::alloc_aligned(size, alignment, boundary);
+    void* memblock = kernel::memory::alloc_aligned(size, alignment, boundary);
 
     if (!memblock) {
         Log::error("Failed to allocate memory");
@@ -50,10 +56,10 @@ void *alloc_xhci_memory(const usize size, const usize alignment, const usize bou
     return memblock;
 }
 
-void free_xhci_memory(void *ptr) {
+void free_xhci_memory(void* ptr) {
     kernel::memory::free_aligned(ptr);
 }
 
-uptr xhci_get_physical_addr(void *virt) {
+uptr xhci_get_physical_addr(void* virt) {
     return kernel::memory::get_physical_address(make_virt(virt)).raw;
 }

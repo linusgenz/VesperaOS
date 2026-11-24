@@ -8,9 +8,7 @@
 #include "vespera/time.h"
 
 namespace pci {
-
     namespace {
-
         pci_device make_device(volatile PCI_HEADER0* header, const pci_id& id) {
             pci_device dev;
             dev.id = id;
@@ -23,8 +21,7 @@ namespace pci {
             dev.revision = header->header.revision_id;
             return dev;
         }
-
-    }  // namespace
+    } // namespace
 
     enum class BindFilter {
         XHCI_ONLY,
@@ -44,7 +41,11 @@ namespace pci {
         const phys_addr_t func_phys = make_phys(device_address + (static_cast<u64>(id.function) << 12));
         const virt_addr_t func_virt = phys_to_virt(func_phys);
 
-        kernel::memory::map_memory(func_virt, func_phys, (1ULL << PtFlag::ReadWrite));
+        kernel::memory::map_memory(
+            func_virt, func_phys,
+            (1ULL << PtFlag::ReadWrite),
+            CacheMode::Uncacheable
+        );
 
         auto* header = virt_as<volatile PCI_HEADER0>(func_virt);
 
@@ -93,7 +94,11 @@ namespace pci {
         const virt_addr_t dev_virt = virt_from_raw(bus_address + (static_cast<u64>(device) << 15));
         const phys_addr_t dev_phys = make_phys(virt_raw(dev_virt));
 
-        kernel::memory::map_memory(dev_virt, dev_phys, (1ULL << PtFlag::ReadWrite));
+        kernel::memory::map_memory(
+            dev_virt, dev_phys,
+            (1ULL << PtFlag::ReadWrite),
+            CacheMode::Uncacheable
+        );
 
         const auto* hdr = virt_as<PCI_DEVICE_HEADER>(dev_virt);
         if (hdr->device_id == 0 || hdr->device_id == 0xFFFF) return;
@@ -108,7 +113,11 @@ namespace pci {
         const virt_addr_t bus_virt = virt_from_raw(base_address + (static_cast<u64>(bus) << 20));
         const phys_addr_t bus_phys = make_phys(virt_raw(bus_virt));
 
-        kernel::memory::map_memory(bus_virt, bus_phys, (1ULL << PtFlag::ReadWrite));
+        kernel::memory::map_memory(
+            bus_virt, bus_phys,
+            (1ULL << PtFlag::ReadWrite),
+            CacheMode::Uncacheable
+        );
 
         const auto* hdr = virt_as<PCI_DEVICE_HEADER>(bus_virt);
         if (hdr->device_id == 0 || hdr->device_id == 0xFFFF) return;
@@ -148,4 +157,4 @@ namespace pci {
             }
         }
     }
-}  // namespace pci
+} // namespace pci

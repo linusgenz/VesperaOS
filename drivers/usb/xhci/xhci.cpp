@@ -314,7 +314,9 @@ namespace usb {
 
                     UsbManager::notify_controller_ready();
 
-                    while (1);  // TODO we get a error when the xhci hc resumes init.
+                    while (1) {
+                        asm volatile("pause" ::: "memory");
+                    };  // TODO we get a error when the xhci hc resumes init.
                 }
             }
 

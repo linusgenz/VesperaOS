@@ -32,6 +32,8 @@
 #include "pci.h"
 #include "pci_bar.h"
 
+// TODO only map as much of the bar as needed, calc the size and only this, instead of mapping everything
+
 namespace pci {
 
     bool enable_msix(volatile PCI_HEADER0* header, const u8 irq_vector) {
@@ -69,7 +71,7 @@ namespace pci {
                 const u64 bar_size = bar_info.size;
 
                 kernel::memory::map_range(
-                    phys_to_virt(bar_phys), bar_phys, bar_size, (1ULL << WriteThrough) | (1ULL << CacheDisabled) | (1ULL << PtFlag::ReadWrite)
+                    phys_to_virt(bar_phys), bar_phys, bar_size, (1ULL << PtFlag::ReadWrite), CacheMode::Uncacheable
                 );
 
                 const virt_addr_t table_base = virt_add(phys_to_virt(bar_phys), table_offset);
