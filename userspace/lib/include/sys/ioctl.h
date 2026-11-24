@@ -37,6 +37,6 @@ typedef uint64_t ioctl_request_t;
  * @param arg Pointer to request-specific argument.
  * @return 0 on success, negative error code on failure.
  */
-int64_t ioctl(int fd, ioctl_request_t request, void* arg);
+int ioctl(int fd, ioctl_request_t request, void* arg);
 
 #endif //VESPLIB_IOCTL_H

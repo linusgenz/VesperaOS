@@ -662,6 +662,7 @@ static void vformat_write(sink_t* s, const char* fmt, __builtin_va_list args) {
         // length modifier
         bool is_long = false;
         bool is_long_long = false;
+        bool is_size_t = false;
         if (*fmt == 'l') {
             fmt++;
             if (*fmt == 'l') {
@@ -669,6 +670,9 @@ static void vformat_write(sink_t* s, const char* fmt, __builtin_va_list args) {
                 fmt++;
             } else
                 is_long = true;
+        } else if (*fmt == 'z') {
+            is_size_t = true;
+            fmt++;
         }
 
         const char specifier = *fmt++;
@@ -702,8 +706,14 @@ static void vformat_write(sink_t* s, const char* fmt, __builtin_va_list args) {
             }
             case 'd':
             case 'i': {
-                int64_t val = (is_long_long || is_long) ? __builtin_va_arg(args, int64_t)
-                                                        : (int64_t)__builtin_va_arg(args, int32_t);
+                int64_t val;
+                if (is_size_t) {
+                    val = (int64_t)__builtin_va_arg(args, ssize_t);
+                } else if (is_long_long || is_long) {
+                    val = __builtin_va_arg(args, int64_t);
+                } else {
+                    val = (int64_t)__builtin_va_arg(args, int32_t);
+                }
 
                 bool negative = val < 0;
                 if (negative) val = -val;
@@ -721,8 +731,14 @@ static void vformat_write(sink_t* s, const char* fmt, __builtin_va_list args) {
                 break;
             }
             case 'u': {
-                uint64_t val = (is_long_long || is_long) ? __builtin_va_arg(args, uint64_t)
-                                                         : (uint64_t)__builtin_va_arg(args, uint32_t);
+                uint64_t val;
+                if (is_size_t) {
+                    val = (uint64_t)__builtin_va_arg(args, size_t);
+                } else if (is_long_long || is_long) {
+                    val = __builtin_va_arg(args, uint64_t);
+                } else {
+                    val = (uint64_t)__builtin_va_arg(args, uint32_t);
+                }
 
                 uint_to_str(val, tmp, 10, false);
                 len = strlen(tmp);
@@ -735,8 +751,14 @@ static void vformat_write(sink_t* s, const char* fmt, __builtin_va_list args) {
             }
             case 'x':
             case 'X': {
-                uint64_t val = (is_long_long || is_long) ? __builtin_va_arg(args, uint64_t)
-                                                         : (uint64_t)__builtin_va_arg(args, uint32_t);
+                int64_t val;
+                if (is_size_t) {
+                    val = (int64_t)__builtin_va_arg(args, ssize_t);
+                } else if (is_long_long || is_long) {
+                    val = __builtin_va_arg(args, int64_t);
+                } else {
+                    val = (int64_t)__builtin_va_arg(args, int32_t);
+                }
 
                 uint_to_str(val, tmp, 16, false);
                 len = strlen(tmp);

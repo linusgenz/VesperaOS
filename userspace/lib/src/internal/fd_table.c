@@ -26,6 +26,8 @@
 #include <string.h>
 #include <vespera/handles.h>
 
+#include "stdio.h"
+
 // TODO: not thread-safe. VesperaOS userspace threading (once units share
 // an fd table across the same realm) will need a lock here — a simple
 // spinlock/futex is enough since the critical sections are tiny. Tracked

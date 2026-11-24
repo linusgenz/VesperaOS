@@ -41,6 +41,7 @@
 #define SYSCALL_IOCTL 16
 #define SYSCALL_PIPE 22
 #define SYSCALL_YIELD     24
+#define SYSCALL_MSYNC     26
 #define SYSCALL_DUP       32
 #define SYSCALL_DUP2       33
 #define SYSCALL_NANOSLEEP 35
@@ -72,6 +73,10 @@
 #define SYSCALL_CLOCK_GETTIME 228
 #define SYSCALL_CLOCK_NANOSLEEP 230
 #define SYSCALL_OPENAT 257
+#define SYSCALL_TIMERFD_CREATE 283
+#define SYSCALL_TIMERFD_SETTIME 286
+#define SYSCALL_SIGNALFD4 289
+#define SYSCALL_EVENTFD2 290
 #define SYSCALL_DUP3 292
 #define SYSCALL_GETUID 102
 #define SYSCALL_GETEUID 107
@@ -89,6 +94,15 @@
 #define SYSCALL_FCHOWN 93
 #define SYSCALL_CHMOD 90
 #define SYSCALL_FCHMOD 91
+
+#define SYSCALL_SOCKET    41
+#define SYSCALL_CONNECT   42
+#define SYSCALL_ACCEPT4    43
+#define SYSCALL_SENDMSG   46
+#define SYSCALL_RECVMSG   47
+#define SYSCALL_BIND      49
+#define SYSCALL_LISTEN    50
+#define SYSCALL_SOCKETPAIR 53
 
 #define SYSCALL_CHANNEL_CREATE 130
 #define SYSCALL_CHANNEL_SEND 131
@@ -482,4 +496,56 @@ int64_t sys_mknod(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_
 
 int64_t sys_mknodat(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t) {
     return syscall(SYSCALL_MKNODAT, arg0, arg1, arg2, arg3, 0, 0);
+}
+
+int64_t sys_socket(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SOCKET, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_socketpair(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SOCKETPAIR, arg0, arg1, arg2, arg3, 0, 0);
+}
+
+int64_t sys_bind(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_BIND, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_listen(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_LISTEN, arg0, arg1, 0, 0, 0, 0);
+}
+
+int64_t sys_connect(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_CONNECT, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_accept4(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t) {
+    return syscall(SYSCALL_ACCEPT4, arg0, arg1, arg2, arg3, 0, 0);
+}
+
+int64_t sys_sendmsg(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SENDMSG, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_recvmsg(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_RECVMSG, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_msync(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_MSYNC, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_eventfd2(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_EVENTFD2, arg0, arg1, 0, 0, 0, 0);
+}
+
+int64_t sys_timerfd_create(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_EVENTFD2, arg0, arg1, 0, 0, 0, 0);
+}
+
+int64_t sys_timerfd_settime(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t) {
+    return syscall(SYSCALL_TIMERFD_SETTIME, arg0, arg1, arg2, arg3, 0, 0);
+}
+
+int64_t sys_signalfd4(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SIGNALFD4, arg0, arg1, arg2, arg3, 0, 0);
 }

@@ -29,6 +29,11 @@
 int stat(const char *__restrict__ path, struct stat *__restrict__ buf);
 int fstat(int fd, struct stat *buf);
 
+// TODO change this to lstat syscall when we have symlinks
+static inline int lstat(const char *restrict path, struct stat *restrict buf) {
+    return stat(path, buf);
+}
+
 /**
  * @brief Create a new directory.
  *

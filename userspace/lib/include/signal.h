@@ -19,8 +19,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPLIB_SIGNAL_H
-#define VESPLIB_SIGNAL_H
+#ifndef _SIGNAL_H
+#define _SIGNAL_H
 
 #include <stdint.h>
 
@@ -59,23 +59,6 @@ typedef uint64_t        sigset_t;
 #define NSIG      32  /* Number of supported signals                       */
 
 #define SIG_ERR  ((void (*)(int))-1)  /* Error return from signal()        */
-
-/* ── SA_* flags (sa_flags in struct sigaction) ─────────────────────────── */
-
-#define SA_RESTART   0x01   /* Restart syscalls after signal handling       */
-#define SA_NODEFER   0x02   /* Do not block signal during handler execution */
-#define SA_RESETHAND 0x04   /* Reset handler to SIG_DFL after invocation    */
-
-/*
- * Layout must match uapi/vespera/signal.h (sigaction_t):
- *   handler @ offset 0
- *   mask    @ offset 8
- */
-struct sigaction {
-    void     (*sa_handler)(int);  /* Handler function, or SIG_DFL/SIG_IGN   */
-    sigset_t   sa_mask;           /* Additional signals to block in handler */
-    int        sa_flags;          /* SA_* flags                             */
-};
 
 #define sigemptyset(s)       (*(s) = 0,                      0)
 #define sigfillset(s)        (*(s) = ~(sigset_t)0,           0)
@@ -126,4 +109,4 @@ int sigprocmask(int how, const sigset_t *__restrict__ set, sigset_t *__restrict_
 #endif
 
 
-#endif  // VESPLIB_SIGNAL_H
+#endif  // _SIGNAL_H

@@ -24,7 +24,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <vespera/types.h>
+#include <bits/alltypes.h>
 
 #ifdef __cplusplus
 extern "C" {

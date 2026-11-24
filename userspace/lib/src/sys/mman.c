@@ -31,8 +31,6 @@
 #include "../internal/fd_table.h"
 
 void* mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offset) {
-    fd_table_init();
-
     FILE_HANDLE handle = INVALID_HANDLE;
 
     if (!(flags & MAP_ANONYMOUS) && fd != -1) {
@@ -59,7 +57,7 @@ void* mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offset)
 int munmap(void* addr, size_t length) {
     const int64_t ret = sys_munmap((uint64_t)addr, length, 0, 0, 0);
     if (ret < 0) {
-        errno = -(ret);
+        errno = (int)(-ret);
         return -1;
     }
     return 0;
@@ -68,7 +66,32 @@ int munmap(void* addr, size_t length) {
 int mprotect(void* addr, size_t length, int prot) {
     const int64_t ret = sys_mprotect((uint64_t)addr, length, prot, 0, 0, 0);
     if (ret < 0) {
-        errno = -(ret);
+        errno = (int)(-ret);
+        return -1;
+    }
+    return 0;
+}
+
+int madvise(void* addr, size_t length, int advice) {
+    (void)addr;
+    (void)length;
+    (void)advice;
+    return 0;
+}
+
+void *mremap(void *old_address, size_t old_size, size_t new_size, int flags, ...) {
+    (void)old_address;
+    (void)old_size;
+    (void)new_size;
+    (void)flags;
+    errno = ENOSYS;
+    return MAP_FAILED;
+}
+
+int msync(void *addr, size_t length, int flags) {
+    const int64_t ret = sys_msync((uint64_t)addr, length, flags, 0, 0, 0);
+    if (ret < 0) {
+        errno = (int)(-ret);
         return -1;
     }
     return 0;

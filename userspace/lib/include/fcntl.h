@@ -55,9 +55,6 @@ extern "C" {
 // Flags with no VesperaOS syscall-level backing yet. Defined so ported
 // code compiles; passing them to open() is accepted but currently has
 // no effect (see open() note below).
-#ifndef O_CLOEXEC
-#define O_CLOEXEC 0x80000 /**< No exec-time handle table semantics yet; accepted, currently a no-op. */
-#endif
 #ifndef O_NOFOLLOW
 #define O_NOFOLLOW 0x20000 /**< No symlink support in the VFS yet; accepted, currently a no-op. */
 #endif

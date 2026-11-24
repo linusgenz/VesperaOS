@@ -36,7 +36,7 @@ int gettimeofday(struct timeval *restrict tv, void *restrict tz) {
 
     int res = (int)sys_gettimeofday((uint64_t)tv, (uint64_t)tz, 0, 0, 0, 0);
     if (res < 0) {
-        errno = -res;
+        errno = (int)(-res);
         return -1;
     }
     return 0;

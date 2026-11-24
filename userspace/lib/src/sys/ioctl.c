@@ -26,13 +26,36 @@
 #include <vespera/handles.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <stdio.h>
 #include "../internal/fd_table.h"
+#include "vespera/dev/drm.h"
+#include "vespera/dev/lucifer_drm.h"
 
-int64_t ioctl(int fd, ioctl_request_t request, void *arg) {
+int ioctl(int fd, ioctl_request_t request, void *arg) {
     FILE_HANDLE handle = fd_table_get(fd);
     if (handle == INVALID_HANDLE) {
         errno = EBADH;
         return -1;
     }
-    return sys_ioctl((uint64_t)handle, request, (uint64_t)arg, 0, 0, 0);
+
+    int64_t ret = sys_ioctl((uint64_t)handle, (uint64_t)request, (uint64_t)arg, 0, 0, 0);
+
+    if (ret < 0) {
+        errno = (int)(-ret);
+        return -1;
+    }
+
+    if (request == DRM_IOCTL_PRIME_HANDLE_TO_FD) {
+        struct drm_prime_handle* prime = arg;
+        // for DRM_IOCTL_PRIME_HANDLE_TO_FD the return value is the file handle which we have to translate into an fd for userspace
+        FILE_HANDLE new_handle = prime->fd;
+        int new_fd = fd_table_insert(new_handle);
+        if (new_fd < 0) {
+            sys_close((uint64_t)new_handle, 0, 0, 0, 0, 0);
+            return -1;
+        }
+        prime->fd = new_fd;
+    }
+
+    return (int)ret;
 }

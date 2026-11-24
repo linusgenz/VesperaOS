@@ -27,6 +27,7 @@
 #include <sysstd.h>
 #include <vespera/handles.h>
 
+#include "stdio.h"
 #include "internal/fd_table.h"
 
 int open(const char* path, int flags, ...) {
@@ -64,6 +65,7 @@ int creat(const char* path) {
 
 int fcntl(int fd, int cmd, ...) {
     switch (cmd) {
+        case F_DUPFD_CLOEXEC:
         case F_DUPFD: {
             // min_fd is consumed for ABI correctness but currently
             // ignored — see header note on F_DUPFD.
@@ -79,8 +81,8 @@ int fcntl(int fd, int cmd, ...) {
             }
 
             int64_t ret = sys_dup((uint64_t)handle, 0, 0, 0, 0, 0);
-            if (ret < 0) {
-                errno = (int)(-ret);
+            if (IS_ERR(ret)) {
+                errno = GET_ERR(ret);
                 return -1;
             }
 

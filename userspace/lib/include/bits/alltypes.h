@@ -83,10 +83,14 @@ typedef struct {
 } mbstate_t;
 typedef struct __locale_struct *locale_t;
 
+#ifndef __iovec_defined
+#define __iovec_defined 1
 struct iovec {
     void *iov_base;
     size_t iov_len;
 };
+#endif
+
 struct winsize {
     unsigned short ws_row, ws_col, ws_xpixel, ws_ypixel;
 };

@@ -26,6 +26,8 @@
 
 #define PATH_MAX 4096
 
+#define PAGE_SIZE 4096
+
 #define RE_DUP_MAX 255
 
 #define CHARCLASS_NAME_MAX 14

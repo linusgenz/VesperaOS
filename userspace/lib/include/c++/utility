@@ -242,7 +242,7 @@ using index_sequence = integer_sequence<size_t, Ints...>;
 
 #elif defined(__GNUC__)
     template<typename T, T N>
-    using make_integer_sequence = integer_sequence<T, static_cast<T>(__integer_pack(N))...>;
+    using make_integer_sequence = integer_sequence<T, __integer_pack(N)...>;
 
 #else
     namespace _detail {

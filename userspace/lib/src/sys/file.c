@@ -24,8 +24,8 @@
 #include <sysstd.h>
 #include <vespera/stat.h>
 #include <stdbool.h>
-#include "stdint.h"
-#include "../../../../../VesperaSysroot/usr/include/stdio.h"
+#include <stdint.h>
+#include <stdio.h>
 
 bool file_exists(const char* path) {
     struct stat st;
@@ -34,6 +34,7 @@ bool file_exists(const char* path) {
 
 int flock(int fd, int operation) {
     // temp
-    printf("flock called! aborting");
-    abort();
+    //printf("flock called! aborting");
+    //abort();
+    return 0;
 }

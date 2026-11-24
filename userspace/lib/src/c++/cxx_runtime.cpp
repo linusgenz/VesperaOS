@@ -22,6 +22,8 @@
 
 #include <stddef.h>
 #include <stdlib.h>
+#include <pthread.h>
+#include <stdint.h>
 
 void* memcpy(void* dest, const void* src, size_t len) {
     char* d = (char*)dest;
@@ -109,16 +111,35 @@ void __cxa_pure_virtual() {
     abort();
 }
 // TODO MULTITHREAD SAVE PLS
-int __cxa_guard_acquire(uint64_t* guard_object) {
-    return !(*(reinterpret_cast<volatile char*>(guard_object)) != 0);
+static pthread_mutex_t cxa_guard_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+extern "C" int __cxa_guard_acquire(uint64_t* guard_object) {
+    char* initialized = reinterpret_cast<char*>(guard_object);
+
+    if (__atomic_load_n(initialized, __ATOMIC_ACQUIRE) != 0) {
+        return 0;
+    }
+
+    pthread_mutex_lock(&cxa_guard_mutex);
+
+    if (*initialized != 0) {
+        pthread_mutex_unlock(&cxa_guard_mutex);
+        return 0;
+    }
+
+    return 1;
 }
 
-void __cxa_guard_release(uint64_t* guard_object) {
-    *(reinterpret_cast<volatile char*>(guard_object)) = 1;
+extern "C" void __cxa_guard_release(uint64_t* guard_object) {
+    char* initialized = reinterpret_cast<char*>(guard_object);
+
+    __atomic_store_n(initialized, 1, __ATOMIC_RELEASE);
+
+    pthread_mutex_unlock(&cxa_guard_mutex);
 }
 
-void __cxa_guard_abort(uint64_t* guard_object) {
-    (void)guard_object;
+extern "C" void __cxa_guard_abort(uint64_t* guard_object) {
+    pthread_mutex_unlock(&cxa_guard_mutex);
 }
 }
 

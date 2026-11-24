@@ -27,6 +27,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "vespera/types.h"
+
 
 /**
  * @brief Memory protection flags for mmap
@@ -45,6 +47,19 @@
 #define MAP_FIXED       0x10  ///< Use exactly the address requested (dangerous)
 #define MAP_FAILED      ((void*)-1) ///< Return value on failure
 
+#define MADV_NORMAL     0 ///< No special treatment
+#define MADV_RANDOM     1 ///< Expect random page references
+#define MADV_SEQUENTIAL 2 ///< Expect sequential page references
+#define MADV_WILLNEED   3 ///< Will need these pages
+#define MADV_DONTNEED   4 ///< Don't need these pages
+
+#define MREMAP_MAYMOVE 1
+#define MREMAP_FIXED   2
+
+#define MS_ASYNC      1
+#define MS_SYNC       4
+#define MS_INVALIDATE 2
+
 /**
  * @brief Map pages into the process address space.
  *
@@ -58,7 +73,7 @@
  * @return On success: pointer to mapped memory.
  *         On error: (void*) -1 with errno set.
  */
-void* mmap(void* addr, size_t length, uint64_t prot, uint64_t flags, uint64_t handle, size_t offset);
+void* mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offset);
 
 /**
  * @brief Unmap a previously mapped memory region.
@@ -71,5 +86,11 @@ void* mmap(void* addr, size_t length, uint64_t prot, uint64_t flags, uint64_t ha
 int munmap(void* addr, size_t length);
 
 int mprotect(void* addr, size_t length, int prot);
+
+int madvise(void* addr, size_t length, int advice);
+
+void *mremap(void *old_address, size_t old_size, size_t new_size, int flags, ...);
+
+int msync(void *addr, size_t length, int flags);
 
 #endif //VESPERAOS_MMAN_H

@@ -26,6 +26,11 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#define MAX_ERRNO 4095
+#define IS_ERR(value) ((uint64_t)(value) >= (uint64_t)-MAX_ERRNO)
+#define GET_ERR(value) ((int)(-(int64_t)(value)))
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif

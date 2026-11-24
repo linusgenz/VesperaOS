@@ -27,10 +27,6 @@
 #include <sysstd.h>
 #include "../internal/fd_table.h"
 
-#define MAX_ERRNO 4095
-#define IS_ERR(value) ((uint64_t)(value) >= (uint64_t)-MAX_ERRNO)
-#define GET_ERR(value) ((int)(-(int64_t)(value)))
-
 int shm_open(const char* name, int oflag, uint32_t mode) {
     if (name == NULL || name[0] != '/') {
         errno = EINVAL;

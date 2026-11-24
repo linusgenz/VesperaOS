@@ -1044,6 +1044,17 @@ int mbtowc(wchar_t *__restrict__ wc, const char *__restrict__ src, size_t n) {
     return -1;
 }
 
+int posix_memalign(void **res, size_t align, size_t len)
+{
+    if (align < sizeof(void *)) return EINVAL;
+    void *mem = aligned_alloc(align, len);
+    if (!mem) return errno;
+    *res = mem;
+    return 0;
+}
+
+
+/*
 int posix_memalign(void** memptr, size_t alignment, size_t size) {
     if (alignment % sizeof(void*) != 0) {
         return EINVAL;
@@ -1070,4 +1081,4 @@ int posix_memalign(void** memptr, size_t alignment, size_t size) {
 
     *memptr = (void*)aligned_addr;
     return 0;
-}
+}*/

@@ -106,7 +106,7 @@ int mkfifo(const char *pathname, mode_t mode) {
 int mkdir(const char* path, mode_t mode) {
     long ret = (int)sys_mkdir((uint64_t)path, (uint64_t)mode,0,0,0,0);
     if (ret < 0) {
-        errno = -ret;
+        errno = (int)(-ret);
         return -1;
     }
     return 0;

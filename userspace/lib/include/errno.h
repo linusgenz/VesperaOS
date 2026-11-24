@@ -24,7 +24,9 @@
 #ifndef ERROR_CODES_H
 #define ERROR_CODES_H
 
-extern _Thread_local int errno;
+#include <stddef.h>
+
+extern __thread int errno;
 
 #define SUCCESS_CODE 0
 
@@ -37,6 +39,7 @@ extern _Thread_local int errno;
 #define E2BIG           7   // Argument list too long
 #define ENOEXEC         8   // Exec format error
 #define EBADH           9   // Bad handle id
+#define EBADF EBADH         // alias
 #define ECHILD         10   // No child processes
 #define EAGAIN         11   // Try again (resource unavailable)
 #define ENOMEM         12   // Out of memory
@@ -69,12 +72,21 @@ extern _Thread_local int errno;
 #define ENOTEMPTY      39   // Directory not empty
 #define ELOOP          40   // Too many symbolic links
 #define ETIME          62
+#define EPROTO         71   /* Protocol error */
+#define EAFNOSUPPORT   97   /* Address family not supported by protocol */
+#define ECONNREFUSED   111  /* Connection refused */
+#define EPROTONOSUPPORT 93  /* Protocol not supported */
+#define ENOPROTOOPT     92  /* Protocol not available */
+#define EPROTOTYPE      91  /* Protocol wrong type for socket */
+#define EAFNOSUPPORT    97  /* Address family not supported by protocol */
+#define EADDRINUSE      98  /* Address already in use */
 
 // Custom or Extended Kernel/Internal Errors
 #define ENOMSG         42   // No message of desired type
 #define EOVERFLOW      75   // Value too large
 #define EILSEQ         84   // Invalid multibyte sequence
 
+#define EINPROGRESS 115       /* Operation now in progress */
 #define ETIMEDOUT 116       /* Connection timed out */
 #define ECANCELED 125       // Operation canceled
 
@@ -85,5 +97,6 @@ extern _Thread_local int errno;
 #define EWOULDBLOCK   EAGAIN // alias
 
 char* strerror(int err);
+int   strerror_r(int errnum, char* buf, size_t buflen);
 
 #endif //ERROR_CODES_H

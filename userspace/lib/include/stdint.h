@@ -65,6 +65,17 @@ typedef uint64_t uint_least64_t;
 typedef int64_t intmax_t;
 typedef uint64_t uintmax_t;
 
+
+#ifndef __INT64_C
+# if __WORDSIZE == 64
+#  define __INT64_C(c)	c ## L
+#  define __UINT64_C(c)	c ## UL
+# else
+#  define __INT64_C(c)  c ## LL
+#  define __UINT64_C(c) c ## ULL
+# endif
+#endif
+
 /* Minimum of signed integral types.  */
 # define INT8_MIN		(-128)
 # define INT16_MIN		(-32767-1)
@@ -82,6 +93,7 @@ typedef uint64_t uintmax_t;
 # define UINT32_MAX		(4294967295U)
 # define UINT64_MAX		(__UINT64_C(18446744073709551615))
 
+# define PTRDIFF_MAX INT64_MAX
 
 /* Minimum of signed integral types having a minimum size.  */
 # define INT_LEAST8_MIN		(-128)

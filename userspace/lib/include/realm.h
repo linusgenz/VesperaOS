@@ -61,7 +61,7 @@ int64_t exit_realm(RealmID realm_id, uint64_t code);
  *
  * @param realm_id The ID of the realm to wait for.
  * @param status Pointer to an int to store the exit status, or @c NULL if unused.
- * @return 0 on success, or a negative error code on failure (e.g., -ECHILD).
+ * @return realm id on success, or a negative error code on failure (e.g., -ECHILD).
  */
 int wait_realm(RealmID realm_id, int* status, uint32_t flags);
 

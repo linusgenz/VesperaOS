@@ -741,4 +741,29 @@ int64_t sys_mknod(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_
 
 int64_t sys_mknodat(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t);
 
+int64_t sys_socket(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_socketpair(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t);
+
+int64_t sys_bind(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_listen(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t);
+
+int64_t sys_accept4(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t);
+
+int64_t sys_connect(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_recvmsg(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_sendmsg(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_msync(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_eventfd2(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_timerfd_create(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_timerfd_settime(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t);
+
+int64_t sys_signalfd4(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t);
 #endif  // SYSSTD_H
