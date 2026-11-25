@@ -28,6 +28,7 @@
 #include "klib/string.h"
 #include <filesystem/vfs.h>
 #include <filesystem/vfs_node.h>
+#include <uapi/vespera/poll.h>
 #include <uapi/vespera/capabilities.h>
 #include <uapi/vespera/fcntl.h>
 
@@ -50,7 +51,7 @@ struct VfsHandleContext {
     char path[256]{}; // fully resolved path this handle was opened with; required for openat()
 };
 
-struct VfsHandle {
+struct VfsHandle final : HandleResource, Pollable {
     VfsNode* node;
     VfsHandleContext* context;
     int refcount{1};
@@ -67,6 +68,26 @@ struct VfsHandle {
         }
     }
 
+    Pollable* as_pollable() override { return this; }
+
+    int poll(PollTable* pt) override {
+        if (!node) return POLLHUP;
+
+        if (node->type == VfsNodeType::Fifo) {
+            if (!node->fifo_channel || !context) return POLLHUP;
+            const u32 acc = context->open_flags & 0x3;
+            const bool is_reader = (acc == O_RDONLY || acc == O_RDWR);
+            const bool is_writer = (acc == O_WRONLY || acc == O_RDWR);
+            return node->fifo_channel->poll(is_reader, is_writer, pt);
+        }
+
+        if (node->ops && node->ops->poll) {
+            return node->ops->poll(node, context);
+        }
+
+        return POLLIN | POLLOUT;
+    }
+
     static void destroy(void* ptr) {
         auto* vh = static_cast<VfsHandle*>(ptr);
         if (!vh) return;
@@ -81,7 +102,7 @@ struct VfsHandle {
     }
 
 private:
-    ~VfsHandle() {
+    ~VfsHandle() override {
         if (node) {
             if (node->type == VfsNodeType::Fifo && node->fifo_channel && context) {
                 Channel* ch = node->fifo_channel;

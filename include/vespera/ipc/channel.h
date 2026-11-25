@@ -28,22 +28,12 @@
 #include <vespera/types.h>
 
 #include "klib/result.h"
+#include "vespera/handle_resource.h"
+#include "vespera/pollable.h"
 #include "vespera/sync/wait_queue.h"
 
-class Channel;
+struct ChannelEndpoint;
 class Unit;
-
-struct ChannelEndpoint {
-    Channel* channel;
-    bool is_reader;
-    bool is_writer;
-    int refcount;
-
-    static ChannelEndpoint* create(const usize capacity, bool r, bool w);
-    static ChannelEndpoint* create_with_channel(Channel* ch, bool r, bool w);
-    static void ref(void* res);
-    static void destroy(void* res);
-};
 
 struct PipePair {
     ChannelEndpoint* read_end;
@@ -96,7 +86,7 @@ public:
     void wait_for_reader(Unit* cur);
 
     usize free_space();
-    int poll(bool is_reader, bool is_writer);
+    int poll(bool is_reader, bool is_writer, PollTable* pt = nullptr);
 
     // return: bytes written (>=0) or negative errno
     isize send(const void* data, usize len, bool blocking = false);
@@ -105,6 +95,25 @@ public:
     isize recv(void* out, usize len, bool blocking = false);
 
     static Result<::PipePair> create_pipe(usize capacity);
+};
+
+struct ChannelEndpoint final : HandleResource, Pollable {
+    Channel* channel{nullptr};
+    bool is_reader{false};
+    bool is_writer{false};
+    int refcount{1};
+
+    Pollable* as_pollable() override { return this; }
+
+    int poll(PollTable* pt) override;
+
+    static ChannelEndpoint* create(usize capacity, bool r, bool w);
+    static ChannelEndpoint* create_with_channel(Channel* ch, bool r, bool w);
+    static void ref(void* res);
+    static void destroy(void* res);
+
+    ChannelEndpoint() = default;
+    ChannelEndpoint(Channel* ch, const bool r, const bool w) : channel(ch), is_reader(r), is_writer(w) {};
 };
 
 #endif  // VESPERAOS_CHANNEL_H

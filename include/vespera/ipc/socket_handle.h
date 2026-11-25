@@ -36,12 +36,16 @@ enum class SocketState : u8 {
     CONNECTED,
 };
 
-struct SocketHandle {
+struct SocketHandle final : HandleResource, Pollable {
     SocketState state{SocketState::UNBOUND};
     SocketListener* listener{nullptr}; // valid once BOUND/LISTENING
     SocketEndpoint* endpoint{nullptr}; // valid once CONNECTED
     VfsNode* bound_node{nullptr};
     i32 refcount{1};
+
+    Pollable* as_pollable() override { return this; }
+
+    int poll(PollTable* pt) override;
 
     static SocketHandle* create();
 

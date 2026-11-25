@@ -25,6 +25,8 @@
 #include <vespera/scheduling.h>
 #include <vespera_errno.h>
 
+#include "realm/realm.h"
+
 static constexpr HandleId K_INVALID_HANDLE = -1ULL;
 
 namespace syscalls::internal {

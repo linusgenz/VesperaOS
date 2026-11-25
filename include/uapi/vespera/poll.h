@@ -27,6 +27,7 @@
 #define POLLOUT 0x02
 #define POLLERR 0x04
 #define POLLHUP 0x08
+#define POLLNVAL 0x20
 
 typedef struct pollhdl {
     i64 hdl;

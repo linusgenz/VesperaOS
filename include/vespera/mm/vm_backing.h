@@ -27,12 +27,13 @@
 #include <vespera/mm/addr.h>
 
 #include "memory.h"
+#include "vespera/handle_resource.h"
 
 namespace kernel::vm {
 
-    class VmBackingObject {
+    class VmBackingObject : public HandleResource {
     public:
-        virtual ~VmBackingObject() = default;
+        ~VmBackingObject() override = default;
 
         virtual phys_addr_t get_page(usize offset_in_bytes) = 0;
 

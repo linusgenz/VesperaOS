@@ -28,10 +28,12 @@
 #include <vespera/types.h>
 
 #include "callback_timer.h"
+#include "vespera/pollable.h"
+#include "vespera/handle_resource.h"
 
 class Unit;
 
-class Timerfd {
+class Timerfd final : public HandleResource, public Pollable {
     Spinlock lock_;
     u64 expirations_;
     u64 interval_ns_;
@@ -53,12 +55,15 @@ public:
     static void ref(void* res);
     static void destroy(void* res);
 
-    int poll(bool is_reader, bool is_writer);
+    Pollable* as_pollable() override { return this; }
+    int poll(PollTable* pt) override;
 
     isize read(void* out, usize count);
 
-    i64 settime(int flags, u64 value_ns, u64 interval_ns, bool abstime,
-                u64* old_value_ns, u64* old_interval_ns);
+    i64 settime(
+        int flags, u64 value_ns, u64 interval_ns, bool abstime,
+        u64* old_value_ns, u64* old_interval_ns
+    );
 };
 
 #endif

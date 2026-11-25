@@ -27,10 +27,13 @@
 #include <vespera/sync/wait_queue.h>
 #include <vespera/types.h>
 
+#include "vespera/handle_resource.h"
+#include "vespera/pollable.h"
+
 class Realm;
 enum class Signal : u32;
 
-class Signalfd {
+class Signalfd final : public HandleResource, public Pollable {
     Spinlock lock_;
     Realm* owner_;
     u64 mask_;
@@ -46,7 +49,8 @@ public:
     static void ref(void* res);
     static void destroy(void* res);
 
-    int poll(bool is_reader, bool is_writer);
+    Pollable* as_pollable() override { return this; }
+    int poll(PollTable* pt) override;
 
     isize read(void* out, usize count);
 

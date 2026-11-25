@@ -115,9 +115,8 @@ namespace kernel::chronos {
     void checkpoint(const char* phase, const char* label) {
         u32 slot = alloc_slot();
         if (slot >= ::chronos::MAX_EVENTS) {
-            if (summary) {
+            if (__atomic_exchange_n(&summary, false, __ATOMIC_ACQ_REL)) {
                 dump_dbc();
-                summary = false;
             }
 
             return;
@@ -138,9 +137,8 @@ namespace kernel::chronos {
     void checkpoint_from_user(u32 realm_id, const ::chronos::UserCheckpoint& cp) {
         u32 slot = alloc_slot();
         if (slot >= ::chronos::MAX_EVENTS) {
-            if (summary) {
+            if (__atomic_exchange_n(&summary, false, __ATOMIC_ACQ_REL)) {
                 dump_dbc();
-                summary = false;
             }
 
             return;

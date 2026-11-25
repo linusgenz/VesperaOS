@@ -52,12 +52,13 @@ void Eventfd::destroy(void* res) {
     delete efd;
 }
 
-int Eventfd::poll(bool is_reader, bool is_writer) {
+int Eventfd::poll(PollTable* pt) {
+    (void)pt;
     SpinlockGuard g(lock_);
 
     int mask = 0;
-    if (is_reader && counter_ > 0) mask |= POLLIN;
-    if (is_writer && counter_ < U64_MAX - 1) mask |= POLLOUT;
+    if (counter_ > 0) mask |= POLLIN;
+    if (counter_ < U64_MAX - 1) mask |= POLLOUT;
     return mask;
 }
 

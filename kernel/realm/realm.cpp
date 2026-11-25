@@ -61,14 +61,14 @@ TtyDevice* Realm::get_tty_device() {
 
 namespace kernel::realm {
 
-    Result<HandleId> add_handle(Realm* realm, const u64 type, void* resource,
+    Result<HandleId> add_handle(Realm* realm, const u64 type, HandleResource* resource,
                                  const capability_set caps, const bool transferable,
                                  void (*destroy)(void*), void (*acquire)(void*)) {
         if (!realm) return Error::Inval;
         return realm->handle_table->add(type, resource, caps, transferable, destroy, acquire);
     }
 
-    Result<HandleId> add_handle_to_current(const u64 type, void* resource,
+    Result<HandleId> add_handle_to_current(const u64 type, HandleResource* resource,
                                             const capability_set caps, const bool transferable,
                                             void (*destroy)(void*), void (*acquire)(void*)) {
         Realm* realm = scheduling::get_current_realm();

@@ -27,9 +27,12 @@
 #include <vespera/sync/wait_queue.h>
 #include <vespera/types.h>
 
+#include "vespera/handle_resource.h"
+#include "vespera/pollable.h"
+
 class Unit;
 
-class Eventfd {
+class Eventfd final : public HandleResource, public Pollable {
     Spinlock lock_;
     u64 counter_;
     bool semaphore_mode_;
@@ -44,7 +47,8 @@ public:
     static void ref(void* res);
     static void destroy(void* res);
 
-    int poll(bool is_reader, bool is_writer);
+    Pollable* as_pollable() override { return this; }
+    int poll(PollTable* pt) override;
 
     isize read(void* out, usize count);
     isize write(const void* in, usize count);

@@ -22,6 +22,8 @@
 
 #include <vespera/ipc/socket_handle.h>
 
+#include "uapi/vespera/poll.h"
+
 SocketHandle* SocketHandle::create() {
     return new SocketHandle();
 }
@@ -53,4 +55,15 @@ void SocketHandle::destroy(void* res) {
     }
 
     delete h;
+}
+
+int SocketHandle::poll(PollTable* pt) {
+    (void)pt;
+    if (state == SocketState::CONNECTED && endpoint) {
+        return endpoint->poll();
+    }
+    if (state == SocketState::LISTENING && listener) {
+        return listener->poll();
+    }
+    return POLLHUP;
 }

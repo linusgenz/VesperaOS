@@ -54,11 +54,11 @@ void Signalfd::destroy(void* res) {
     delete sfd;
 }
 
-int Signalfd::poll(bool is_reader, bool is_writer) {
+int Signalfd::poll(PollTable* pt) {
+    (void)pt;
     SpinlockGuard g(lock_);
-    int mask = 0;
-    if (is_reader && (owner_->signals_pending & mask_)) mask |= POLLIN;
-    return mask;
+    if (!owner_) return POLLHUP;
+    return (owner_->signals_pending & mask_) ? POLLIN : 0;
 }
 
 isize Signalfd::read(void* out, const usize count) {

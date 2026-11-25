@@ -69,6 +69,14 @@ namespace syscalls {
             return static_cast<T*>(entry_->resource);
         }
 
+        [[nodiscard]] HandleResource* resource() const {
+            return entry_->resource;
+        }
+
+        [[nodiscard]] Pollable* pollable() const {
+            return entry_->resource ? entry_->resource->as_pollable() : nullptr;
+        }
+
         void release() const;
 
         [[nodiscard]] HandleEntry* entry() const {

@@ -162,7 +162,8 @@ usize Channel::free_space() {
     return capacity - used;
 }
 
-int Channel::poll(bool is_reader, bool is_writer) {
+int Channel::poll(bool is_reader, bool is_writer, PollTable* pt) {
+    (void)pt;
     SpinlockGuard g(lock_);
 
     int mask = 0;
@@ -288,11 +289,9 @@ isize Channel::recv(void* out, const usize len, const bool blocking) {
     }
 }
 
-// --- AB HIER: Die saubere Endpoint-Einheit ---
-
 ChannelEndpoint* ChannelEndpoint::create_with_channel(Channel* ch, bool r, bool w) {
     if (!ch) return nullptr;
-    auto* ep = new ChannelEndpoint{ch, r, w, 1};
+    auto* ep = new ChannelEndpoint(ch, r, w);
     if (!ep) return nullptr;
 
     if (r) ch->add_reader();
@@ -352,4 +351,9 @@ void ChannelEndpoint::destroy(void* res) {
 
     if (r) ch->remove_reader();
     if (w) ch->remove_writer();
+}
+
+int ChannelEndpoint::poll(PollTable* pt) {
+    if (!channel) return POLLHUP;
+    return channel->poll(is_reader, is_writer, pt);
 }

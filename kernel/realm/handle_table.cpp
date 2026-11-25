@@ -29,6 +29,7 @@
 #include <vespera/sync/spinlock.h>
 
 #include "../tty/tty_device.h"
+#include "uapi/vespera/handles.h"
 
 void HandleTable::init(const RealmId owner) {
     memset(entries_, 0, sizeof(entries_));
@@ -98,7 +99,7 @@ VoidResult HandleTable::setup_vbus() {
 }
 
 Result<HandleId> HandleTable::add(
-    const u64 type, void* resource, const capability_set caps,
+    const u64 type, HandleResource* resource, const capability_set caps,
     const bool transferable,
     void (*destroy)(void*), void (*acquire)(void*)
 ) {
@@ -123,7 +124,7 @@ Result<HandleId> HandleTable::add(
 }
 
 VoidResult HandleTable::add_at(
-    const HandleId fixed_id, const u64 type, void* resource,
+    const HandleId fixed_id, const u64 type, HandleResource* resource,
     const capability_set caps, const bool transferable,
     void (*destroy)(void*), void (*acquire)(void*)
 ) {

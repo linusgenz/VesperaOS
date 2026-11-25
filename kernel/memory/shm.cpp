@@ -29,6 +29,8 @@
 #include <vespera/mm/shm.h>
 #include <vespera_errno.h>
 
+#include "uapi/vespera/handles.h"
+
 namespace {
     ShmObject* global_shm_objects[128] = {nullptr};
     Spinlock global_shm_lock{"global_shm_lock"};

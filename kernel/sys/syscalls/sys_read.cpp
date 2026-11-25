@@ -31,6 +31,7 @@
 #include "sys/handle_resolution.h"
 #include "vespera/ipc/eventfd.h"
 #include "vespera/ipc/socket_handle.h"
+#include "vespera/signal/signalfd.h"
 #include "vespera/time/timerfd.h"
 
 namespace syscalls::internal {

@@ -26,6 +26,7 @@
 #include <klib/result.h>
 #include <uapi/vespera/capabilities.h>
 #include <uapi/vespera/handles.h>
+#include <vespera/handle_resource.h>
 #include <vespera/types.h>
 
 class Realm;
@@ -35,7 +36,7 @@ namespace kernel::realm {
     [[nodiscard]] Result<HandleId> add_handle(
         Realm*         realm,
         u64            type,
-        void*          resource,
+        HandleResource*          resource,
         capability_set caps,
         bool           transferable,
         void         (*destroy)(void*),
@@ -43,7 +44,7 @@ namespace kernel::realm {
 
     [[nodiscard]] Result<HandleId> add_handle_to_current(
         u64            type,
-        void*          resource,
+        HandleResource*          resource,
         capability_set caps,
         bool           transferable,
         void         (*destroy)(void*),

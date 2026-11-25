@@ -30,6 +30,7 @@
 #include "realm/handle_table.h"
 #include "realm/handle_transfer.h"
 #include "realm/realm.h"
+#include "vespera/mm/memory.h"
 #include "vespera/realm/realm_manager.h"
 
 namespace {

@@ -25,24 +25,22 @@
 #define VESPERAOS_KERNEL_REALM_HANDLE_TABLE_H
 
 #include <uapi/vespera/capabilities.h>
-#include <uapi/vespera/handles.h>
-#include <vespera/devices/char_device.h>
 #include <vespera/sync/spinlock.h>
 #include <vespera/types.h>
 
 #include "klib/result.h"
-#include "realm.h"
+#include "vespera/handle_resource.h"
 
 class TtyDevice;
 class Channel;
 
 struct HandleEntry {
-    HandleId        hid;
-    u64             type;
-    void*           resource;
-    capability_set  capabilities;
-    volatile u64    refcount;
-    bool            transferable;
+    HandleId hid;
+    u64 type;
+    HandleResource* resource;
+    capability_set capabilities;
+    volatile u64 refcount;
+    bool transferable;
     void (*destroy)(void*);
     void (*acquire)(void*);
 };
@@ -62,17 +60,17 @@ public:
     VoidResult setup_stdio(const char* dev_path);
 
     [[nodiscard]] Result<HandleId> add(
-        u64             type,
-        void*           resource,
-        capability_set  caps,
-        bool            transferable,
-        void          (*destroy)(void*),
-        void          (*acquire)(void*)
+        u64 type,
+        HandleResource* resource,
+        capability_set caps,
+        bool transferable,
+        void (*destroy)(void*),
+        void (*acquire)(void*)
     );
 
     [[nodiscard]] VoidResult add_at(
-        HandleId        fixed_id,
-        u64 type, void* resource, capability_set caps, bool transferable, void (*destroy)(void*),
+        HandleId fixed_id,
+        u64 type, HandleResource* resource, capability_set caps, bool transferable, void (*destroy)(void*),
         void (*acquire)(void*)
     );
 
@@ -88,7 +86,7 @@ public:
         return owner_;
     }
 
-   private:
+private:
     HandleEntry entries_[MAX_HANDLES_PER_REALM]{};
     u8 bitmap_[MAX_HANDLES_PER_REALM / 8]{};
     RealmId owner_{0};

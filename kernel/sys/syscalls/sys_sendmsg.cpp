@@ -22,6 +22,7 @@
 
 #include <vespera/types.h>
 
+#include "realm/realm.h"
 #include "sys/handle_resolution.h"
 #include "uapi/vespera/handles.h"
 #include "vespera/ipc/socket_handle.h"

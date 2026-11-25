@@ -20,16 +20,9 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <realm/handle_table.h>
 #include <sys/handle_resolution.h>
-#include <uapi/vespera/fcntl.h>
-#include <uapi/vespera/handles.h>
 #include <uapi/vespera/poll.h>
-#include <vespera/ipc/eventfd.h>
-#include <vespera/ipc/socket_handle.h>
 #include <vespera/scheduling.h>
-#include <vespera/signal/signalfd.h>
-#include <vespera/time/timerfd.h>
 #include <vespera/time.h>
 #include <vespera/types.h>
 
@@ -41,12 +34,14 @@ namespace syscalls::internal {
         const usize nhdls = arg1;
         const i32 timeout_ms = static_cast<i32>(arg2);
 
-        if (!hdls || nhdls == 0) return -EINVAL;
+        if (!hdls && nhdls > 0) return -EINVAL;
 
         const Realm* realm = kernel::scheduling::get_current_realm();
         if (!realm) return -ESRCH;
 
-        const u64 deadline = (timeout_ms >= 0) ? kernel::time::get_uptime_ms() + static_cast<u64>(timeout_ms) : U64_MAX;
+        const u64 deadline = (timeout_ms >= 0)
+                                 ? kernel::time::get_uptime_ms() + static_cast<u64>(timeout_ms)
+                                 : U64_MAX;
 
         while (true) {
             int ready = 0;
@@ -56,120 +51,22 @@ namespace syscalls::internal {
                 const auto rh_result = resolve_handle(hdls[i].hdl);
 
                 if (rh_result.is_err()) {
-                    hdls[i].revents = POLLHUP;
+                    hdls[i].revents = POLLNVAL;
                     ready++;
                     continue;
                 }
 
-                const auto& rh = rh_result.unwrap();
-
-                int mask = 0;
-                bool bad_handle = false;
-
-                switch (rh.type()) {
-                    case HANDLE_TYPE_CHANNEL:
-                    case HANDLE_TYPE_PIPE: {
-                        auto* ep = rh.resource_as<ChannelEndpoint>();
-                        if (!ep) return -EINVAL;
-
-                        Channel* ch = ep->channel;
-                        if (!ch) {
-                            bad_handle = true;
-                            break;
-                        }
-
-                        mask = ch->poll(ep->is_reader, ep->is_writer);
-                        break;
-                    }
-
-                    case HANDLE_TYPE_FIFO: {
-                        const auto* vh = rh.resource_as<VfsHandle>();
-
-                        if (!vh || !vh->node || !vh->node->fifo_channel) {
-                            bad_handle = true;
-                            break;
-                        }
-
-                        const u32 acc = vh->context->open_flags & 0x3;
-                        const bool is_reader = acc == O_RDONLY || acc == O_RDWR;
-                        const bool is_writer = acc == O_WRONLY || acc == O_RDWR;
-
-                        mask = vh->node->fifo_channel->poll(is_reader, is_writer);
-                        break;
-                    }
-
-                    case HANDLE_TYPE_SOCKET: {
-                        auto* sh = rh.resource_as<SocketHandle>();
-                        if (!sh) {
-                            bad_handle = true;
-                            break;
-                        }
-
-                        if (sh->state == SocketState::CONNECTED && sh->endpoint) {
-                            mask = sh->endpoint->poll();
-                        } else if (sh->state == SocketState::LISTENING && sh->listener) {
-                            mask = sh->listener->poll();
-                        } else {
-                            bad_handle = true;
-                        }
-                        break;
-                    }
-
-                    case HANDLE_TYPE_EVENTFD: {
-                        auto* efd = rh.resource_as<Eventfd>();
-                        if (!efd) {
-                            bad_handle = true;
-                            break;
-                        }
-
-                        const u32 acc = hdls[i].events & (POLLIN | POLLOUT);
-                        mask = efd->poll(acc & POLLIN, acc & POLLOUT);
-                        break;
-                    }
-
-                    case HANDLE_TYPE_TIMERFD: {
-                        auto* tfd = rh.resource_as<Timerfd>();
-                        if (!tfd) {
-                            bad_handle = true;
-                            break;
-                        }
-
-                        mask = tfd->poll(/*is_reader=*/true, /*is_writer=*/false);
-                        break;
-                    }
-
-                    case HANDLE_TYPE_SIGNALFD: {
-                        auto* sfd = rh.resource_as<Signalfd>();
-                        if (!sfd) {
-                            bad_handle = true;
-                            break;
-                        }
-
-                        mask = sfd->poll(/*is_reader=*/true, /*is_writer=*/false);
-                        break;
-                    }
-
-                    default: {
-                        const auto* vh = rh.resource_as<VfsHandle>();
-
-                        if (!vh || !vh->node) {
-                            bad_handle = true;
-                            break;
-                        }
-
-                        if (vh->node->ops && vh->node->ops->poll) mask = vh->node->ops->poll(vh->node, vh->context);
-                        break;
-                    }
-                }
-
-                if (bad_handle) {
-                    hdls[i].revents = POLLHUP;
+                Pollable* pollable = rh_result.unwrap().pollable();
+                if (!pollable) {
+                    hdls[i].revents = POLLNVAL;
                     ready++;
                     continue;
                 }
 
-                const int always_reported = mask & (POLLERR | POLLHUP);
-                const int requested = mask & hdls[i].events & ~(POLLERR | POLLHUP);
+                const int mask = pollable->poll(nullptr);
+                const int always_reported = mask & (POLLERR | POLLHUP | POLLNVAL);
+                const int requested = mask & hdls[i].events & ~(POLLERR | POLLHUP | POLLNVAL);
+
                 hdls[i].revents = static_cast<i16>(always_reported | requested);
                 if (hdls[i].revents) ready++;
             }

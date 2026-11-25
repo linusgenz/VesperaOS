@@ -51,11 +51,10 @@ void Timerfd::destroy(void* res) {
     delete tfd;
 }
 
-int Timerfd::poll(bool is_reader, bool is_writer) {
+int Timerfd::poll(PollTable* pt) {
+    (void)pt;
     SpinlockGuard g(lock_);
-    int mask = 0;
-    if (is_reader && expirations_ > 0) mask |= POLLIN;
-    return mask;
+    return (expirations_ > 0) ? POLLIN : 0;
 }
 
 isize Timerfd::read(void* out, const usize count) {
