@@ -598,4 +598,178 @@ constexpr u32 PLANE_SURF_1_C = 0x7219C;
 constexpr u32 PLANE_SURF_2_C = 0x7229C;
 constexpr u32 PLANE_SURF_3_C = 0x7239C;
 
+/**
+ * @brief Plane Buffer Configuration Register (PLANE_BUF_CFG / PLANE_NV12_BUF_CFG / CUR_BUF_CFG).
+ *
+ * Configures the display data buffer (DDB) start and end positions allocated
+ * to a display plane or cursor.
+ *
+ * @note For YUV planar formats (NV12 or P0xx), the **UV** buffer allocation
+ *       must be programmed in @c PLANE_BUF_CFG and the **Y** buffer allocation
+ *       must be programmed in @c PLANE_NV12_BUF_CFG.
+ *
+ * @note Double-buffered. Shadow registers are armed by a write to
+ *       @c PLANE_SURF (or when the plane is not enabled). The update
+ *       takes effect at the start of the next vertical blank, or
+ *       immediately if the plane or pipe is not enabled.
+ *
+ * <b>Register addresses (PLANE_BUF_CFG / PLANE_NV12_BUF_CFG):</b>
+ * | Pipe | Cursor   | Plane 1             | Plane 2             | Plane 3             |
+ * |------|----------|---------------------|---------------------|---------------------|
+ * | A    | 0x7017C  | 0x7027C / 0x70278   | 0x7037C / 0x70378   | 0x7047C / 0x70478   |
+ * | B    | 0x7117C  | 0x7127C / 0x71278   | 0x7137C / 0x71378   | 0x7147C / 0x71478   |
+ * | C    | 0x7217C  | 0x7227C / 0x72278   | 0x7237C / 0x72378   | 0x7247C / 0x72478   |
+ *
+ * @see IHD-OS-KBL-Vol 2c-1.17, pp. 558–561 (PLANE_BUF_CFG)
+ * @see PLANE_SURF for arming the double-buffered update.
+ */
+union PLANE_BUF_CFG {
+    struct {
+        u32 buffer_start : 10;  ///< [9:0]   Buffer start position for this plane
+        u32 reserved10 : 6;     ///< [15:10] MBZ
+        u32 buffer_end : 10;    ///< [25:16] Buffer end position for this plane
+        u32 reserved26 : 6;     ///< [31:26] MBZ
+    } __attribute__((packed));
+
+    u32 raw;
+
+    /**
+     * @brief Sets the buffer start and end positions.
+     * @param start  Buffer start position (10-bit).
+     * @param end    Buffer end position (10-bit).
+     */
+    constexpr void set(u32 start, u32 end) {
+        buffer_start = start;
+        buffer_end = end;
+    }
+};
+
+static_assert(sizeof(PLANE_BUF_CFG) == 4, "PLANE_BUF_CFG must be 32 bits");
+
+constexpr u32 CUR_BUF_CFG_A = 0x7017C;
+constexpr u32 CUR_BUF_CFG_B = 0x7117C;
+constexpr u32 CUR_BUF_CFG_C = 0x7217C;
+
+constexpr u32 PLANE_BUF_CFG_1_A = 0x7027C;
+constexpr u32 PLANE_BUF_CFG_2_A = 0x7037C;
+constexpr u32 PLANE_BUF_CFG_3_A = 0x7047C;
+constexpr u32 PLANE_BUF_CFG_1_B = 0x7127C;
+constexpr u32 PLANE_BUF_CFG_2_B = 0x7137C;
+constexpr u32 PLANE_BUF_CFG_3_B = 0x7147C;
+constexpr u32 PLANE_BUF_CFG_1_C = 0x7227C;
+constexpr u32 PLANE_BUF_CFG_2_C = 0x7237C;
+constexpr u32 PLANE_BUF_CFG_3_C = 0x7247C;
+
+constexpr u32 PLANE_NV12_BUF_CFG_1_A = 0x70278;
+constexpr u32 PLANE_NV12_BUF_CFG_2_A = 0x70378;
+constexpr u32 PLANE_NV12_BUF_CFG_3_A = 0x70478;
+constexpr u32 PLANE_NV12_BUF_CFG_1_B = 0x71278;
+constexpr u32 PLANE_NV12_BUF_CFG_2_B = 0x71378;
+constexpr u32 PLANE_NV12_BUF_CFG_3_B = 0x71478;
+constexpr u32 PLANE_NV12_BUF_CFG_1_C = 0x72278;
+constexpr u32 PLANE_NV12_BUF_CFG_2_C = 0x72378;
+constexpr u32 PLANE_NV12_BUF_CFG_3_C = 0x72478;
+
+/**
+ * @brief Plane Watermark Register (PLANE_WM / PLANE_WM_TRANS / CUR_WM / CUR_WM_TRANS).
+ *
+ * Configures the display FIFO watermark thresholds for a display plane or cursor.
+ * Each plane and cursor has **eight** regular watermark levels (levels 0–7,
+ * spaced 4 bytes apart) plus one **transition** watermark register.
+ *
+ * @note All watermarks at a given level for all enabled planes must be enabled
+ *       before hardware will use that level.
+ *
+ * @note Hardware ignores the @c lines field for the **level 0** watermark and
+ *       for the **transition** watermark.
+ *
+ * @note For YUV planar source formats, only the **Y** surface watermark value
+ *       should be programmed.
+ *
+ * @note Default value is @c 0x00004007 (@c blocks=7, @c lines=1, @c enable=0).
+ *
+ * @note Double-buffered. Shadow registers are armed by a write to
+ *       @c PLANE_SURF (or when the plane is not enabled). The update
+ *       takes effect at the start of the next vertical blank, or
+ *       immediately if the plane or pipe is not enabled.
+ *
+ * <b>Register addresses (base for levels 0–7 / transition):</b>
+ * | Pipe | Cursor              | Plane 1             | Plane 2             | Plane 3             |
+ * |------|---------------------|---------------------|---------------------|---------------------|
+ * | A    | 0x70140 / 0x70168   | 0x70240 / 0x70268   | 0x70340 / 0x70368   | 0x70440 / 0x70468   |
+ * | B    | 0x71140 / 0x71168   | 0x71240 / 0x71268   | 0x71340 / 0x71368   | 0x71440 / 0x71468   |
+ * | C    | 0x72140 / 0x72168   | 0x72240 / 0x72268   | 0x72340 / 0x72368   | 0x72440 / 0x72468   |
+ *
+ * @see IHD-OS-KBL-Vol 2c-1.17, pp. 614–618 (PLANE_WM)
+ * @see PLANE_BUF_CFG for the display data buffer allocation.
+ * @see PLANE_SURF    for arming the double-buffered update.
+ */
+union PLANE_WM {
+    struct {
+        u32 blocks : 10;      ///< [9:0]   Watermark value in blocks of 8 cachelines (default: 0x007)
+        u32 reserved10 : 4;   ///< [13:10] Reserved
+        u32 lines : 5;        ///< [18:14] Watermark value in lines (default: 0x01; ignored for level 0 & transition)
+        u32 reserved19 : 11;  ///< [29:19] MBZ
+        u32 reserved30 : 1;   ///< [30]    Reserved
+        u32 enable : 1;       ///< [31]    Watermark Enable (0=disabled, 1=enabled)
+    } __attribute__((packed));
+
+    u32 raw;
+
+    /**
+     * @brief Configures the watermark entry.
+     * @param wm_blocks  Watermark threshold in blocks of 8 cachelines (10-bit).
+     * @param wm_lines   Watermark threshold in lines (5-bit; ignored for level 0 and transition).
+     * @param enabled    Whether this watermark level is enabled.
+     */
+    constexpr void set(u32 wm_blocks, u32 wm_lines = 0, bool enabled = true) {
+        blocks = wm_blocks;
+        lines = wm_lines;
+        enable = enabled ? 1 : 0;
+    }
+};
+
+static_assert(sizeof(PLANE_WM) == 4, "PLANE_WM must be 32 bits");
+
+constexpr u32 PLANE_WM_LEVEL_COUNT = 8;
+
+/**
+ * @brief Returns the MMIO address for a specific watermark level (0–7).
+ * @param base   Base address of the plane/cursor watermark array (e.g. @c PLANE_WM_1_A).
+ * @param level  Watermark level (0–7).
+ */
+[[nodiscard]] constexpr u32 plane_wm_addr(u32 base, u32 level) {
+    return base + (level * 4);
+}
+
+// Regular watermark base addresses (levels 0–7 at base + level * 4)
+constexpr u32 CUR_WM_A = 0x70140;
+constexpr u32 CUR_WM_B = 0x71140;
+constexpr u32 CUR_WM_C = 0x72140;
+
+constexpr u32 PLANE_WM_1_A = 0x70240;
+constexpr u32 PLANE_WM_2_A = 0x70340;
+constexpr u32 PLANE_WM_3_A = 0x70440;
+constexpr u32 PLANE_WM_1_B = 0x71240;
+constexpr u32 PLANE_WM_2_B = 0x71340;
+constexpr u32 PLANE_WM_3_B = 0x71440;
+constexpr u32 PLANE_WM_1_C = 0x72240;
+constexpr u32 PLANE_WM_2_C = 0x72340;
+constexpr u32 PLANE_WM_3_C = 0x72440;
+
+// Transition watermark addresses
+constexpr u32 CUR_WM_TRANS_A = 0x70168;
+constexpr u32 CUR_WM_TRANS_B = 0x71168;
+constexpr u32 CUR_WM_TRANS_C = 0x72168;
+
+constexpr u32 PLANE_WM_TRANS_1_A = 0x70268;
+constexpr u32 PLANE_WM_TRANS_2_A = 0x70368;
+constexpr u32 PLANE_WM_TRANS_3_A = 0x70468;
+constexpr u32 PLANE_WM_TRANS_1_B = 0x71268;
+constexpr u32 PLANE_WM_TRANS_2_B = 0x71368;
+constexpr u32 PLANE_WM_TRANS_3_B = 0x71468;
+constexpr u32 PLANE_WM_TRANS_1_C = 0x72268;
+constexpr u32 PLANE_WM_TRANS_2_C = 0x72368;
+constexpr u32 PLANE_WM_TRANS_3_C = 0x72468;
+
 #endif  // VESPERAOS_DISPLAY_REGS_H

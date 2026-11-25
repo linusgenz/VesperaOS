@@ -25,12 +25,9 @@
 
 #include <vespera/types.h>
 
-#include <gpu/intel/regs/interrupt_regs.h>
-
 #include "display_surface.h"
 
 namespace gpu::intel::display {
-
     // Plane registers: the *_1_A constants in display_regs.h are the base,
     // every other pipe/plane is a fixed offset away.
     //   pipe  stride 0x1000 (A 0x70xxx, B 0x71xxx, C 0x72xxx)
@@ -55,11 +52,21 @@ namespace gpu::intel::display {
     constexpr u32 DE_PIPE_VBLANK_MASK = 1u << 0;
 
     [[nodiscard]] constexpr u32 de_pipe_flip_done_mask(const PlaneId plane) {
-        return 1u << (3u + static_cast<u32>(plane));  // plane1_flip_done = bit 3
+        return 1u << (3u + static_cast<u32>(plane)); // plane1_flip_done = bit 3
     }
 
     constexpr u32 DE_PIPE_FLIP_DONE_ALL_MASK = (1u << 3) | (1u << 4) | (1u << 5);
 
-}  // namespace gpu::intel::display
+    [[nodiscard]] constexpr u32 cursor_reg(const PipeId pipe, const u32 reg_a) {
+        return reg_a + static_cast<u32>(pipe) * PIPE_REG_STRIDE;
+    }
+
+    constexpr u32 CURSOR_PAL_STRIDE = 4;
+    constexpr u32 CURSOR_PAL_COUNT = 4;
+
+    [[nodiscard]] constexpr u32 cursor_pal_reg(const PipeId pipe, const u32 index) {
+        return CUR_PAL_A_0 + static_cast<u32>(pipe) * PIPE_REG_STRIDE + index * CURSOR_PAL_STRIDE;
+    }
+} // namespace gpu::intel::display
 
 #endif  // VESPERAOS_DISPLAY_REG_ADDR_H

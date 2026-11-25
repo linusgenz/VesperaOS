@@ -164,9 +164,9 @@ namespace gpu::intel::core {
 
         auto t = gem_slots_.insert(obj);
 
-        Log::log_dbc("gem-create: obj=%p handle_is=%u size=%llu t=%llu",
-                     (void*)obj, t,
-                     (unsigned long long)args.size, (unsigned long long)kernel::time::get_uptime_us());
+        // Log::log_dbc("gem-create: obj=%p handle_is=%u size=%llu t=%llu",
+        //              (void*)obj, t,
+        //              (unsigned long long)args.size, (unsigned long long)kernel::time::get_uptime_us());
         return t;
     }
 
@@ -291,10 +291,10 @@ namespace gpu::intel::core {
             return false;
         }
 
-        Log::log_dbc("exec: mapping BO handle=%u obj=%p gpu_addr=0x%llx phys=0x%llx offset=0x%llu t=%llu",
-                     args.handle, (void*)obj, (args.addr),
-                     phys_raw(obj->phys_addr), args.obj_offset,
-                     (unsigned long long)kernel::time::get_uptime_us());
+        // Log::log_dbc("exec: mapping BO handle=%u obj=%p gpu_addr=0x%llx phys=0x%llx offset=0x%llu t=%llu",
+        //              args.handle, (void*)obj, (args.addr),
+        //              phys_raw(obj->phys_addr), args.obj_offset,
+        //              (unsigned long long)kernel::time::get_uptime_us());
 
         phys_start = phys_add(obj->phys_addr, args.obj_offset);
 

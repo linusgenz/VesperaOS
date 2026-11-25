@@ -41,6 +41,8 @@ namespace gpu::intel::display {
         for (u32 i = 0; i < PLANES_PER_PIPE; i++) {
             planes_[i].init(device, *this, id, static_cast<PlaneId>(i));
         }
+
+        cursor_.init(device, id);
     }
 
     void DisplayPipe::irq_init() {
@@ -68,7 +70,7 @@ namespace gpu::intel::display {
         irq_enabled_ = true;
     }
 
-    void DisplayPipe::vblank_arm_locked() {
+    void DisplayPipe::vblank_arm_locked() const {
         if (!irq_enabled_) {
             return;
         }
@@ -81,7 +83,7 @@ namespace gpu::intel::display {
         mmio_post(*device_, ier_reg);
     }
 
-    void DisplayPipe::vblank_disarm_locked() {
+    void DisplayPipe::vblank_disarm_locked() const {
         const u32 imr_reg = de_pipe_reg(id_, DE_PIPE_A_IMR);
         const u32 ier_reg = de_pipe_reg(id_, DE_PIPE_A_IER);
 

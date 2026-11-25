@@ -25,6 +25,7 @@
 
 #include <vespera/graphics/display_types.h>
 #include <vespera/mm/addr.h>
+#include <vespera/sync/mutex.h>
 #include <vespera/types.h>
 
 #include <gpu/intel/core/ggtt_allocator.h>
@@ -104,6 +105,23 @@ namespace gpu::intel::display {
         }
     };
 
+    struct CursorBuffer {
+        core::GgttAllocation alloc{};
+        CursorSize capacity = CursorSize::Size64;
+        u32 surface_pages = 0;
+        u32 total_pages = 0;
+        bool valid = false;
+
+        [[nodiscard]] CursorConfig cursor_config(const CursorSize mode_size, const i32 x, const i32 y) const {
+            CursorConfig cfg{};
+            cfg.surface = alloc.gfx_addr;
+            cfg.mode = to_argb_cursor_mode(mode_size);
+            cfg.x = x;
+            cfg.y = y;
+            return cfg;
+        }
+    };
+
     /**
      * @brief Display engine front-end of the Intel GPU.
      *
@@ -140,6 +158,38 @@ namespace gpu::intel::display {
             return plane(PipeId::A, PlaneId::Plane1);
         }
 
+        [[nodiscard]] DisplayCursor& cursor(const PipeId pipe_id) {
+            return pipe(pipe_id).cursor();
+        }
+
+        [[nodiscard]] DisplayCursor& primary_cursor() {
+            return cursor(PipeId::A);
+        }
+
+        /// Allocates a zeroed linear ARGB8888 cursor surface in the GGTT
+        [[nodiscard]] CursorBuffer alloc_cursor(CursorSize size) const;
+
+        /// Uploads an ARGB8888 (0xAARRGGBB, pre-multiplied alpha) cursor image
+        /// up to 256x256 px and configures its hotspot. Reuses the existing GGTT
+        /// buffer whenever the image fits.
+        [[nodiscard]] bool set_cursor_image(
+            const u32* pixels, u32 width, u32 height, i32 hotspot_x, i32 hotspot_y
+        ) override;
+
+        /// Moves the cursor hotspot to screen coordinates (x, y).
+        void move_cursor(i32 x, i32 y) override;
+
+        void set_cursor_visible(bool visible) override;
+
+        [[nodiscard]] bool cursor_visible() const {
+            kernel::MutexGuard guard(cursor_lock_);
+            return cursor_visible_;
+        }
+
+        [[nodiscard]] bool has_hw_cursor() const override {
+            return scanout_ready_ && cursor_ddb_ready_;
+        }
+
         /// Allocates a zeroed XRGB8888 scanout surface of `res` in the GGTT:
         /// pitch and height rounded up for the tiling, base aligned to
         /// 256 KB (Linear/X) or 1 MB (Y), plus the 136 padding PTEs.
@@ -174,9 +224,21 @@ namespace gpu::intel::display {
         bool init_scanout();
         void ensure_back_ready();
         void upload_rect_to_back(const DirtyRect& r) const;
+        void sync_cursor_hw_locked(bool force_commit);
 
         core::IntelGpuDevice& device_;
         DisplayPipe pipes_[PIPE_COUNT];
+
+        mutable kernel::Mutex cursor_lock_;
+        CursorBuffer cursor_buf_{};
+        CursorSize cursor_active_size_ = CursorSize::Size64;
+        i32 cursor_x_{0};
+        i32 cursor_y_{0};
+        i32 cursor_hotspot_x_{0};
+        i32 cursor_hotspot_y_{0};
+        bool cursor_visible_{false};
+        bool cursor_hw_active_{false};
+        bool cursor_ddb_ready_{false};
 
         ScanoutBuffer scanout_[2]{};
         u32 front_idx_{0u};

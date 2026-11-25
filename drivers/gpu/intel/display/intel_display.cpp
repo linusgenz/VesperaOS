@@ -28,6 +28,7 @@
 
 #include <gpu/intel/core/intel_gpu_device.h>
 
+#include "display_mmio.h"
 #include "vespera/cpu/simd_mem.h"
 #include "vespera/debug/chronos.h"
 
@@ -38,12 +39,21 @@ namespace gpu::intel::display {
         constexpr u32 align_up(const u32 value, const u32 alignment) {
             return (value + alignment - 1) / alignment * alignment;
         }
+
+        [[nodiscard]] constexpr CursorSize pick_cursor_size(const u32 width, const u32 height) {
+            const u32 max_dim = (width > height) ? width : height;
+            if (max_dim <= 64) return CursorSize::Size64;
+            if (max_dim <= 128) return CursorSize::Size128;
+            return CursorSize::Size256;
+        }
     } // namespace
 
     IntelDisplay::IntelDisplay(core::IntelGpuDevice& device) : device_(device) {
     }
 
     bool IntelDisplay::init() {
+        cursor_lock_.init();
+
         for (u32 i = 0; i < PIPE_COUNT; i++) {
             pipes_[i].init(device_, static_cast<PipeId>(i));
         }
@@ -64,16 +74,46 @@ namespace gpu::intel::display {
         for (u32 i = 0; i < PLANES_PER_PIPE; i++) {
             PlaneConfig cfg{};
             if (plane(PipeId::A, static_cast<PlaneId>(i)).read_config(cfg)) {
+                const auto wm0 = mmio_read<PLANE_WM>(
+                    device_, plane_wm_addr(plane_reg(PipeId::A, static_cast<PlaneId>(i), PLANE_WM_1_A), 0)
+                );
                 Log::info(
-                    "intel-display: firmware pipe A plane %u: surf=0x%llx %ux%u pitch=%u tiling=%u",
+                    "intel-display: firmware pipe A plane %u: surf=0x%llx %ux%u pitch=%u tiling=%u ddb=[%u..%u] wm0=(en=%u blk=%u)",
                     i + 1,
                     gfx_raw(cfg.surface),
                     cfg.width,
                     cfg.height,
                     cfg.pitch_bytes,
-                    static_cast<u32>(cfg.tiling)
+                    static_cast<u32>(cfg.tiling),
+                    cfg.ddb.start,
+                    cfg.ddb.end,
+                    wm0.enable,
+                    wm0.blocks
                 );
             }
+        }
+
+        const auto cur_buf = mmio_read<PLANE_BUF_CFG>(device_, cursor_reg(PipeId::A, CUR_BUF_CFG_A));
+        const auto cur_wm0 = mmio_read<PLANE_WM>(device_, plane_wm_addr(cursor_reg(PipeId::A, CUR_WM_A), 0));
+        CursorConfig cur_cfg{};
+        if (primary_cursor().read_config(cur_cfg)) {
+            Log::info(
+                "intel-display: firmware pipe A cursor: surf=0x%llx mode=0x%x pos=(%d,%d) ddb=[%u..%u] wm0=(en=%u blk=%u)",
+                gfx_raw(cur_cfg.surface),
+                static_cast<u32>(cur_cfg.mode),
+                cur_cfg.x,
+                cur_cfg.y,
+                cur_buf.buffer_start,
+                cur_buf.buffer_end,
+                cur_wm0.enable,
+                cur_wm0.blocks
+            );
+        } else {
+            Log::info(
+                "intel-display: firmware pipe A cursor: disabled, ddb_raw=0x%x wm0_raw=0x%x",
+                cur_buf.raw,
+                cur_wm0.raw
+            );
         }
     }
 
@@ -120,9 +160,60 @@ namespace gpu::intel::display {
         PlaneConfig cfg = scanout_[front_idx_].plane_config();
         cfg.format = firmware_cfg.format; // Pixelformat der Firmware übernehmen, Rest ist unser Buffer
 
+        // Ensure cursor is disabled before partitioning DDB so no two planes
+        // ever overlap in the Display Data Buffer across a VBlank.
+        primary_cursor().disable();
+
+        DdbAllocation cursor_ddb{};
+        const auto fw_cur_buf = mmio_read<PLANE_BUF_CFG>(device_, cursor_reg(PipeId::A, CUR_BUF_CFG_A));
+        const DdbAllocation fw_cur_ddb = (fw_cur_buf.raw != 0 && fw_cur_buf.buffer_end >= fw_cur_buf.buffer_start)
+            ? DdbAllocation{static_cast<u16>(fw_cur_buf.buffer_start), static_cast<u16>(fw_cur_buf.buffer_end), true}
+            : DdbAllocation{};
+
+        const bool fw_cur_overlaps_plane1 = fw_cur_ddb.valid && firmware_cfg.ddb.valid &&
+            !(fw_cur_ddb.end < firmware_cfg.ddb.start || fw_cur_ddb.start > firmware_cfg.ddb.end);
+
+        if (fw_cur_ddb.valid && !fw_cur_overlaps_plane1 && fw_cur_ddb.blocks() >= CURSOR_DDB_BLOCKS) {
+            cursor_ddb = fw_cur_ddb;
+        } else if (firmware_cfg.ddb.valid && firmware_cfg.ddb.blocks() > CURSOR_DDB_BLOCKS + 32) {
+            // Carve CURSOR_DDB_BLOCKS off the top of primary plane 1's DDB.
+            cfg.ddb = {
+                firmware_cfg.ddb.start,
+                static_cast<u16>(firmware_cfg.ddb.end - CURSOR_DDB_BLOCKS),
+                true,
+            };
+            cursor_ddb = {
+                static_cast<u16>(firmware_cfg.ddb.end - CURSOR_DDB_BLOCKS + 1),
+                firmware_cfg.ddb.end,
+                true,
+            };
+        }
+
         if (!primary_plane().commit(cfg)) {
             Log::error("intel-display: failed to commit scanout_[0] to plane 1");
             return false;
+        }
+
+        if (cursor_ddb.valid) {
+            // Wait for 1 VBlank so plane 1 has latched its shrunken DDB and
+            // released the cursor slice before any cursor commit can arm it.
+            if (!primary_plane().wait_flip_done(FLIP_TIMEOUT_US)) {
+                Log::warning("intel-display: initial DDB partition flip wait timed out");
+            }
+            primary_cursor().set_ddb(cursor_ddb);
+            cursor_ddb_ready_ = true;
+            Log::info(
+                "intel-display: DDB partitioned: plane1=[%u..%u] (%u blk), cursor=[%u..%u] (%u blk)",
+                cfg.ddb.valid ? cfg.ddb.start : firmware_cfg.ddb.start,
+                cfg.ddb.valid ? cfg.ddb.end : firmware_cfg.ddb.end,
+                cfg.ddb.valid ? cfg.ddb.blocks() : firmware_cfg.ddb.blocks(),
+                cursor_ddb.start,
+                cursor_ddb.end,
+                cursor_ddb.blocks()
+            );
+        } else {
+            cursor_ddb_ready_ = false;
+            Log::warning("intel-display: could not partition DDB for HW cursor, disabling HW cursor");
         }
 
         scanout_ready_ = true;
@@ -180,6 +271,130 @@ namespace gpu::intel::display {
         );
 
         return out;
+    }
+
+    CursorBuffer IntelDisplay::alloc_cursor(const CursorSize size) const {
+        CursorBuffer out{};
+
+        const u32 dim = static_cast<u32>(size);
+        const usize surface_bytes = static_cast<usize>(dim) * dim * CURSOR_BYTES_PER_PIXEL;
+        const usize surface_pages = (surface_bytes + PAGE_SIZE - 1) / PAGE_SIZE;
+        const usize total_pages = surface_pages + CURSOR_PTE_PADDING_PAGES;
+        constexpr u32 align_pages = CURSOR_SURFACE_ALIGN_BYTES / PAGE_SIZE;
+
+        const core::GgttAllocation alloc = device_.ggtt().alloc_persistent_aligned(
+            total_pages, align_pages, (1ULL << PtFlag::ReadWrite), CacheMode::WriteCombining, core::MOCS_UNCACHED
+        );
+        if (virt_null(alloc.cpu_addr)) {
+            Log::error("intel-display: cursor: GGTT allocation failed (%zu pages)", total_pages);
+            return out;
+        }
+
+        memset(virt_ptr(alloc.cpu_addr), 0, total_pages * PAGE_SIZE);
+
+        out.alloc = alloc;
+        out.capacity = size;
+        out.surface_pages = static_cast<u32>(surface_pages);
+        out.total_pages = static_cast<u32>(total_pages);
+        out.valid = true;
+
+        Log::info(
+            "intel-display: cursor %ux%u gfx=0x%llx (%zu pages + %u PTE padding)",
+            dim,
+            dim,
+            gfx_raw(alloc.gfx_addr),
+            surface_pages,
+            CURSOR_PTE_PADDING_PAGES
+        );
+        return out;
+    }
+
+    bool IntelDisplay::set_cursor_image(
+        const u32* pixels, const u32 width, const u32 height, const i32 hotspot_x, const i32 hotspot_y
+    ) {
+        if (!scanout_ready_ || !pixels || width == 0 || height == 0 || width > 256 || height > 256) {
+            return false;
+        }
+
+        kernel::MutexGuard guard(cursor_lock_);
+
+        const CursorSize needed = pick_cursor_size(width, height);
+
+        // Reuse existing persistent GGTT allocation if large enough.
+        if (!cursor_buf_.valid || static_cast<u32>(needed) > static_cast<u32>(cursor_buf_.capacity)) {
+            CursorBuffer buf = alloc_cursor(needed);
+            if (!buf.valid) {
+                return false;
+            }
+            cursor_buf_ = buf;
+        }
+
+        const u32 dim = static_cast<u32>(needed);
+        auto* dst = static_cast<u32*>(virt_ptr(cursor_buf_.alloc.cpu_addr));
+        memset(dst, 0, static_cast<usize>(dim) * dim * CURSOR_BYTES_PER_PIXEL);
+
+        const usize row_bytes = static_cast<usize>(width) * CURSOR_BYTES_PER_PIXEL;
+        for (u32 y = 0; y < height; ++y) {
+            memcpy(dst + static_cast<usize>(y) * dim, pixels + static_cast<usize>(y) * width, row_bytes);
+        }
+
+        cursor_active_size_ = needed;
+        cursor_hotspot_x_ = hotspot_x;
+        cursor_hotspot_y_ = hotspot_y;
+
+        sync_cursor_hw_locked(true);
+        return true;
+    }
+
+    void IntelDisplay::move_cursor(const i32 x, const i32 y) {
+        kernel::MutexGuard guard(cursor_lock_);
+        cursor_x_ = x;
+        cursor_y_ = y;
+        sync_cursor_hw_locked(false);
+    }
+
+    void IntelDisplay::set_cursor_visible(const bool visible) {
+        kernel::MutexGuard guard(cursor_lock_);
+        if (cursor_visible_ == visible) {
+            return;
+        }
+        cursor_visible_ = visible;
+        sync_cursor_hw_locked(true);
+    }
+
+    void IntelDisplay::sync_cursor_hw_locked(const bool force_commit) {
+        if (!scanout_ready_ || !cursor_buf_.valid || !cursor_visible_) {
+            if (cursor_hw_active_) {
+                primary_cursor().disable();
+                cursor_hw_active_ = false;
+            }
+            return;
+        }
+
+        const i32 px = cursor_x_ - cursor_hotspot_x_;
+        const i32 py = cursor_y_ - cursor_hotspot_y_;
+        const i32 dim = static_cast<i32>(cursor_active_size_);
+        const i32 sw = static_cast<i32>(screen_width_px());
+        const i32 sh = static_cast<i32>(screen_height_px());
+
+        // Hardware requires at least 1 cursor pixel over the pipe source area.
+        const bool on_screen = (px + dim > 0) && (py + dim > 0) && (px < sw) && (py < sh);
+        if (!on_screen) {
+            if (cursor_hw_active_) {
+                primary_cursor().disable();
+                cursor_hw_active_ = false;
+            }
+            return;
+        }
+
+        if (!cursor_hw_active_ || force_commit) {
+            const CursorConfig cfg = cursor_buf_.cursor_config(cursor_active_size_, px, py);
+            if (primary_cursor().commit(cfg)) {
+                cursor_hw_active_ = true;
+            }
+        } else {
+            (void)primary_cursor().set_position(px, py);
+        }
     }
 
     bool IntelDisplay::handle_irq(const MASTER_INT_CTL& master) {

@@ -69,15 +69,31 @@ int FramebufferDevice::ioctl(CharFile*, const u32 cmd, void* arg) {
         case FB_IOCTL_FILL_RECT:
             if (!arg) return -EINVAL;
             return fill_rect(static_cast<const FbRect*>(arg));
-
         case FB_IOCTL_DRAW_RECT:
             if (!arg) return -EINVAL;
             return draw_rect_outline(static_cast<const FbRectOutline*>(arg));
-
         case FB_IOCTL_CLEAR:
             if (!arg) return -EINVAL;
             return clear_screen(static_cast<const FbClear*>(arg));
-
+        case FB_IOCTL_CURSOR_SET_IMAGE: {
+            if (!arg) return -EINVAL;
+            if (!drv->has_hw_cursor()) return -EUNSUPPORTED;
+            return set_cursor_image(static_cast<const FbCursorImage*>(arg));
+        }
+        case FB_IOCTL_CURSOR_MOVE: {
+            if (!arg) return -EINVAL;
+            if (!drv->has_hw_cursor()) return -EUNSUPPORTED;
+            const auto* pos = static_cast<const FbCursorPos*>(arg);
+            drv->move_cursor(pos->x, pos->y);
+            return 0;
+        }
+        case FB_IOCTL_CURSOR_VISIBLE: {
+            if (!arg) return -EINVAL;
+            if (!drv->has_hw_cursor()) return -EUNSUPPORTED;
+            const u32 visible = *static_cast<const u32*>(arg);
+            drv->set_cursor_visible(visible != 0);
+            return 0;
+        }
         case FB_IOCTL_BLIT:
             if (!arg) return -EINVAL;
             return blit_pixels(static_cast<const FbBlit*>(arg));
@@ -88,6 +104,24 @@ int FramebufferDevice::ioctl(CharFile*, const u32 cmd, void* arg) {
         default:
             return -ENOTTY;
     }
+}
+
+int FramebufferDevice::set_cursor_image(const FbCursorImage* img) {
+    if (!img || !img->pixels) return -EINVAL;
+    if (img->width == 0 || img->height == 0 || img->width > 256 || img->height > 256) {
+        return -EINVAL;
+    }
+
+    auto backend = DisplayManager::primary();
+    if (!backend.drv) return -ENODEV;
+    if (!backend.drv->has_hw_cursor()) return -EUNSUPPORTED;
+
+    if (!backend.drv->set_cursor_image(
+            img->pixels, img->width, img->height, img->hotspot_x, img->hotspot_y
+        )) {
+        return -EIO;
+        }
+    return 0;
 }
 
 bool FramebufferDevice::validate_rect(const u32 x, const u32 y, const u32 w, const u32 h) {

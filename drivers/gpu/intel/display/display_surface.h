@@ -28,8 +28,9 @@
 
 #include <gpu/intel/regs/display_regs.h>
 
-namespace gpu::intel::display {
+#include "gpu/intel/regs/cursor_regs.h"
 
+namespace gpu::intel::display {
     // =========================================================================
     // Identifiers
     // =========================================================================
@@ -53,12 +54,11 @@ namespace gpu::intel::display {
     // Surface / tiling
     // =========================================================================
 
-    /// Shared by the display planes and the blitter (BCS), which used to own
-    /// this enum as bcs::TileMode.
+    /// Shared by the display planes and the blitter (BCS)
     enum class TileMode : u8 {
         Linear = 0,
-        X = 1,
-        Y = 2,
+        X      = 1,
+        Y      = 2,
     };
 
     constexpr u32 SCANOUT_BYTES_PER_PIXEL = 4;
@@ -111,25 +111,130 @@ namespace gpu::intel::display {
     }
 
     // =========================================================================
+    // Display Data Buffer (DDB) allocation (shared by planes and cursor)
+    // =========================================================================
+
+    struct DdbAllocation {
+        u16 start = 0;  ///< First DDB block (inclusive)
+        u16 end = 0;    ///< Last DDB block (inclusive)
+        bool valid = false;
+
+        [[nodiscard]] constexpr u32 blocks() const {
+            return valid && end >= start ? static_cast<u32>(end - start + 1) : 0;
+        }
+    };
+
+    /// Fixed DDB slice carved out for the hardware cursor (32 blocks = 16 KB,
+    /// matching i915's single-pipe Gen9 allocation; covers 64/128/256 cursors).
+    constexpr u32 CURSOR_DDB_BLOCKS = 32;
+
+    // =========================================================================
     // PlaneConfig — everything DisplayPlane::commit() programs in one go
     // =========================================================================
 
     struct PlaneConfig {
         gfx_addr_t surface{};
 
-        u32 width = 0;   ///< PLANE_SIZE width in pixels
-        u32 height = 0;  ///< PLANE_SIZE height in lines
-        u32 src_x = 0;   ///< PLANE_OFFSET x (panning inside the surface)
-        u32 src_y = 0;   ///< PLANE_OFFSET y
-        u32 dst_x = 0;   ///< PLANE_POS x (position on the pipe)
-        u32 dst_y = 0;   ///< PLANE_POS y
+        u32 width = 0;  ///< PLANE_SIZE width in pixels
+        u32 height = 0; ///< PLANE_SIZE height in lines
+        u32 src_x = 0;  ///< PLANE_OFFSET x (panning inside the surface)
+        u32 src_y = 0;  ///< PLANE_OFFSET y
+        u32 dst_x = 0;  ///< PLANE_POS x (position on the pipe)
+        u32 dst_y = 0;  ///< PLANE_POS y
 
         u32 pitch_bytes = 0;
         PLANE_CTL::PixelFormat format = PLANE_CTL::FMT_RGB_8_8_8_8;
         TileMode tiling = TileMode::Linear;
         PLANE_CTL::Rotation rotation = PLANE_CTL::ROTATE_0;
+
+        /// Optional DDB allocation. If valid, commit() updates PLANE_BUF_CFG.
+        DdbAllocation ddb{};
     };
 
-}  // namespace gpu::intel::display
+    enum class CursorSize : u16 {
+        Size64  = 64,
+        Size128 = 128,
+        Size256 = 256,
+    };
+
+    constexpr u32 CURSOR_BYTES_PER_PIXEL = 4;
+
+    /// CUR_BASE: HW minimum is 4 KB; VT-d workaround requires 64 KB alignment
+    /// and 2 extra PTEs beyond the end of the displayed surface (cursor_regs.h).
+    constexpr u32 CURSOR_SURFACE_ALIGN_BYTES = 64u << 10;
+    constexpr u32 CURSOR_PTE_PADDING_PAGES = 2;
+
+    constexpr i32 CURSOR_POS_X_MAX = 8191;
+    constexpr i32 CURSOR_POS_Y_MAX = 4095;
+
+    [[nodiscard]] constexpr CUR_CTL::CursorMode to_argb_cursor_mode(const CursorSize size) {
+        switch (size) {
+            case CursorSize::Size64:
+                return CUR_CTL::MODE_64X64_32BPP_ARGB;
+            case CursorSize::Size128:
+                return CUR_CTL::MODE_128X128_32BPP_ARGB;
+            case CursorSize::Size256:
+                return CUR_CTL::MODE_256X256_32BPP_ARGB;
+        }
+        return CUR_CTL::MODE_DISABLE;
+    }
+
+    [[nodiscard]] constexpr u32 cursor_mode_dimension(const CUR_CTL::CursorMode mode) {
+        switch (mode) {
+            case CUR_CTL::MODE_64X64_2BPP_3COLOR:
+            case CUR_CTL::MODE_64X64_2BPP_2COLOR:
+            case CUR_CTL::MODE_64X64_2BPP_4COLOR:
+            case CUR_CTL::MODE_64X64_32BPP_AND_INV:
+            case CUR_CTL::MODE_64X64_32BPP_AND_XOR:
+            case CUR_CTL::MODE_64X64_32BPP_ARGB:
+                return 64;
+            case CUR_CTL::MODE_128X128_32BPP_AND_INV:
+            case CUR_CTL::MODE_128X128_32BPP_AND_XOR:
+            case CUR_CTL::MODE_128X128_32BPP_ARGB:
+                return 128;
+            case CUR_CTL::MODE_256X256_32BPP_AND_INV:
+            case CUR_CTL::MODE_256X256_32BPP_AND_XOR:
+            case CUR_CTL::MODE_256X256_32BPP_ARGB:
+                return 256;
+            default:
+                return 0;
+        }
+    }
+
+    [[nodiscard]] constexpr bool cursor_mode_is_2bpp(const CUR_CTL::CursorMode mode) {
+        return mode == CUR_CTL::MODE_64X64_2BPP_3COLOR || mode == CUR_CTL::MODE_64X64_2BPP_2COLOR ||
+            mode == CUR_CTL::MODE_64X64_2BPP_4COLOR;
+    }
+
+    [[nodiscard]] constexpr bool cursor_mode_is_argb(const CUR_CTL::CursorMode mode) {
+        return mode == CUR_CTL::MODE_64X64_32BPP_ARGB || mode == CUR_CTL::MODE_128X128_32BPP_ARGB ||
+            mode == CUR_CTL::MODE_256X256_32BPP_ARGB;
+    }
+
+    // =========================================================================
+    // CursorConfig — everything DisplayCursor::commit() programs in one go
+    // =========================================================================
+
+    struct CursorConfig {
+        gfx_addr_t surface{};
+        CUR_CTL::CursorMode mode = CUR_CTL::MODE_64X64_32BPP_ARGB;
+
+        i32 x = 0; ///< CUR_POS x (signed, relative to pipe origin)
+        i32 y = 0; ///< CUR_POS y (signed, relative to pipe origin)
+
+        bool rotate_180 = false;
+        bool gamma_enable = false;
+        bool pipe_csc_enable = false;
+
+        CUR_CTL::ForceAlphaValue force_alpha_value = CUR_CTL::FORCE_ALPHA_DISABLE;
+        CUR_CTL::ForceAlphaPlane force_alpha_plane = CUR_CTL::FORCE_ALPHA_PLANE_DISABLE;
+
+        /// CUR_FBC_CTL vertical size reduction: 0 = disabled, otherwise [8..dim].
+        u32 reduced_scan_lines = 0;
+
+        /// DDB allocation read back from CUR_BUF_CFG (optional on commit).
+        DdbAllocation ddb{};
+    };
+} // namespace gpu::intel::display
 
 #endif  // VESPERAOS_DISPLAY_SURFACE_H

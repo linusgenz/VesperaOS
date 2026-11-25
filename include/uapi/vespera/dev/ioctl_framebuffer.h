@@ -135,6 +135,19 @@ typedef struct fb_blit {
 
 } fb_blit_t;
 
+typedef struct fb_cursor_image {
+    const uint32_t* pixels;  // ARGB8888 (0xAARRGGBB, pre-multiplied alpha)
+    uint32_t width;          // 1..256
+    uint32_t height;         // 1..256
+    int32_t hotspot_x;       // Hotspot relative to the upper-left corner
+    int32_t hotspot_y;
+} fb_cursor_image_t;
+
+typedef struct fb_cursor_pos {
+    int32_t x;               // Screen coordinate of the hotspot (may be negative)
+    int32_t y;
+} fb_cursor_pos_t;
+
 /**
  * @brief IOCTL code to retrieve framebuffer information.
  *
@@ -179,5 +192,24 @@ typedef struct fb_blit {
 #define FB_IOCTL_BLIT               IOW('F', 0x05, fb_blit_t)
 
 #define FB_IOCTL_PRESENT               IO('F', 0x06)
+
+/**
+ * @brief Uploads a hardware cursor image and sets its hotspot.
+ * Returns -EUNSUPPORTED if the active render driver has no HW cursor.
+ */
+#define FB_IOCTL_CURSOR_SET_IMAGE   IOW('F', 0x07, fb_cursor_image_t)
+
+/**
+ * @brief Moves the hardware cursor hotspot to (x, y).
+ * Takes effect on the next VBlank without requiring FB_IOCTL_PRESENT.
+ */
+#define FB_IOCTL_CURSOR_MOVE        IOW('F', 0x08, fb_cursor_pos_t)
+
+/**
+ * @brief Shows (1) or hides (0) the hardware cursor.
+ * Pass a pointer to uint32_t.
+ * By default the cursor is hidden and has to be enabled with this ioctl
+ */
+#define FB_IOCTL_CURSOR_VISIBLE     IOW('F', 0x09, uint32_t)
 
 #endif //VESPERAOS_IOCTL_FRAMEBUFFER_H

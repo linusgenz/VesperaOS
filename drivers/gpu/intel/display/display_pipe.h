@@ -26,6 +26,7 @@
 #include <vespera/sync/spinlock.h>
 #include <vespera/types.h>
 
+#include "display_cursor.h"
 #include "display_plane.h"
 #include "display_surface.h"
 
@@ -77,6 +78,10 @@ namespace gpu::intel::display {
             return id_;
         }
 
+        [[nodiscard]] DisplayCursor& cursor() {
+            return cursor_;
+        }
+
     private:
         friend class DisplayPlane;
 
@@ -85,17 +90,18 @@ namespace gpu::intel::display {
         }
 
         /// The caller holds lock_.
-        void vblank_arm_locked();
-        void vblank_disarm_locked();
+        void vblank_arm_locked() const;
+        void vblank_disarm_locked() const;
         [[nodiscard]] bool any_flip_pending() const;
 
-        core::IntelGpuDevice* device_ = nullptr;
+        core::IntelGpuDevice* device_{nullptr};
         PipeId id_ = PipeId::A;
 
         DisplayPlane planes_[PLANES_PER_PIPE];
+        DisplayCursor cursor_;
 
         Spinlock lock_;
-        bool irq_enabled_ = false;
+        bool irq_enabled_{false};
     };
 
 }  // namespace gpu::intel::display

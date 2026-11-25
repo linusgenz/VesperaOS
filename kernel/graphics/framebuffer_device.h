@@ -26,6 +26,10 @@
 
 #include <vespera/devices/char_device.h>
 
+#include "uapi/vespera/dev/ioctl_framebuffer.h"
+
+// TODO, single source of truth for structs
+
 struct FbInfo {
     u32 width;
     u32 height;
@@ -72,6 +76,9 @@ struct FbBlit {
     u32 dst_y;
 };
 
+using FbCursorImage = fb_cursor_image_t;
+using FbCursorPos = fb_cursor_pos_t;
+
 class FramebufferDevice final : public CharDevice {
    public:
     FramebufferDevice(const char *name, BusType bus)
@@ -85,8 +92,9 @@ class FramebufferDevice final : public CharDevice {
     isize write(CharFile *cf, const void *buffer, usize count) override;
 
     int ioctl(CharFile *cf, u32 cmd, void *arg) override;
+    int set_cursor_image(const FbCursorImage* img);
 
-   private:
+private:
     // Validation helpers
     bool validate_rect(u32 x, u32 y, u32 w, u32 h);
     bool validate_blit(const FbBlit *blit);

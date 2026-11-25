@@ -101,7 +101,7 @@ namespace gpu::intel::display {
         /// PLANE_SURF. The caller holds the pipe lock.
         void write_surf_and_arm(gfx_addr_t surface);
 
-        [[nodiscard]] bool validate(const PlaneConfig& cfg) const;
+        [[nodiscard]] static bool validate(const PlaneConfig& cfg) ;
 
         [[nodiscard]] u32 reg(const u32 reg_1a) const {
             return plane_reg(pipe_id_, plane_id_, reg_1a);

@@ -49,7 +49,7 @@ namespace gpu::intel::display {
     // Validation
     // =========================================================================
 
-    bool DisplayPlane::validate(const PlaneConfig& cfg) const {
+    bool DisplayPlane::validate(const PlaneConfig& cfg) {
         if (cfg.width == 0 || cfg.height == 0 || cfg.width > PLANE_MAX_WIDTH || cfg.height > PLANE_MAX_HEIGHT) {
             Log::error("intel-display: plane config: invalid size %ux%u", cfg.width, cfg.height);
             return false;
@@ -134,6 +134,31 @@ namespace gpu::intel::display {
 
         SpinlockGuardIrq guard(pipe_->lock());
 
+        // If a DDB allocation was requested, program PLANE_BUF_CFG and disable
+        // any watermark level whose block count would no longer fit.
+        if (cfg.ddb.valid) {
+            const u32 avail_blocks = cfg.ddb.blocks();
+            for (u32 lvl = 0; lvl < PLANE_WM_LEVEL_COUNT; ++lvl) {
+                const u32 wm_reg = plane_wm_addr(reg(PLANE_WM_1_A), lvl);
+                auto wm = mmio_read<PLANE_WM>(*device_, wm_reg);
+                if (wm.enable && wm.blocks >= avail_blocks) {
+                    wm.raw = 0;
+                    mmio_write(*device_, wm_reg, wm);
+                }
+            }
+            const u32 trans_reg = reg(PLANE_WM_TRANS_1_A);
+            auto wm_trans = mmio_read<PLANE_WM>(*device_, trans_reg);
+            if (wm_trans.enable && wm_trans.blocks >= avail_blocks) {
+                wm_trans.raw = 0;
+                mmio_write(*device_, trans_reg, wm_trans);
+            }
+
+            PLANE_BUF_CFG buf_cfg{};
+            buf_cfg.raw = 0;
+            buf_cfg.set(cfg.ddb.start, cfg.ddb.end);
+            mmio_write(*device_, reg(PLANE_BUF_CFG_1_A), buf_cfg);
+        }
+
         // All of these are double-buffered and only latch once PLANE_SURF is
         // written (see display_regs.h), so the enable bit does not need a
         // separate write.
@@ -174,13 +199,13 @@ namespace gpu::intel::display {
     void DisplayPlane::disable() {
         SpinlockGuardIrq guard(pipe_->lock());
 
-        PLANE_CTL ctl = mmio_read<PLANE_CTL>(*device_, reg(PLANE_CTL_1_A));
+        auto ctl = mmio_read<PLANE_CTL>(*device_, reg(PLANE_CTL_1_A));
         ctl.plane_enable = 0;
         mmio_write(*device_, reg(PLANE_CTL_1_A), ctl);
 
         // The disable only latches with a PLANE_SURF write; rewrite the
         // current address.
-        const PLANE_SURF cur = mmio_read<PLANE_SURF>(*device_, reg(PLANE_SURF_1_A));
+        const auto cur = mmio_read<PLANE_SURF>(*device_, reg(PLANE_SURF_1_A));
         write_surf_and_arm(make_gfx(cur.address()));
     }
 
@@ -189,7 +214,7 @@ namespace gpu::intel::display {
     // =========================================================================
 
     bool DisplayPlane::read_config(PlaneConfig& out) const {
-        const PLANE_CTL ctl = mmio_read<PLANE_CTL>(*device_, reg(PLANE_CTL_1_A));
+        const auto ctl = mmio_read<PLANE_CTL>(*device_, reg(PLANE_CTL_1_A));
         if (!ctl.plane_enable) {
             return false;
         }
@@ -213,6 +238,7 @@ namespace gpu::intel::display {
         const auto pos = mmio_read<PLANE_POS>(*device_, reg(PLANE_POS_1_A));
         const auto offset = mmio_read<PLANE_OFFSET>(*device_, reg(PLANE_OFFSET_1_A));
         const auto surf = mmio_read<PLANE_SURF>(*device_, reg(PLANE_SURF_1_A));
+        const auto buf_cfg = mmio_read<PLANE_BUF_CFG>(*device_, reg(PLANE_BUF_CFG_1_A));
 
         out.surface = make_gfx(surf.address());
         out.width = size.width_px();
@@ -224,6 +250,11 @@ namespace gpu::intel::display {
         out.pitch_bytes = stride.stride_bytes(ctl.tiled_surface);
         out.format = ctl.source_pixel_format;
         out.rotation = ctl.plane_rotation;
+        if (buf_cfg.raw != 0 && buf_cfg.buffer_end >= buf_cfg.buffer_start) {
+            out.ddb = {static_cast<u16>(buf_cfg.buffer_start), static_cast<u16>(buf_cfg.buffer_end), true};
+        } else {
+            out.ddb = {};
+        }
         return true;
     }
 

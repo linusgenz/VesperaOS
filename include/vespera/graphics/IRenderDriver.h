@@ -27,6 +27,19 @@ class IRenderDriver {
 
     virtual void present() {};
 
+    [[nodiscard]] virtual bool has_hw_cursor() const {
+        return false;
+    }
+
+    [[nodiscard]] virtual bool set_cursor_image(
+        const u32* /*pixels*/, u32 /*width*/, u32 /*height*/, i32 /*hotspot_x*/, i32 /*hotspot_y*/
+    ) {
+        return false;
+    }
+
+    virtual void move_cursor(i32 /*x*/, i32 /*y*/) {}
+    virtual void set_cursor_visible(bool /*visible*/) {}
+
     [[nodiscard]] virtual u32 screen_width_px() const = 0;
     [[nodiscard]] virtual u32 screen_height_px() const = 0;
     [[nodiscard]] virtual u32 bytes_per_scanline() const = 0;
