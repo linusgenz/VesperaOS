@@ -30,6 +30,7 @@
 #include "uapi/vespera/signalfd.h"
 
 #include "realm/realm.h"
+#include "vespera/sync/poll_table.h"
 
 Signalfd::Signalfd(Realm* owner, const u64 mask, const bool nonblock)
     : owner_(owner), mask_(mask), nonblock_(nonblock), refcount_(1), next(nullptr) {
@@ -55,7 +56,7 @@ void Signalfd::destroy(void* res) {
 }
 
 int Signalfd::poll(PollTable* pt) {
-    (void)pt;
+    if (pt) pt->add(wait_);
     SpinlockGuard g(lock_);
     if (!owner_) return POLLHUP;
     return (owner_->signals_pending & mask_) ? POLLIN : 0;

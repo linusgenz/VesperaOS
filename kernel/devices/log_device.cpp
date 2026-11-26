@@ -64,8 +64,8 @@ isize LogDevice::read(CharFile* cf, void* buffer, usize count, usize offset) {
     return r;
 }
 
-int LogDevice::poll(CharFile* cf) {
+int LogDevice::poll(CharFile* cf, PollTable* pt) {
     if (!cf) return 0;
     const auto* ep = static_cast<ChannelEndpoint*>(cf->driver_private);
-    return ep->channel->poll(ep->is_reader, ep->is_writer);
+    return ep->channel->poll(ep->is_reader, ep->is_writer, pt);
 }

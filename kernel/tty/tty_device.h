@@ -120,17 +120,19 @@ class TtyDevice final : public CharDevice {
         return static_cast<int>(count);
     }
 
-    int poll(CharFile*) override {
-        if (!tty) return -ENODEV;
-        int mask = POLLOUT;
+    int poll(CharFile*, PollTable*) override {
+        if (!tty) return POLLHUP;
 
+        // TODO add wait queue on tty here for poll
+
+        int mask = POLLOUT;
         if (tty->canonical && tty->line_ready) mask |= POLLIN;
         if (!tty->canonical && tty->raw_len > 0) mask |= POLLIN;
 
         return mask;
     }
 
-    bool is_tty() const override {
+    [[nodiscard]] bool is_tty() const override {
         return true;
     }
     TtyDevice* as_tty() override {

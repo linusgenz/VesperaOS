@@ -29,6 +29,7 @@
 
 #include "klib/result.h"
 #include "uapi/vespera/stat.h"
+#include "vespera/sync/poll_table.h"
 
 struct MountPoint;
 enum class VfsNodeType : u8 {
@@ -86,7 +87,7 @@ struct VfsNodeOps {
 
     VoidResult (*chmod)(VfsNode *node, u16 mode);
 
-    int (*poll)(const VfsNode *node, VfsHandleContext *ctx);
+    int (*poll)(const VfsNode *node, VfsHandleContext *ctx, PollTable* pt);
 };
 
 struct VfsNode {

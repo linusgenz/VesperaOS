@@ -41,7 +41,7 @@ namespace kernel::input {
         int release(CharFile*) override;
         isize read(CharFile*, void* buf, usize count, usize offset) override;
         isize write(CharFile*, const void* buf, usize count) override;
-        int poll(CharFile*) override;
+        int poll(CharFile*, PollTable* pt) override;
 
         static void share_mouse_event(const InputEvent& ev);
 
@@ -50,11 +50,11 @@ namespace kernel::input {
 
         static constexpr usize BUFFER_SIZE = 128;
         mice_event buffer_[BUFFER_SIZE];
-        volatile usize head_ = 0;
-        volatile usize tail_ = 0;
-        Spinlock lock_{};
+        volatile usize head_{0};
+        volatile usize tail_{0};
+        Spinlock lock_;
 
-        KernelDevice* devnode;
+        KernelDevice* devnode_;
 
         WaitQueue wait_queue_;
 

@@ -26,6 +26,7 @@
 #include <vespera_errno.h>
 
 #include "uapi/vespera/poll.h"
+#include "vespera/sync/poll_table.h"
 
 Timerfd::Timerfd(const int clockid, const bool nonblock)
     : expirations_(0), interval_ns_(0), next_deadline_ns_(0),
@@ -52,8 +53,8 @@ void Timerfd::destroy(void* res) {
 }
 
 int Timerfd::poll(PollTable* pt) {
-    (void)pt;
-    SpinlockGuard g(lock_);
+    if (pt) pt->add(wait_);
+    SpinlockGuardIrq g(lock_);
     return (expirations_ > 0) ? POLLIN : 0;
 }
 
@@ -62,24 +63,25 @@ isize Timerfd::read(void* out, const usize count) {
 
     while (true) {
         Unit* cur = nonblock_ ? nullptr : kernel::scheduling::get_current_unit();
+        u64 val = 0;
 
-        lock_.lock();
-
-        if (expirations_ == 0) {
-            if (nonblock_ || !cur) {
-                lock_.unlock();
-                return -EAGAIN;
+        {
+            SpinlockGuardIrq g(lock_);
+            if (expirations_ == 0) {
+                if (nonblock_ || !cur) {
+                    return -EAGAIN;
+                }
+                wait_.add_wait(cur);
+            } else {
+                val = expirations_;
+                expirations_ = 0;
             }
-            wait_.add_wait(cur);
-            lock_.unlock();
+        }
+
+        if (val == 0) {
             kernel::scheduling::yield();
             continue;
         }
-
-        const u64 val = expirations_;
-        expirations_ = 0;
-
-        lock_.unlock();
 
         *static_cast<u64*>(out) = val;
         return sizeof(u64);
@@ -89,19 +91,20 @@ isize Timerfd::read(void* out, const usize count) {
 void Timerfd::on_timer_fire(void* self_ptr) {
     auto* self = static_cast<Timerfd*>(self_ptr);
 
-    self->lock_.lock();
-    self->expirations_++;
+    {
+        SpinlockGuardIrq g(self->lock_);
+        self->expirations_++;
 
-    if (self->interval_ns_ > 0) {
-        self->next_deadline_ns_ += self->interval_ns_;
-        self->timer_handle_ = kernel::time::schedule_callback(
-            self->next_deadline_ns_, on_timer_fire, self);
-    } else {
-        self->next_deadline_ns_ = 0;
-        self->timer_handle_ = {};
+        if (self->interval_ns_ > 0) {
+            self->next_deadline_ns_ += self->interval_ns_;
+            self->timer_handle_ = kernel::time::schedule_callback(
+                self->next_deadline_ns_, on_timer_fire, self);
+        } else {
+            self->next_deadline_ns_ = 0;
+            self->timer_handle_ = {};
+        }
     }
 
-    self->lock_.unlock();
     self->wait_.wake_all();
 }
 
@@ -125,7 +128,7 @@ void Timerfd::arm_locked(const u64 value_ns, const u64 interval_ns, const bool a
 
 i64 Timerfd::settime(const int flags, const u64 value_ns, const u64 interval_ns, const bool abstime,
                       u64* old_value_ns, u64* old_interval_ns) {
-    SpinlockGuard g(lock_);
+    SpinlockGuardIrq g(lock_);
 
     if (old_value_ns) {
         // Für nicht-periodische/relative Rückgabe müsstest du hier

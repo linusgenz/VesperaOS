@@ -22,11 +22,9 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <vespera/sync/wait_queue.h>
-
+#include <vespera/sync/poll_table.h>
 #include <vespera/scheduling.h>
 #include <units/unit.h>
-
-#include "vespera/log.h"
 
 WaitQueue::WaitQueue() {
     lock_.init();
@@ -50,12 +48,33 @@ void WaitQueue::add_wait(Unit *u) {
     }
 }
 
-void WaitQueue::wake_all_impl() {
-    const WaitQueueEntry *entry = head_;
-    while (entry) {
-        if (entry->unit) {
-            entry->unit->state = UnitState::Ready;
+void WaitQueue::add_poll_wait(Unit* u, PollWaiter* waiter) {
+    auto* entry = new WaitQueueEntry();
+    entry->unit = u;
+    entry->waiter = waiter;
+    entry->next = nullptr;
 
+    SpinlockGuardIrq guard(lock_);
+
+    if (!head_) {
+        head_ = tail_ = entry;
+    } else {
+        tail_->next = entry;
+        tail_ = entry;
+    }
+}
+
+void WaitQueue::wake_all_impl() {
+    WaitQueueEntry* entry = head_;
+    head_ = tail_ = nullptr;
+
+    while (entry) {
+        WaitQueueEntry* next = entry->next;
+
+        if (entry->waiter) {
+            entry->waiter->wake();
+        } else if (entry->unit) {
+            entry->unit->state = UnitState::Ready;
             if (entry->unit->sleep_context.wakeup_ns != 0) {
                 entry->unit->sleep_context.wakeup_ns = 0;
                 kernel::scheduling::remove_blocked_unit(entry->unit);
@@ -63,12 +82,9 @@ void WaitQueue::wake_all_impl() {
             kernel::scheduling::add_unit(entry->unit);
         }
 
-        const WaitQueueEntry *next = entry->next;
         delete entry;
         entry = next;
     }
-
-    head_ = tail_ = nullptr;
 }
 
 void WaitQueue::wake_all() {
@@ -83,22 +99,29 @@ void WaitQueue::wake_all_irq() {
 }
 
 void WaitQueue::wake_one_impl() {
-    if (!head_) return;
+    while (head_) {
+        WaitQueueEntry* entry = head_;
+        head_ = head_->next;
+        if (!head_) tail_ = nullptr;
 
-    const WaitQueueEntry *entry = head_;
-    head_ = head_->next;
-    if (!head_) tail_ = nullptr;
-
-    if (entry->unit) {
-        entry->unit->state = UnitState::Ready;
-        if (entry->unit->sleep_context.wakeup_ns != 0) {
-            entry->unit->sleep_context.wakeup_ns = 0;
-            kernel::scheduling::remove_blocked_unit(entry->unit);
+        if (entry->waiter) {
+            entry->waiter->wake();
+            delete entry;
+            continue;
         }
-        kernel::scheduling::add_unit(entry->unit);
-    }
 
-    delete entry;
+        if (entry->unit) {
+            entry->unit->state = UnitState::Ready;
+            if (entry->unit->sleep_context.wakeup_ns != 0) {
+                entry->unit->sleep_context.wakeup_ns = 0;
+                kernel::scheduling::remove_blocked_unit(entry->unit);
+            }
+            kernel::scheduling::add_unit(entry->unit);
+        }
+
+        delete entry;
+        break;
+    }
 }
 
 void WaitQueue::wake_one() {
@@ -157,14 +180,20 @@ u32 WaitQueue::wake_matching(u32 max_wake, bool (*predicate)(const Unit*)) {
             }
             if (cur == tail_) tail_ = prev;
 
-            if (cur->unit) {
+            if (cur->waiter) {
+                cur->waiter->wake();
+            } else if (cur->unit) {
                 cur->unit->state = UnitState::Ready;
-                kernel::scheduling::remove_blocked_unit(cur->unit);
+                if (cur->unit->sleep_context.wakeup_ns != 0) {
+                    cur->unit->sleep_context.wakeup_ns = 0;
+                    kernel::scheduling::remove_blocked_unit(cur->unit);
+                }
                 kernel::scheduling::add_unit(cur->unit);
+                ++woken;
             }
+
             delete cur;
             cur = next;
-            ++woken;
         } else {
             prev = cur;
             cur = cur->next;

@@ -167,6 +167,20 @@ void HandleTable::acquire(const HandleId hid) {
     }
 }
 
+HandleEntry* HandleTable::lookup_and_acquire(const HandleId hid) {
+    const usize slot = hid & HANDLE_ID_MASK;
+    if (slot >= MAX_HANDLES_PER_REALM) return nullptr;
+
+    SpinlockGuard guard(lock_);
+    if (!test_bit(slot)) return nullptr;
+
+    HandleEntry& he = entries_[slot];
+    if (he.hid != hid) return nullptr;
+
+    __sync_add_and_fetch(&he.refcount, 1);
+    return &he;
+}
+
 void HandleTable::release(const HandleId hid) {
     const usize slot = hid & HANDLE_ID_MASK;
     if (slot >= MAX_HANDLES_PER_REALM) return;

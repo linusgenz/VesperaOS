@@ -42,7 +42,7 @@ class Signalfd final : public HandleResource, public Pollable {
     WaitQueue wait_;
 
     explicit Signalfd(Realm* owner, u64 mask, bool nonblock);
-    ~Signalfd() = default;
+    ~Signalfd() override = default;
 
 public:
     static Signalfd* create(Realm* owner, u64 mask, bool nonblock);

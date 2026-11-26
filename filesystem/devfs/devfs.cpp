@@ -520,18 +520,18 @@ VoidResult DevFs::stat(const VfsNode* node, struct stat* out) {
     return VoidResult::ok();
 }
 
-int DevFs::poll(const VfsNode* node, VfsHandleContext* ctx) {
-    if (!node) return -EINVAL;
+int DevFs::poll(const VfsNode* node, VfsHandleContext* ctx, PollTable* pt) {
+    if (!node) return POLLERR;
 
     const auto* entry = static_cast<DevfsEntry*>(node->internal_data);
-    if (!entry || !entry->device) return -EINVAL;
+    if (!entry || !entry->device) return POLLHUP;
 
     const KernelDevice* kd = entry->device;
 
     if (kd->chardev) {
-        if (!ctx || !ctx->type_specific_data) return -EINVAL;
+        if (!ctx || !ctx->type_specific_data) return POLLERR;
         auto* cf = static_cast<CharFile*>(ctx->type_specific_data);
-        return kd->chardev->poll(cf);
+        return kd->chardev->poll(cf, pt);
     }
 
     if (kd->block) return POLLIN | POLLOUT;

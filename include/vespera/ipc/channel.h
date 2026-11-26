@@ -86,7 +86,7 @@ public:
     void wait_for_reader(Unit* cur);
 
     usize free_space();
-    int poll(bool is_reader, bool is_writer, PollTable* pt = nullptr);
+    int poll(bool is_reader, bool is_writer, PollTable* pt);
 
     // return: bytes written (>=0) or negative errno
     isize send(const void* data, usize len, bool blocking = false);

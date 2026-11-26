@@ -56,7 +56,7 @@ class DevFs : public VirtualFilesystem<KernelDevice, DevfsEntry> {
     static isize ioctl(const VfsNode* node, u32 cmd, void* arg, VfsHandleContext* ctx);
 
     static void close_session(VfsNode* node, VfsHandleContext* ctx);
-    static int poll(const VfsNode* node, VfsHandleContext* ctx);
+    static int poll(const VfsNode* node, VfsHandleContext* ctx, PollTable* pt);
 
     static CharFile* get_char_file(VfsHandleContext* ctx);
 

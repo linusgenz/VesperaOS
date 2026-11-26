@@ -25,6 +25,7 @@
 #include <vespera_errno.h>
 
 #include "uapi/vespera/poll.h"
+#include "vespera/sync/poll_table.h"
 
 
 Eventfd::Eventfd(const u64 initval, const bool semaphore_mode, const bool nonblock)
@@ -53,7 +54,7 @@ void Eventfd::destroy(void* res) {
 }
 
 int Eventfd::poll(PollTable* pt) {
-    (void)pt;
+    if (pt) pt->add(wait_);
     SpinlockGuard g(lock_);
 
     int mask = 0;

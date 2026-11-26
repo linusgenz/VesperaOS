@@ -31,6 +31,7 @@
 
 #include "klib/result.h"
 #include "uapi/vespera/poll.h"
+#include "vespera/sync/poll_table.h"
 
 Channel::Channel(const usize cap)
     : buf_(static_cast<u8*>(kernel::memory::malloc(cap)))
@@ -163,7 +164,11 @@ usize Channel::free_space() {
 }
 
 int Channel::poll(bool is_reader, bool is_writer, PollTable* pt) {
-    (void)pt;
+    if (pt) {
+        if (is_reader) pt->add(read_wait_);
+        if (is_writer) pt->add(write_wait_);
+    }
+
     SpinlockGuard g(lock_);
 
     int mask = 0;

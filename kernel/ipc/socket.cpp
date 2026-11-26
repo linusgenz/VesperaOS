@@ -30,8 +30,10 @@
 #include "realm/handle_table.h"
 #include "realm/handle_transfer.h"
 #include "realm/realm.h"
+#include "uapi/vespera/poll.h"
 #include "vespera/mm/memory.h"
 #include "vespera/realm/realm_manager.h"
+#include "vespera/sync/poll_table.h"
 
 namespace {
     void unwind_channel(ChannelEndpoint* a_side, ChannelEndpoint* b_side) {
@@ -334,9 +336,14 @@ isize SocketEndpoint::recvmsg(msghdr* msg, const unsigned flags, const RealmId r
     return static_cast<isize>(total_read);
 }
 
-int SocketEndpoint::poll() const {
+int SocketEndpoint::poll(PollTable* pt) const {
     int mask = 0;
-    if (rx) mask |= rx->channel->poll(/*is_reader=*/true, /*is_writer=*/false);
-    if (tx) mask |= tx->channel->poll(/*is_reader=*/false, /*is_writer=*/true);
+    if (rx && rx->channel) {
+        mask |= rx->channel->poll(/*is_reader=*/true, /*is_writer=*/false, pt);
+    }
+    if (tx && tx->channel) {
+        PollTable* tx_pt = (pt && pt->wants(POLLOUT)) ? pt : nullptr;
+        mask |= tx->channel->poll(/*is_reader=*/false, /*is_writer=*/true, tx_pt);
+    }
     return mask;
 }

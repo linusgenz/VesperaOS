@@ -55,7 +55,7 @@ class CharDevice {
         return -ENOTTY;
     }
 
-    virtual int poll(CharFile*) {
+    virtual int poll(CharFile*, PollTable*) {
         return 0;
     }
 

@@ -82,7 +82,7 @@ struct VfsHandle final : HandleResource, Pollable {
         }
 
         if (node->ops && node->ops->poll) {
-            return node->ops->poll(node, context);
+            return node->ops->poll(node, context, pt);
         }
 
         return POLLIN | POLLOUT;

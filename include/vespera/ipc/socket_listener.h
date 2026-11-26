@@ -58,7 +58,7 @@ public:
 
     static void ref(void* res);
     static void destroy(void* res);
-    int poll() const;
+    int poll(PollTable* pt);
 
 private:
     SocketListener() = default;

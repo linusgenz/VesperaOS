@@ -35,7 +35,7 @@ namespace kernel::input {
         lock_.init();
         s_instance_ = this;
 
-        devnode = DeviceManager::register_device(
+        devnode_ = DeviceManager::register_device(
             DeviceDescriptor{}
             .set_name("mice")
             .set_type(DeviceType::Char)
@@ -43,12 +43,12 @@ namespace kernel::input {
             .with_char(this)
             .set_bus(BusType::VIRTUAL)
         );
-        DevFs::register_device(devnode);
+        DevFs::register_device(devnode_);
     }
 
     MiceDevice::~MiceDevice() {
-        DevFs::unregister_device(devnode);
-        DeviceManager::unregister_device(devnode);
+        DevFs::unregister_device(devnode_);
+        DeviceManager::unregister_device(devnode_);
         if (s_instance_ == this) s_instance_ = nullptr;
     }
 
@@ -171,7 +171,8 @@ namespace kernel::input {
         return static_cast<isize>(events_read * sizeof(mice_event));
     }
 
-    int MiceDevice::poll(CharFile*) {
+    int MiceDevice::poll(CharFile*, PollTable* pt) {
+        if (pt) pt->add(wait_queue_);
         SpinlockGuardIrq g(lock_);
         return (head_ != tail_) ? POLLIN : 0;
     }

@@ -49,7 +49,7 @@ class LogDevice final : public CharDevice {
 
     isize write(CharFile* cf, const void* buffer, usize count) override;
 
-    int poll(CharFile* cf) override;
+    int poll(CharFile* cf, PollTable* pt) override;
 };
 
 #endif  // VESPERAOS_LOG_DEVICE_H

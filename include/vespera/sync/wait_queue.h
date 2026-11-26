@@ -27,14 +27,16 @@
 #include <vespera/sync/spinlock.h>
 
 class Unit;
+class PollWaiter;
 
 struct WaitQueueEntry {
     Unit *unit{nullptr};
+    PollWaiter* waiter{nullptr};
     WaitQueueEntry *next{nullptr};
 };
 
 class WaitQueue {
-    Spinlock lock_{};
+    Spinlock lock_;
     WaitQueueEntry *head_{nullptr};
     WaitQueueEntry *tail_{nullptr};
 
@@ -48,6 +50,7 @@ class WaitQueue {
     void wake_one_irq();
     bool remove(const Unit *u);
     u32 wake_matching(u32 max_wake, bool (*predicate)(const Unit*));
+    void add_poll_wait(Unit* u, PollWaiter* waiter);
 
 private:
     void wake_one_impl();

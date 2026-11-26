@@ -58,12 +58,11 @@ void SocketHandle::destroy(void* res) {
 }
 
 int SocketHandle::poll(PollTable* pt) {
-    (void)pt;
     if (state == SocketState::CONNECTED && endpoint) {
-        return endpoint->poll();
+        return endpoint->poll(pt);
     }
     if (state == SocketState::LISTENING && listener) {
-        return listener->poll();
+        return listener->poll(pt);
     }
     return POLLHUP;
 }

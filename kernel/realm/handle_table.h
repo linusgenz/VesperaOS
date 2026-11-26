@@ -75,6 +75,9 @@ public:
     );
 
     VoidResult setup_vbus();
+
+    HandleEntry* lookup_and_acquire(HandleId hid);
+
     [[nodiscard]] HandleEntry* lookup(HandleId hid);
 
     void acquire(HandleId hid);

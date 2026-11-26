@@ -59,7 +59,7 @@ struct SocketEndpoint {
     // the CALLING realm
     isize recvmsg(msghdr* msg, unsigned flags, RealmId receiver_realm) const;
 
-    [[nodiscard]] int poll() const;
+    [[nodiscard]] int poll(PollTable* pt) const;
 
 private:
     SocketEndpoint(ChannelEndpoint* tx, ChannelEndpoint* rx)
