@@ -91,6 +91,10 @@ namespace gpu::intel::display {
             return plane_id_;
         }
 
+        [[nodiscard]] WaitQueue& flip_wait_queue() const {
+            return flip_waiters_;
+        }
+
     private:
         friend class DisplayPipe;
 

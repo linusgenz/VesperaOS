@@ -91,6 +91,8 @@ class FramebufferDevice final : public CharDevice {
     isize read(CharFile *cf, void *buffer, usize count, usize offset) override;
     isize write(CharFile *cf, const void *buffer, usize count) override;
 
+    int poll(CharFile *cf, PollTable* pt) override;
+
     int ioctl(CharFile *cf, u32 cmd, void *arg) override;
     int set_cursor_image(const FbCursorImage* img);
 

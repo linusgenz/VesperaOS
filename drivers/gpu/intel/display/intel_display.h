@@ -207,6 +207,9 @@ namespace gpu::intel::display {
         ) override;
         void present() override;
 
+        int present_async() override;
+        int poll(PollTable* pt) override;
+
         [[nodiscard]] u32 screen_width_px() const override {
             return scanout_ready_ ? scanout_[front_idx_].width : 0;
         }
@@ -222,7 +225,6 @@ namespace gpu::intel::display {
     private:
         void log_firmware_state();
         bool init_scanout();
-        void ensure_back_ready();
         void upload_rect_to_back(const DirtyRect& r) const;
         void sync_cursor_hw_locked(bool force_commit);
 
@@ -244,8 +246,6 @@ namespace gpu::intel::display {
         u32 front_idx_{0u};
         u32 back_idx_{1u};
         bool scanout_ready_{false};
-        bool back_dirty_{false};
-        bool flip_pending_{false};
 
         u32* shadow_ = nullptr;
         u32 shadow_stride_px_{0u};

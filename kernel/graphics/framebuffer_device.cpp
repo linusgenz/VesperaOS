@@ -44,6 +44,12 @@ isize FramebufferDevice::write(CharFile* /*cf*/, const void* /*buffer*/, usize /
     return -EUNSUPPORTED;
 }
 
+int FramebufferDevice::poll(CharFile*, PollTable* pt) {
+    auto [drv, kd] = DisplayManager::primary();
+    if (!drv) return POLLHUP;
+    return drv->poll(pt);
+}
+
 int FramebufferDevice::ioctl(CharFile*, const u32 cmd, void* arg) {
     auto [drv, kd] = DisplayManager::primary();
     if (!drv) return -ENODEV;
@@ -100,6 +106,8 @@ int FramebufferDevice::ioctl(CharFile*, const u32 cmd, void* arg) {
         case FB_IOCTL_PRESENT:
             drv->present();
             return 0;
+        case FB_IOCTL_PRESENT_ASYNC:
+            return drv->present_async();
 
         default:
             return -ENOTTY;
@@ -117,10 +125,10 @@ int FramebufferDevice::set_cursor_image(const FbCursorImage* img) {
     if (!backend.drv->has_hw_cursor()) return -EUNSUPPORTED;
 
     if (!backend.drv->set_cursor_image(
-            img->pixels, img->width, img->height, img->hotspot_x, img->hotspot_y
-        )) {
+        img->pixels, img->width, img->height, img->hotspot_x, img->hotspot_y
+    )) {
         return -EIO;
-        }
+    }
     return 0;
 }
 
@@ -187,19 +195,19 @@ int FramebufferDevice::draw_rect_outline(const FbRectOutline* rect) {
 
     if (rect->height > 2 * rect->thickness) {
         if (!drv->fill_rect(
-                rect->x, rect->y + rect->thickness, rect->thickness, rect->height - 2 * rect->thickness, rect->color
-            ))
+            rect->x, rect->y + rect->thickness, rect->thickness, rect->height - 2 * rect->thickness, rect->color
+        ))
             return -EIO;
     }
 
     if (rect->height > 2 * rect->thickness) {
         if (!drv->fill_rect(
-                rect->x + rect->width - rect->thickness,
-                rect->y + rect->thickness,
-                rect->thickness,
-                rect->height - 2 * rect->thickness,
-                rect->color
-            ))
+            rect->x + rect->width - rect->thickness,
+            rect->y + rect->thickness,
+            rect->thickness,
+            rect->height - 2 * rect->thickness,
+            rect->color
+        ))
             return -EIO;
     }
 
@@ -221,8 +229,8 @@ int FramebufferDevice::blit_pixels(const FbBlit* blit) {
     auto backend = DisplayManager::primary();
 
     if (!backend.drv->blit_region(
-            blit->pixels, blit->src_stride, blit->src_x, blit->src_y, blit->w, blit->h, blit->dst_x, blit->dst_y
-        )) {
+        blit->pixels, blit->src_stride, blit->src_x, blit->src_y, blit->w, blit->h, blit->dst_x, blit->dst_y
+    )) {
         return -EIO;
     }
 

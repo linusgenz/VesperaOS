@@ -31,6 +31,7 @@
 #include "display_mmio.h"
 #include "vespera/cpu/simd_mem.h"
 #include "vespera/debug/chronos.h"
+#include "vespera/sync/poll_table.h"
 
 namespace gpu::intel::display {
     namespace {
@@ -154,8 +155,6 @@ namespace gpu::intel::display {
 
         front_idx_ = 0;
         back_idx_ = 1;
-        back_dirty_ = false;
-        flip_pending_ = false;
 
         PlaneConfig cfg = scanout_[front_idx_].plane_config();
         cfg.format = firmware_cfg.format; // Pixelformat der Firmware übernehmen, Rest ist unser Buffer
@@ -413,24 +412,6 @@ namespace gpu::intel::display {
         return handled;
     }
 
-    void IntelDisplay::ensure_back_ready() {
-        if (!flip_pending_) return;
-
-        kernel::chronos::checkpoint("disp.flip_wait", "begin");
-        if (!primary_plane().wait_flip_done(FLIP_TIMEOUT_US)) {
-            Log::warning("intel-display: flip did not complete within %u us", FLIP_TIMEOUT_US);
-        }
-        flip_pending_ = false;
-        kernel::chronos::checkpoint("disp.flip_wait", "flip_done");
-
-        const ScanoutBuffer& front = scanout_[front_idx_];
-        const ScanoutBuffer& back = scanout_[back_idx_];
-
-        const usize bytes_to_copy = static_cast<usize>(front.pitch) * front.height;
-        fb_memcpy_avx2(virt_ptr(back.alloc.cpu_addr), virt_ptr(front.alloc.cpu_addr), bytes_to_copy);
-        kernel::chronos::checkpoint("disp.flip_wait", "back_sync_end");
-    }
-
     bool IntelDisplay::fill_rect(const u32 px, const u32 py, const u32 w, const u32 h, const u32 colour) {
         if (!scanout_ready_ || !shadow_) return false;
 
@@ -493,12 +474,11 @@ namespace gpu::intel::display {
     void IntelDisplay::present() {
         if (!scanout_ready_ || !curr_dirty_.valid) return;
 
-        if (flip_pending_) {
+        if (primary_plane().flip_pending()) {
             kernel::chronos::checkpoint("disp.flip_wait", "begin");
             if (!primary_plane().wait_flip_done(FLIP_TIMEOUT_US)) {
                 Log::warning("intel-display: flip did not complete within %u us", FLIP_TIMEOUT_US);
             }
-            flip_pending_ = false;
             kernel::chronos::checkpoint("disp.flip_wait", "flip_done");
         }
 
@@ -530,8 +510,50 @@ namespace gpu::intel::display {
 
         prev_dirty_ = curr_dirty_;
         curr_dirty_.reset();
-        flip_pending_ = true;
 
         kernel::chronos::checkpoint("disp.present", "flip_queued");
+    }
+
+    int IntelDisplay::present_async() {
+        if (!scanout_ready_) return -ENODEV;
+        if (!curr_dirty_.valid) return 1;
+        if (primary_plane().flip_pending()) return -EBUSY;
+
+        kernel::chronos::checkpoint("disp.present", "present_begin");
+
+        if (prev_dirty_.valid) {
+            const DirtyRect u = curr_dirty_.union_with(prev_dirty_);
+            if (u.area() <= curr_dirty_.area() + prev_dirty_.area()) {
+                upload_rect_to_back(u);
+            } else {
+                upload_rect_to_back(prev_dirty_);
+                upload_rect_to_back(curr_dirty_);
+            }
+        } else {
+            upload_rect_to_back(curr_dirty_);
+        }
+
+        kernel::chronos::checkpoint("disp.present", "upload_done");
+
+        if (!primary_plane().flip(scanout_[back_idx_].alloc.gfx_addr)) {
+            Log::error("intel-display: present_async: flip rejected");
+            return -EIO;
+        }
+
+        const u32 new_back = front_idx_;
+        front_idx_ = back_idx_;
+        back_idx_ = new_back;
+
+        prev_dirty_ = curr_dirty_;
+        curr_dirty_.reset();
+
+        kernel::chronos::checkpoint("disp.present", "flip_queued");
+        return 0;
+    }
+
+    int IntelDisplay::poll(PollTable* pt) {
+        if (!scanout_ready_) return POLLHUP;
+        if (pt) pt->add(primary_plane().flip_wait_queue());
+        return primary_plane().flip_pending() ? 0 : POLLOUT;
     }
 } // namespace gpu::intel::display

@@ -193,23 +193,25 @@ typedef struct fb_cursor_pos {
 
 #define FB_IOCTL_PRESENT               IO('F', 0x06)
 
+#define FB_IOCTL_PRESENT_ASYNC _IO('F', 0x7)
+
 /**
  * @brief Uploads a hardware cursor image and sets its hotspot.
  * Returns -EUNSUPPORTED if the active render driver has no HW cursor.
  */
-#define FB_IOCTL_CURSOR_SET_IMAGE   IOW('F', 0x07, fb_cursor_image_t)
+#define FB_IOCTL_CURSOR_SET_IMAGE   IOW('F', 0x08, fb_cursor_image_t)
 
 /**
  * @brief Moves the hardware cursor hotspot to (x, y).
  * Takes effect on the next VBlank without requiring FB_IOCTL_PRESENT.
  */
-#define FB_IOCTL_CURSOR_MOVE        IOW('F', 0x08, fb_cursor_pos_t)
+#define FB_IOCTL_CURSOR_MOVE        IOW('F', 0x09, fb_cursor_pos_t)
 
 /**
  * @brief Shows (1) or hides (0) the hardware cursor.
  * Pass a pointer to uint32_t.
  * By default the cursor is hidden and has to be enabled with this ioctl
  */
-#define FB_IOCTL_CURSOR_VISIBLE     IOW('F', 0x09, uint32_t)
+#define FB_IOCTL_CURSOR_VISIBLE     IOW('F', 0x10, uint32_t)
 
 #endif //VESPERAOS_IOCTL_FRAMEBUFFER_H

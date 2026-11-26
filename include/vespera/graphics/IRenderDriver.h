@@ -2,6 +2,10 @@
 #define VESPERAOS_GRAPHICS_IRENDERDRIVER_H
 
 #include <vespera/types.h>
+#include <uapi/vespera/poll.h>
+#include <vespera_errno.h>
+
+class PollTable;
 
 class IRenderDriver {
    public:
@@ -26,6 +30,10 @@ class IRenderDriver {
     ) = 0;
 
     virtual void present() {};
+
+    virtual int present_async() { return -EUNSUPPORTED; }
+
+    virtual int poll(PollTable* /*pt*/) { return POLLOUT; }
 
     [[nodiscard]] virtual bool has_hw_cursor() const {
         return false;

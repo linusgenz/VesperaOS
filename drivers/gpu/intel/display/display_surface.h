@@ -147,7 +147,7 @@ namespace gpu::intel::display {
         TileMode tiling = TileMode::Linear;
         PLANE_CTL::Rotation rotation = PLANE_CTL::ROTATE_0;
 
-        /// Optional DDB allocation. If valid, commit() updates PLANE_BUF_CFG.
+        /// If valid, commit() updates PLANE_BUF_CFG.
         DdbAllocation ddb{};
     };
 
